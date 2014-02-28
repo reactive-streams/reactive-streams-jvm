@@ -1,3 +1,14 @@
 target/
 .project
 .classpath
+.cache
+.target/
+*~
+.#*
+.*.swp
+.DS_Store
+.codefellow
+.ensime*
+.eprj
+.history
+.idea
