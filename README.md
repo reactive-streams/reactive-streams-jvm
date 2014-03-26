@@ -25,7 +25,7 @@ The Reactive Streams specification consists of the following parts:
 
 **The API** specifies the types that the users of Reactive Stream libraries use.
 
-***The Technology Compatibility Kit (TCK)*** is astandard test suite for conformance testing of implementations.
+***The Technology Compatibility Kit (TCK)*** is a standard test suite for conformance testing of implementations.
 
 Implementations are free to implement additional features not covered by the specification as long as they conform to the API and SPI requirements and pass the tests in the TCK.
 
