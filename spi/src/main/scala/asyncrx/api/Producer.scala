@@ -17,6 +17,21 @@ trait Producer[T] {
    * implementations of this API.
    */
   def getPublisher: spi.Publisher[T]
+  
+  /**
+   * Connect the given consumer to this producer. This means that the
+   * Subscriber underlying the Consumer subscribes to this Producer’s
+   * underlying Publisher, which will initiate the transfer of the produced
+   * stream of elements from producer to consumer until either of three things
+   * happen:
+   * 
+   * <ul>
+   * <li>The stream ends normally (no more elements available).</li>
+   * <li>The producer encounters a fatal error condition.</li>
+   * <li>The consumer cancels the reception of more elements.</li>
+   * </ul>
+   */
+  def produceTo(consumer: Consumer[T]): Unit
 }
 
 /**
