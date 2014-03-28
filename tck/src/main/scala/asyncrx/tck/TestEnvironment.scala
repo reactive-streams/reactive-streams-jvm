@@ -9,7 +9,12 @@ import scala.collection.JavaConverters._
 
 import asyncrx.spi._
 
+object TestEnvironment {
+  final val testBufferSize = 16
+}
+
 trait TestEnvironment {
+  import TestEnvironment._
 
   val asyncErrors = new CopyOnWriteArrayList[Throwable]()
 
@@ -144,8 +149,13 @@ trait TestEnvironment {
       else flop(s"Cannot sendError before subscriber subscription")
     def nextRequestMore(timeoutMillis: Int = 100): Int =
       requests.next(timeoutMillis, "Did not receive expected `requestMore` call")
-    def expectRequestMore(expected: Int, timeoutMillis: Int = 100): Unit = {
+    def expectRequestMore(timeoutMillis: Int = 100): Int = {
       val requested = nextRequestMore(timeoutMillis)
+      if (requested <= 0) flop(s"Requests cannot be zero or negative but received requestMore($requested)")
+      requested
+    }
+    def expectExactRequestMore(expected: Int, timeoutMillis: Int = 100): Unit = {
+      val requested = expectRequestMore(timeoutMillis)
       if (requested != expected) flop(s"Received `requestMore($requested)` on upstream but expected `requestMore($expected)`")
     }
     def expectNoRequestMore(timeoutMillis: Int = 100): Unit =
@@ -185,7 +195,7 @@ trait TestEnvironment {
   }
 
   // a "Promise" for multiple values, which also supports "end-of-stream reached"
-  class Receptacle[T](val queueSize: Int = 16) {
+  class Receptacle[T](val queueSize: Int = 2 * testBufferSize) {
     private val abq = new ArrayBlockingQueue[Option[T]](queueSize)
     def add(value: T): Unit = abq.add(Some(value))
     def complete(): Unit = abq.add(None)

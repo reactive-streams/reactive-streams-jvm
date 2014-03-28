@@ -4,7 +4,7 @@ import org.testng.annotations.Test
 import asyncrx.spi._
 
 trait SubscriberVerification[T] extends TestEnvironment {
- import SubscriberVerification._
+  import SubscriberVerification._
 
   // TODO: make the timeouts be dilate-able so that one can tune the suite for the machine it runs on
 
@@ -30,12 +30,12 @@ trait SubscriberVerification[T] extends TestEnvironment {
   def exerciseHappyPath(): Unit =
     new TestSetup {
       puppet.triggerRequestMore(1)
-      expectRequestMore(1)
+      val receivedRequests = expectRequestMore()
       sendNextTFromUpstream()
       probe.expectNext(lastT)
 
       puppet.triggerRequestMore(1)
-      expectRequestMore(1)
+      if (receivedRequests == 1) expectRequestMore()
       sendNextTFromUpstream()
       probe.expectNext(lastT)
 
