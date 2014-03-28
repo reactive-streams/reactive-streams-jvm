@@ -9,7 +9,12 @@ import scala.collection.JavaConverters._
 
 import asyncrx.spi._
 
+object TestEnvironment {
+  final val testBufferSize = 16
+}
+
 trait TestEnvironment {
+  import TestEnvironment._
 
   val asyncErrors = new CopyOnWriteArrayList[Throwable]()
 
@@ -190,7 +195,7 @@ trait TestEnvironment {
   }
 
   // a "Promise" for multiple values, which also supports "end-of-stream reached"
-  class Receptacle[T](val queueSize: Int = 32) {
+  class Receptacle[T](val queueSize: Int = 2 * testBufferSize) {
     private val abq = new ArrayBlockingQueue[Option[T]](queueSize)
     def add(value: T): Unit = abq.add(Some(value))
     def complete(): Unit = abq.add(None)
