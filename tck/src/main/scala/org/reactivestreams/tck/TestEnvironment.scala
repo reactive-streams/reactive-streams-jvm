@@ -1,4 +1,4 @@
-package asyncrx.tck
+package org.reactivestreams.tck
 
 import java.util.concurrent._
 import org.testng.Assert.fail
@@ -7,7 +7,7 @@ import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 import scala.collection.JavaConverters._
 
-import asyncrx.spi._
+import org.reactivestreams.spi._
 
 object TestEnvironment {
   final val testBufferSize = 16

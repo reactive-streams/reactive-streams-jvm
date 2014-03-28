@@ -1,4 +1,4 @@
-package asyncrx.spi
+package org.reactivestreams.spi
 
 /**
  * A Subscription models the relationship between a [[Publisher]] and a [[Subscriber]].

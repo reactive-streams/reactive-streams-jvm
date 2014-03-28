@@ -1,4 +1,4 @@
-package asyncrx.api
+package org.reactivestreams.api
 
 /**
  * A Processor is a stand-alone representation of a transformation for

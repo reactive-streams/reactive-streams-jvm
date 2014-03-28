@@ -1,7 +1,7 @@
-package asyncrx.tck
+package org.reactivestreams.tck
 
-import asyncrx.spi._
-import asyncrx.api._
+import org.reactivestreams.spi._
+import org.reactivestreams.api._
 import org.testng.annotations.Test
 
 abstract class IdentityProcessorVerification[T] extends PublisherVerification[T] with SubscriberVerification[T] { verification ⇒

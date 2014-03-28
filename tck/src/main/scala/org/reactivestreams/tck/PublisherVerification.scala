@@ -1,10 +1,10 @@
-package asyncrx.tck
+package org.reactivestreams.tck
 
 import java.lang.ref.{ Reference, WeakReference, ReferenceQueue }
 import org.testng.Assert._
 import org.testng.annotations.Test
 
-import asyncrx.spi.{ Publisher, Subscription }
+import org.reactivestreams.spi.{ Publisher, Subscription }
 
 trait PublisherVerification[T] extends TestEnvironment {
 

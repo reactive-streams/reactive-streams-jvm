@@ -1,4 +1,4 @@
-organization := "org.asyncrx"
+organization := "org.reactivestreams"
 
 version := "0.1-SNAPSHOT"
 
