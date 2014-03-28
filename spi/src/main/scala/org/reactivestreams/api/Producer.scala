@@ -1,4 +1,4 @@
-package asyncrx
+package org.reactivestreams
 package api
 
 /**

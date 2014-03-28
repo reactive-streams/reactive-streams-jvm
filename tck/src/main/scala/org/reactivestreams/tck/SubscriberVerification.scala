@@ -1,7 +1,7 @@
-package asyncrx.tck
+package org.reactivestreams.tck
 
 import org.testng.annotations.Test
-import asyncrx.spi._
+import org.reactivestreams.spi._
 
 trait SubscriberVerification[T] extends TestEnvironment {
   import SubscriberVerification._
