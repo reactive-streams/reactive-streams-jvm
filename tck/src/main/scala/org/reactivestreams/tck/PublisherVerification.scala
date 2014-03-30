@@ -40,7 +40,7 @@ trait PublisherVerification[T] extends TestEnvironment {
       assertTrue(requestNextElementOrEndOfStream().isDefined, s"Publisher $pub produced no elements")
       assertTrue(requestNextElementOrEndOfStream().isDefined, s"Publisher $pub produced only 1 element")
       assertTrue(requestNextElementOrEndOfStream().isDefined, s"Publisher $pub produced only 2 elements")
-      sub.expectCompletion()
+      sub.requestEndOfStream()
     }
 
   ////////////////////// SPEC RULE VERIFICATION ///////////////////////////
@@ -304,15 +304,15 @@ trait PublisherVerification[T] extends TestEnvironment {
       val z2 = sub3.nextElement(errorMsg = s"Publisher $pub did not produce the requested 1 element on 3rd subscriber")
       sub3.requestMore(1)
       val z3 = sub3.nextElement(errorMsg = s"Publisher $pub did not produce the requested 1 element on 3rd subscriber")
-      sub3.expectCompletion(errorMsg = s"Publisher $pub did not complete the stream as expected on 3rd subscriber")
+      sub3.requestEndOfStream(errorMsg = s"Publisher $pub did not complete the stream as expected on 3rd subscriber")
       sub2.requestMore(3)
       val y2 = sub2.nextElements(3, errorMsg = s"Publisher $pub did not produce the requested 3 elements on 2nd subscriber")
-      sub2.expectCompletion(errorMsg = s"Publisher $pub did not complete the stream as expected on 2nd subscriber")
+      sub2.requestEndOfStream(errorMsg = s"Publisher $pub did not complete the stream as expected on 2nd subscriber")
       sub1.requestMore(2)
       val x3 = sub1.nextElements(2, errorMsg = s"Publisher $pub did not produce the requested 2 elements on 1st subscriber")
       sub1.requestMore(1)
       val x4 = sub1.nextElement(errorMsg = s"Publisher $pub did not produce the requested 1 element on 1st subscriber")
-      sub1.expectCompletion(errorMsg = s"Publisher $pub did not complete the stream as expected on 1st subscriber")
+      sub1.requestEndOfStream(errorMsg = s"Publisher $pub did not complete the stream as expected on 1st subscriber")
 
       val r = x1 :: x2 :: x3.toList ::: x4 :: Nil
       assertEquals(r, y1.toList ::: y2.toList, s"Publisher $pub did not produce the same element sequence for subscribers 1 and 2")
@@ -337,7 +337,7 @@ trait PublisherVerification[T] extends TestEnvironment {
       sub.requestNextElement()
       sub.requestNextElement()
       sub.requestNextElement()
-      sub.expectCompletion(errorMsg = s"Publisher $pub did not complete the stream immediately after the final element")
+      sub.requestEndOfStream(errorMsg = s"Publisher $pub did not complete the stream immediately after the final element")
       sub.expectNone()
     }
   }
