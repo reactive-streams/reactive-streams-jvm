@@ -259,22 +259,6 @@ trait PublisherVerification[T] extends TestEnvironment {
     }
   }
 
-  // Subscription::cancel
-  //   when Subscription is not cancelled
-  //     the Publisher must obey the "a Subscription::cancel happens before any subsequent Publisher::subscribe" rule
-  @Test
-  def onSubscriptionCancelThePublisherMustObeyCancelHappensBeforeSubsequentSubscribe(): Unit = {
-    activePublisherTest(elements = 3) { pub ⇒
-      val keeper = newManualSubscriber(pub) // required to prevent the publisher from shutting down
-      val sub = newManualSubscriber(pub)
-      for (i ← 1 to 100) {
-        // try to cancel and resubscribe very quickly, in order to potentially trigger an "overtaking"
-        sub.cancel()
-        subscribe(pub, sub)
-      }
-    }
-  }
-
   // A Publisher
   //   must not call `onNext`
   //     after having issued an `onComplete` or `onError` call on a subscriber

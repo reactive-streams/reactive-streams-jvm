@@ -52,9 +52,7 @@ Clarification of terminology used throughout this document:
     * must ignore the call
 * when Subscription is not cancelled
     * the Publisher must eventually cease to call any methods on the corresponding subscriber
-    * the Publisher must eventually drop any references to the corresponding subscriber
-    * the Publisher must obey the "a Subscription::cancel happens-before any subsequent
-      Publisher::subscribe" rule [2]
+    * the Publisher must eventually drop any references to the corresponding subscriber [2]
     * the Publisher must shut itself down if the given Subscription is the last downstream Subscription [3]
 
 
@@ -115,11 +113,16 @@ Clarification of terminology used throughout this document:
 
 ### Footnotes
 
-1. Reference equality is to be used for establishing whether two Subscribers are the "same".
+1. Object equality is to be used for establishing whether two Subscribers are the "same".
 
-2. I.e. when seen from the perspective on one thread a `subscribe(...)` on a Publisher must not "overtake"
-   a `cancel()` on a Subscription from that Publisher. Without this happens-before rule cancelling a Subscription and
-   immediately resubscribing to a Publisher might fail as subscribing the same Subscriber twice is disallowed.
+2. Cancelling a Subscription and re-subscribing the same Subscriber instance to a Publisher
+   might fail as subscribing the same Subscriber twice is disallowed and cancel does not 
+   enforce immediate cleanup of the old subscription. In that case it will reject the 
+   Subscription with a call to `onError` with a `java.lang.IllegalStateException` in the
+   same way as if the Subscriber already has an active Subscription. Re-subscribing with
+   the same Subscriber instance is discouraged, but this specification does not mandate
+   that it is disallowed since that would mean having to store previously canceled 
+   subscriptions indefinitely
 
 3. Explicitly adding "keep-alive" Subscribers can prevent automatic shutdown if required.
 
