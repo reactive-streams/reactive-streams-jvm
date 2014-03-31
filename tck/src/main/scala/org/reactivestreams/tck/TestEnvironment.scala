@@ -80,6 +80,10 @@ trait TestEnvironment {
       requestMore(1)
       nextElementOrEndOfStream(timeoutMillis, errorMsg)
     }
+    def requestEndOfStream(timeoutMillis: Int = 100, errorMsg: String = "Did not receive expected stream completion"): Unit = {
+      requestMore(1)
+      expectCompletion(timeoutMillis, errorMsg)
+    }
     def requestNextElements(elements: Int, timeoutMillis: Int = 100, errorMsg: String = "Did not receive expected elements"): Seq[T] = {
       requestMore(elements)
       nextElements(elements, timeoutMillis, errorMsg)
