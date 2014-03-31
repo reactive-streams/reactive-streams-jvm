@@ -54,6 +54,12 @@ abstract class IdentityProcessorVerification[T] extends PublisherVerification[T]
       val y = nextT()
       sendNext(y)
       expectNextElement(sub, y)
+      
+      // to avoid error messages during test harness shutdown
+      sendCompletion()
+      sub.expectCompletion(100, "did not complete within 100 millis")
+      
+      verifyNoAsyncErrors()
     }
 
   // A Publisher
@@ -76,7 +82,7 @@ abstract class IdentityProcessorVerification[T] extends PublisherVerification[T]
       // sub1 now has received and element and has 1 pending
       // sub2 has not yet requested anything
 
-      val ex = new RuntimeException
+      val ex = new RuntimeException("Test exception")
       sendError(ex)
       sub1.expectError(ex)
       sub2.expectError(ex)
@@ -130,7 +136,7 @@ abstract class IdentityProcessorVerification[T] extends PublisherVerification[T]
       val sub = new ManualSubscriber[T] with SubscriptionSupport[T] with ErrorCollection[T]
       verification.subscribe(processor.getPublisher, sub)
 
-      val ex = new RuntimeException
+      val ex = new RuntimeException("Test exception")
       sendError(ex)
       sub.expectError(ex) // "immediately", i.e. without a preceding requestMore
 
@@ -153,6 +159,10 @@ abstract class IdentityProcessorVerification[T] extends PublisherVerification[T]
       sub.requestMore(2)
       sub.expectNext(x)
       sub.expectNext(y)
+      
+      // to avoid error messages during test harness shutdown
+      sendCompletion()
+      sub.expectCompletion(100, "did not complete within 100 millis")
 
       verifyNoAsyncErrors()
     }
@@ -192,6 +202,11 @@ abstract class IdentityProcessorVerification[T] extends PublisherVerification[T]
 
       if (totalRequests == 3) expectRequestMore()
 
+      // to avoid error messages during test harness shutdown
+      sendCompletion()
+      sub1.expectCompletion(100, "did not complete within 100 millis")
+      sub2.expectCompletion(100, "did not complete within 100 millis")
+
       verifyNoAsyncErrors()
     }
 
@@ -204,9 +219,11 @@ abstract class IdentityProcessorVerification[T] extends PublisherVerification[T]
       sub1.requestMore(testBufferSize + 1)
       var pending = 0
       var sent = 0
+      var tees = Array.ofDim[AnyRef](testBufferSize).asInstanceOf[Array[T]]
       while (sent < testBufferSize) {
         if (pending == 0) pending = expectRequestMore()
-        sendNext(nextT())
+        tees(sent) = nextT()
+        sendNext(tees(sent))
         sent += 1
         pending -= 1
       }
@@ -215,6 +232,10 @@ abstract class IdentityProcessorVerification[T] extends PublisherVerification[T]
       sub2.cancel() // must "unblock"
 
       expectRequestMore()
+      tees foreach (expectNextElement(sub1, _))
+      
+      sendCompletion()
+      sub1.expectCompletion(100, "did not complete within 100 millis")
 
       verifyNoAsyncErrors()
     }
@@ -235,7 +256,7 @@ abstract class IdentityProcessorVerification[T] extends PublisherVerification[T]
       t
     }
     def expectNextElement(sub: ManualSubscriber[T], expected: T): Unit = {
-      val elem = sub.nextElement()
+      val elem = sub.nextElement(errorMsg = s"timeout while awaiting $expected")
       if (elem != expected) flop(s"Received `onNext($elem)` on downstream but expected `onNext($expected)`")
     }
   }

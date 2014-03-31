@@ -122,12 +122,17 @@ trait PublisherVerification[T] extends TestEnvironment {
   def publisherSubscribeWhenActiveMustCallOnSubscribeFirst(): Unit =
     activePublisherTest(elements = 1) { pub ⇒
       val latch = new Latch()
+      var sub: Subscription = null
       pub.subscribe {
         new TestSubscriber[T] {
-          override def onSubscribe(subscription: Subscription): Unit = latch.close()
+          override def onSubscribe(subscription: Subscription): Unit = {
+            latch.close()
+            sub = subscription
+          }
         }
       }
       latch.expectClose(timeoutMillis = 100, s"Active Publisher $pub did not call `onSubscribe` on new subscription request")
+      sub.cancel()
     }
 
   // Publisher::subscribe(Subscriber)
@@ -202,6 +207,7 @@ trait PublisherVerification[T] extends TestEnvironment {
       expectThrowingOf[IllegalArgumentException](s"Calling `requestMore(0)` a subscription to $pub did not fail with an `IllegalArgumentException`") {
         sub.subscription.value.requestMore(0)
       }
+      sub.cancel()
     }
 
   // Subscription::cancel
