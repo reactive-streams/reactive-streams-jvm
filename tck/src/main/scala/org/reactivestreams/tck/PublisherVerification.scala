@@ -255,22 +255,25 @@ trait PublisherVerification[T] extends TestEnvironment {
   //     the Publisher must eventually drop any references to the corresponding subscriber
   @Test
   def onSubscriptionCancelThePublisherMustEventuallyDropAllReferencesToTheSubscriber(): Unit = {
+    val queue = new ReferenceQueue[ManualSubscriber[T]]
+    
     def run(pub: Publisher[T]): Reference[ManualSubscriber[T]] = {
       val sub = newManualSubscriber(pub)
-      val ref = new WeakReference(sub, new ReferenceQueue[ManualSubscriber[T]]())
+      val ref = new WeakReference(sub, queue)
       sub.requestMore(1)
       sub.nextElement()
       sub.cancel()
       ref
     }
+    
     activePublisherTest(elements = 3) { pub ⇒
       val ref = run(pub)
       // cancel may be run asynchronously so we add a sleep before running the GC
       // to "resolve" the race
-      Thread.sleep(200)
+      Thread.sleep(publisherShutdownTimeoutMillis)
       System.gc()
 
-      if (!ref.isEnqueued) // consider switching to remove(timeout) on the queue if required
+      if (queue.remove(100) != ref)
         flop(s"Publisher $pub did not drop reference to test subscriber after subscription cancellation")
     }
   }
