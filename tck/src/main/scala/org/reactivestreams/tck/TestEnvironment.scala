@@ -18,6 +18,14 @@ trait TestEnvironment {
 
   val asyncErrors = new CopyOnWriteArrayList[Throwable]()
 
+  /**
+   * Tests must specify the timeout for expected outcome of asynchronous
+   * interactions. Longer timeout does not invalidate the correctness of
+   * the implementation, but can in some cases result in longer time to
+   * run the tests.
+   */
+  def defaultTimeoutMillis: Int
+
   // don't use the name `fail` as it would collide with other `fail` definitions like the one in scalatest's traits
   def flop(msg: String): Nothing =
     try fail(msg).asInstanceOf[Nothing]
@@ -36,13 +44,13 @@ trait TestEnvironment {
       case NonFatal(e) ⇒ flop(s"$errorMsg but $e")
     }
 
-  def subscribe[T](pub: Publisher[T], sub: TestSubscriber[T], timeoutMillis: Int = 100): Unit = {
+  def subscribe[T](pub: Publisher[T], sub: TestSubscriber[T], timeoutMillis: Int = defaultTimeoutMillis): Unit = {
     pub.subscribe(sub)
     sub.subscription.expectCompletion(timeoutMillis, s"Could not subscribe $sub to Publisher $pub")
     verifyNoAsyncErrors()
   }
 
-  def newManualSubscriber[T](pub: Publisher[T], timeoutMillis: Int = 100): ManualSubscriber[T] = {
+  def newManualSubscriber[T](pub: Publisher[T], timeoutMillis: Int = defaultTimeoutMillis): ManualSubscriber[T] = {
     val sub = new ManualSubscriber[T] with SubscriptionSupport[T]
     subscribe(pub, sub, timeoutMillis)
     sub
@@ -72,35 +80,35 @@ trait TestEnvironment {
     override def onNext(element: T) = received.add(element)
     override def onComplete() = received.complete()
     def requestMore(elements: Int): Unit = subscription.value.requestMore(elements)
-    def requestNextElement(timeoutMillis: Int = 100, errorMsg: String = "Did not receive expected element"): T = {
+    def requestNextElement(timeoutMillis: Int = defaultTimeoutMillis, errorMsg: String = "Did not receive expected element"): T = {
       requestMore(1)
       nextElement(timeoutMillis, errorMsg)
     }
-    def requestNextElementOrEndOfStream(timeoutMillis: Int = 100, errorMsg: String = "Did not receive expected stream completion"): Option[T] = {
+    def requestNextElementOrEndOfStream(timeoutMillis: Int = defaultTimeoutMillis, errorMsg: String = "Did not receive expected stream completion"): Option[T] = {
       requestMore(1)
       nextElementOrEndOfStream(timeoutMillis, errorMsg)
     }
-    def requestEndOfStream(timeoutMillis: Int = 100, errorMsg: String = "Did not receive expected stream completion"): Unit = {
+    def requestEndOfStream(timeoutMillis: Int = defaultTimeoutMillis, errorMsg: String = "Did not receive expected stream completion"): Unit = {
       requestMore(1)
       expectCompletion(timeoutMillis, errorMsg)
     }
-    def requestNextElements(elements: Int, timeoutMillis: Int = 100, errorMsg: String = "Did not receive expected elements"): Seq[T] = {
+    def requestNextElements(elements: Int, timeoutMillis: Int = defaultTimeoutMillis, errorMsg: String = "Did not receive expected elements"): Seq[T] = {
       requestMore(elements)
       nextElements(elements, timeoutMillis, errorMsg)
     }
-    def nextElement(timeoutMillis: Int = 100, errorMsg: String = "Did not receive expected element"): T =
+    def nextElement(timeoutMillis: Int = defaultTimeoutMillis, errorMsg: String = "Did not receive expected element"): T =
       received.next(timeoutMillis, errorMsg)
-    def nextElementOrEndOfStream(timeoutMillis: Int = 100, errorMsg: String = "Did not receive expected stream completion"): Option[T] =
+    def nextElementOrEndOfStream(timeoutMillis: Int = defaultTimeoutMillis, errorMsg: String = "Did not receive expected stream completion"): Option[T] =
       received.nextOrEndOfStream(timeoutMillis, errorMsg)
-    def nextElements(elements: Int, timeoutMillis: Int = 100, errorMsg: String = "Did not receive expected element or completion"): Seq[T] =
+    def nextElements(elements: Int, timeoutMillis: Int = defaultTimeoutMillis, errorMsg: String = "Did not receive expected element or completion"): Seq[T] =
       received.nextN(elements, timeoutMillis, errorMsg)
-    def expectNext(expected: T, timeoutMillis: Int = 100): Unit = {
+    def expectNext(expected: T, timeoutMillis: Int = defaultTimeoutMillis): Unit = {
       val received = nextElement(timeoutMillis, "Did not receive expected element on downstream")
       if (received != expected) flop(s"Expected element $expected on downstream but received $received")
     }
-    def expectCompletion(timeoutMillis: Int = 100, errorMsg: String = "Did not receive expected stream completion"): Unit =
+    def expectCompletion(timeoutMillis: Int = defaultTimeoutMillis, errorMsg: String = "Did not receive expected stream completion"): Unit =
       received.expectCompletion(timeoutMillis, errorMsg)
-    def expectNone(withinMillis: Int = 100, errorMsg: T ⇒ String = "Did not expect an element but got " + _): Unit =
+    def expectNone(withinMillis: Int = defaultTimeoutMillis, errorMsg: T ⇒ String = "Did not expect an element but got " + _): Unit =
       received.expectNone(withinMillis, errorMsg)
   }
 
@@ -122,7 +130,7 @@ trait TestEnvironment {
   trait ErrorCollection[T] extends TestSubscriber[T] {
     val error = new Promise[Throwable]
     override def onError(cause: Throwable): Unit = error.complete(cause)
-    def expectError(cause: Throwable, timeoutMillis: Int = 100): Unit = {
+    def expectError(cause: Throwable, timeoutMillis: Int = defaultTimeoutMillis): Unit = {
       error.expectCompletion(timeoutMillis, "Did not receive expected error on downstream")
       if (error.value != cause) flop(s"Expected error $cause but got ${error.value}")
     }
@@ -151,20 +159,20 @@ trait TestEnvironment {
     def sendError(cause: Throwable): Unit =
       if (subscriber.isDefined) subscriber.get.onError(cause)
       else flop(s"Cannot sendError before subscriber subscription")
-    def nextRequestMore(timeoutMillis: Int = 100): Int =
+    def nextRequestMore(timeoutMillis: Int = defaultTimeoutMillis): Int =
       requests.next(timeoutMillis, "Did not receive expected `requestMore` call")
-    def expectRequestMore(timeoutMillis: Int = 100): Int = {
+    def expectRequestMore(timeoutMillis: Int = defaultTimeoutMillis): Int = {
       val requested = nextRequestMore(timeoutMillis)
       if (requested <= 0) flop(s"Requests cannot be zero or negative but received requestMore($requested)")
       requested
     }
-    def expectExactRequestMore(expected: Int, timeoutMillis: Int = 100): Unit = {
+    def expectExactRequestMore(expected: Int, timeoutMillis: Int = defaultTimeoutMillis): Unit = {
       val requested = expectRequestMore(timeoutMillis)
       if (requested != expected) flop(s"Received `requestMore($requested)` on upstream but expected `requestMore($expected)`")
     }
-    def expectNoRequestMore(timeoutMillis: Int = 100): Unit =
+    def expectNoRequestMore(timeoutMillis: Int = defaultTimeoutMillis): Unit =
       requests.expectNone(timeoutMillis, "Received an unexpected `requestMore" + _ + "` call")
-    def expectCancelling(timeoutMillis: Int = 100): Unit =
+    def expectCancelling(timeoutMillis: Int = defaultTimeoutMillis): Unit =
       cancelled.expectClose(timeoutMillis, "Did not receive expected cancelling of upstream subscription")
   }
 

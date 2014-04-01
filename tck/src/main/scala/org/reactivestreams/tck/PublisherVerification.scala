@@ -63,8 +63,8 @@ trait PublisherVerification[T] extends TestEnvironment {
             flop(s"Publisher created by `createCompletedStatePublisher()` ($pub) called `onSubscribe` on new Subscriber")
         }
       }
-      latch.expectClose(timeoutMillis = 100, s"Publisher created by `createPublisher(0)` ($pub) did not call `onComplete` on new Subscriber")
-      Thread.sleep(100) // wait for the Publisher to potentially call 'onSubscribe' or `onNext` which would trigger an async error
+      latch.expectClose(timeoutMillis = defaultTimeoutMillis, s"Publisher created by `createPublisher(0)` ($pub) did not call `onComplete` on new Subscriber")
+      Thread.sleep(defaultTimeoutMillis) // wait for the Publisher to potentially call 'onSubscribe' or `onNext` which would trigger an async error
     }
 
   // Publisher::subscribe(Subscriber)
@@ -83,8 +83,8 @@ trait PublisherVerification[T] extends TestEnvironment {
           }
         }
       }
-      latch.expectClose(timeoutMillis = 100, s"Error-state Publisher $pub did not call `onError` on new Subscriber")
-      Thread.sleep(100) // wait for the Publisher to potentially call 'onSubscribe' or `onNext` which would trigger an async error
+      latch.expectClose(timeoutMillis = defaultTimeoutMillis, s"Error-state Publisher $pub did not call `onError` on new Subscriber")
+      Thread.sleep(defaultTimeoutMillis) // wait for the Publisher to potentially call 'onSubscribe' or `onNext` which would trigger an async error
     }
 
   // Publisher::subscribe(Subscriber)
@@ -111,8 +111,8 @@ trait PublisherVerification[T] extends TestEnvironment {
           }
         }
       }
-      latch.expectClose(timeoutMillis = 100, s"shut-down-state Publisher $pub did not call `onError` on new Subscriber")
-      Thread.sleep(100) // wait for the Publisher to potentially call 'onSubscribe' or `onNext` which would trigger an async error
+      latch.expectClose(timeoutMillis = defaultTimeoutMillis, s"shut-down-state Publisher $pub did not call `onError` on new Subscriber")
+      Thread.sleep(defaultTimeoutMillis) // wait for the Publisher to potentially call 'onSubscribe' or `onNext` which would trigger an async error
     }
 
   // Publisher::subscribe(Subscriber)
@@ -131,7 +131,7 @@ trait PublisherVerification[T] extends TestEnvironment {
           }
         }
       }
-      latch.expectClose(timeoutMillis = 100, s"Active Publisher $pub did not call `onSubscribe` on new subscription request")
+      latch.expectClose(timeoutMillis = defaultTimeoutMillis, s"Active Publisher $pub did not call `onSubscribe` on new subscription request")
       sub.cancel()
     }
 
@@ -149,12 +149,12 @@ trait PublisherVerification[T] extends TestEnvironment {
         override def onError(cause: Throwable): Unit = errorCause.complete(cause)
       }
       pub.subscribe(sub)
-      latch.expectClose(timeoutMillis = 100, s"Active Publisher $pub did not call `onSubscribe` on first subscription request")
+      latch.expectClose(timeoutMillis = defaultTimeoutMillis, s"Active Publisher $pub did not call `onSubscribe` on first subscription request")
       errorCause.assertUncompleted(s"Active Publisher $pub unexpectedly called `onError` on first subscription request")
 
       latch.reOpen()
       pub.subscribe(sub)
-      errorCause.expectCompletion(timeoutMillis = 100, s"Active Publisher $pub did not call `onError` on double subscription request")
+      errorCause.expectCompletion(timeoutMillis = defaultTimeoutMillis, s"Active Publisher $pub did not call `onError` on double subscription request")
       if (!errorCause.value.isInstanceOf[IllegalStateException])
         flop(s"Publisher $pub called `onError` with ${errorCause.value} rather than an `IllegalStateException` on double subscription request")
       latch.assertOpen(s"Active Publisher $pub unexpectedly called `onSubscribe` on double subscription request")
@@ -189,7 +189,7 @@ trait PublisherVerification[T] extends TestEnvironment {
 
       sub.requestMore(1)
       sub.requestMore(2)
-      sub.nextElements(3, timeoutMillis = 100, s"Publisher $pub produced less than 3 elements after two respective `requestMore` calls")
+      sub.nextElements(3, timeoutMillis = defaultTimeoutMillis, s"Publisher $pub produced less than 3 elements after two respective `requestMore` calls")
 
       sub.expectNone(errorMsg = x ⇒ s"Publisher $pub produced unrequested $x")
     }
@@ -234,10 +234,10 @@ trait PublisherVerification[T] extends TestEnvironment {
       subscribe(pub, sub)
       sub.requestMore(Int.MaxValue)
       sub.cancel()
-      Thread.sleep(100)
+      Thread.sleep(defaultTimeoutMillis)
 
       drop = false // "switch on" element collection
-      sub.expectNone(withinMillis = 100)
+      sub.expectNone(withinMillis = defaultTimeoutMillis)
     }
 
   // Subscription::cancel

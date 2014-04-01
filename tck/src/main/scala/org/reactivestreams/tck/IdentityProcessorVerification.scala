@@ -5,11 +5,11 @@ import org.reactivestreams.api._
 import org.testng.annotations.Test
 
 abstract class IdentityProcessorVerification[T] extends PublisherVerification[T] with SubscriberVerification[T] { verification ⇒
-  
+
   import TestEnvironment._
 
   // TODO: make the timeouts be dilate-able so that one can tune the suite for the machine it runs on
-  
+
   /**
    * This is the main method you must implement in your test incarnation.
    * It must create a Processor, which simply forwards all stream elements from its upstream
@@ -54,11 +54,11 @@ abstract class IdentityProcessorVerification[T] extends PublisherVerification[T]
       val y = nextT()
       sendNext(y)
       expectNextElement(sub, y)
-      
+
       // to avoid error messages during test harness shutdown
       sendCompletion()
-      sub.expectCompletion(100, "did not complete within 100 millis")
-      
+      sub.expectCompletion(defaultTimeoutMillis)
+
       verifyNoAsyncErrors()
     }
 
@@ -159,10 +159,10 @@ abstract class IdentityProcessorVerification[T] extends PublisherVerification[T]
       sub.requestMore(2)
       sub.expectNext(x)
       sub.expectNext(y)
-      
+
       // to avoid error messages during test harness shutdown
       sendCompletion()
-      sub.expectCompletion(100, "did not complete within 100 millis")
+      sub.expectCompletion(defaultTimeoutMillis)
 
       verifyNoAsyncErrors()
     }
@@ -204,8 +204,8 @@ abstract class IdentityProcessorVerification[T] extends PublisherVerification[T]
 
       // to avoid error messages during test harness shutdown
       sendCompletion()
-      sub1.expectCompletion(100, "did not complete within 100 millis")
-      sub2.expectCompletion(100, "did not complete within 100 millis")
+      sub1.expectCompletion(defaultTimeoutMillis)
+      sub2.expectCompletion(defaultTimeoutMillis)
 
       verifyNoAsyncErrors()
     }
@@ -233,9 +233,9 @@ abstract class IdentityProcessorVerification[T] extends PublisherVerification[T]
 
       expectRequestMore()
       tees foreach (expectNextElement(sub1, _))
-      
+
       sendCompletion()
-      sub1.expectCompletion(100, "did not complete within 100 millis")
+      sub1.expectCompletion(defaultTimeoutMillis)
 
       verifyNoAsyncErrors()
     }

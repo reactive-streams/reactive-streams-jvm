@@ -175,7 +175,7 @@ trait SubscriberVerification[T] extends TestEnvironment {
     var lastT: T = _
     subscribe(createSubscriber(probe))
     def sub = subscriber.get
-    probe.puppet.expectCompletion(timeoutMillis = 100, errorMsg = s"Subscriber $sub did not `registerOnSubscribe`")
+    probe.puppet.expectCompletion(timeoutMillis = defaultTimeoutMillis, errorMsg = s"Subscriber $sub did not `registerOnSubscribe`")
 
     def puppet: SubscriberPuppet = probe.puppet.value
     def sendNextTFromUpstream(): Unit = sendNext(nextT())
@@ -195,14 +195,14 @@ trait SubscriberVerification[T] extends TestEnvironment {
       def registerOnNext(element: T): Unit = elements.add(element)
       def registerOnComplete(): Unit = completed.close()
       def registerOnError(cause: Throwable): Unit = error.complete(cause)
-      def expectNext(expected: T, timeoutMillis: Int = 100) = {
+      def expectNext(expected: T, timeoutMillis: Int = defaultTimeoutMillis) = {
         val received = elements.next(timeoutMillis, s"Subscriber $sub did not call `registerOnNext($expected)`")
         if (received != expected)
           flop(s"Subscriber $sub called `registerOnNext($received)` rather than `registerOnNext($expected)`")
       }
-      def expectCompletion(timeoutMillis: Int = 100): Unit =
+      def expectCompletion(timeoutMillis: Int = defaultTimeoutMillis): Unit =
         completed.expectClose(timeoutMillis, s"Subscriber $sub did not call `registerOnComplete()`")
-      def expectError(expected: Throwable, timeoutMillis: Int = 100): Unit = {
+      def expectError(expected: Throwable, timeoutMillis: Int = defaultTimeoutMillis): Unit = {
         error.expectCompletion(timeoutMillis, s"Subscriber $sub did not call `registerOnError($expected)`")
         if (error.value != expected)
           flop(s"Subscriber $sub called `registerOnError(${error.value})` rather than `registerOnError($expected)`")
