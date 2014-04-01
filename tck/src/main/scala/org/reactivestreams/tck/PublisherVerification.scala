@@ -102,6 +102,9 @@ trait PublisherVerification[T] extends TestEnvironment {
 
       // we cannot meaningfully test whether the publisher has really shut down
       // however, we can tests whether it reacts to new subscription requests with `onError`
+      // after a while
+      Thread.sleep(publisherShutdownTimeoutMillis)
+
       val latch = new Latch()
       pub.subscribe {
         new TestSubscriber[T] {
@@ -114,6 +117,13 @@ trait PublisherVerification[T] extends TestEnvironment {
       latch.expectClose(timeoutMillis = 100, s"shut-down-state Publisher $pub did not call `onError` on new Subscriber")
       Thread.sleep(100) // wait for the Publisher to potentially call 'onSubscribe' or `onNext` which would trigger an async error
     }
+
+  /**
+   * Test class must specify the expected time it takes for the publisher to
+   * shut itself down when the the last downstream Subscription is cancelled.
+   * Used by `publisherSubscribeWhenInShutDownStateMustTriggerOnErrorAndNotOnSubscribe`.
+   */
+  def publisherShutdownTimeoutMillis: Int
 
   // Publisher::subscribe(Subscriber)
   //   when Publisher is neither in `completed` nor `error` state
