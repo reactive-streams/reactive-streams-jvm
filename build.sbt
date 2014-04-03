@@ -1,14 +1,15 @@
-organization := "org.reactivestreams"
+organization in ThisBuild := "org.reactivestreams"
 
-version := "0.1-SNAPSHOT"
+version in ThisBuild := "0.1-SNAPSHOT"
 
-licenses := Seq("CC0" -> url("http://creativecommons.org/publicdomain/zero/1.0/"))
+licenses in ThisBuild := Seq("CC0" -> url("http://creativecommons.org/publicdomain/zero/1.0/"))
 
-homepage := Some(url("https://groups.google.com/forum/?hl=en#!forum/reactive-streams"))
+homepage in ThisBuild := Some(url("https://groups.google.com/forum/?hl=en#!forum/reactive-streams"))
 
-scalaVersion := "2.10.3"
+scalaVersion in ThisBuild := "2.10.3"
 
 lazy val spi = project
 
 lazy val tck = project.dependsOn(spi)
 
+publishArtifact := false // for this aggregate project
