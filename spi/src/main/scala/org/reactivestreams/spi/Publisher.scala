@@ -20,6 +20,8 @@ trait Subscription {
    * The number of requested elements is cumulative to the number requested previously.
    * The Publisher may eventually publish up to the requested number of elements to
    * the [[Subscriber]] which owns this Subscription.
+   * 
+   * @param elements The number of elements requested.
    */
   def requestMore(elements: Int): Unit
 }
@@ -34,6 +36,8 @@ trait Publisher[T] {
   /**
    * Subscribe the given [[Subscriber]] to this Publisher. A Subscriber can at most be subscribed once
    * to a given Publisher, and to at most one Publisher in total.
+   * 
+   * @param subscriber The subscriber to register with this publisher.
    */
   def subscribe(subscriber: Subscriber[T]): Unit
 }
@@ -49,6 +53,8 @@ trait Subscriber[T] {
    * The [[Publisher]] generates a [[Subscription]] upon [[Publisher#subscribe]] and passes
    * it on to the Subscriber named there using this method. The Publisher may choose to reject
    * the subscription request by calling [[#onError]] instead.
+   * 
+   * @param subscription The subscription which connects this subscriber to its publisher.
    */
   def onSubscribe(subscription: Subscription): Unit
   
@@ -56,6 +62,8 @@ trait Subscriber[T] {
    * The [[Publisher]] calls this method to pass one element to this Subscriber. The element
    * must not be <code>null</code>. The Publisher must not call this method more often than
    * the Subscriber has signaled demand for via the corresponding [[Subscription]].
+   * 
+   * @param element The element that is passed from publisher to subscriber.
    */
   def onNext(element: T): Unit
   
@@ -75,6 +83,8 @@ trait Subscriber[T] {
    * This method is not intended to pass validation errors or similar from Publisher to Subscriber
    * in order to initiate an orderly shutdown of the exchange; it is intended only for fatal
    * failure conditions which make it impossible to continue processing further elements.
+   * 
+   * @param cause An exception which describes the reason for tearing down this stream.
    */
   def onError(cause: Throwable): Unit
 }
