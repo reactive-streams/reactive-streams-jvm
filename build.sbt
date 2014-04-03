@@ -11,3 +11,4 @@ scalaVersion := "2.10.3"
 lazy val spi = project
 
 lazy val tck = project.dependsOn(spi)
+
