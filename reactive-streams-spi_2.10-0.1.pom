@@ -1,0 +1,29 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<project xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.reactivestreams</groupId>
+    <artifactId>reactive-streams-spi_2.10</artifactId>
+    <packaging>jar</packaging>
+    <description>reactive-streams-spi</description>
+    <url>https://groups.google.com/forum/?hl=en#!forum/reactive-streams</url>
+    <version>0.1</version>
+    <licenses>
+        <license>
+            <name>CC0</name>
+            <url>http://creativecommons.org/publicdomain/zero/1.0/</url>
+            <distribution>repo</distribution>
+        </license>
+    </licenses>
+    <name>reactive-streams-spi</name>
+    <organization>
+        <name>org.reactivestreams</name>
+        <url>https://groups.google.com/forum/?hl=en#!forum/reactive-streams</url>
+    </organization>
+    <dependencies>
+        <dependency>
+            <groupId>org.scala-lang</groupId>
+            <artifactId>scala-library</artifactId>
+            <version>2.10.3</version>
+        </dependency>
+    </dependencies>
+</project>
