@@ -1,5 +1,6 @@
-package org.reactivestreams
-package api
+package org.reactivestreams.api;
+
+import org.reactivestreams.spi.Publisher;
 
 /**
  * A Producer is the logical source of elements of a given type. 
@@ -10,7 +11,7 @@ package api
  * Implementations of this interface will typically offer domain- or language-specific
  * methods for transforming or otherwise interacting with the produced stream of elements.
  */
-trait Producer[T] {
+public interface Producer<T> {
   
   /**
    * Get the underlying Publisher for this Producer. This method should only be used by
@@ -18,7 +19,7 @@ trait Producer[T] {
    * 
    * @return the underlying publisher for this producer
    */
-  def getPublisher: spi.Publisher[T]
+  public Publisher<T> getPublisher();
   
   /**
    * Connect the given consumer to this producer. This means that the
@@ -34,24 +35,5 @@ trait Producer[T] {
    * 
    * @param consumer The consumer to register with this producer.
    */
-  def produceTo(consumer: Consumer[T]): Unit
-}
-
-/**
- * A Consumer is the logical sink of elements of a given type.
- * The underlying implementation is done by way of a [[org.reactivestreams.spi.Subscriber]].
- * This interface is the user-level API for a sink while a Subscriber is the SPI.
- * 
- * Implementations of this interface will typically offer domain- or language-specific
- * methods for transforming or otherwise interacting with the stream of elements.
- */
-trait Consumer[T] {
-  
-  /**
-   * Get the underlying Subscriber for this Consumer. This method should only be used by
-   * implementations of this API.
-   * 
-   * @return the underlying subscriber for this consumer
-   */
-  def getSubscriber: spi.Subscriber[T]
+  public void produceTo(Consumer<T> consumer);
 }
