@@ -20,7 +20,6 @@ public interface Subscription {
    * The number of requested elements is cumulative to the number requested previously.
    * The Publisher may eventually publish up to the requested number of elements to
    * the {@link org.reactivestreams.spi.Subscriber Subscriber} which owns this Subscription.
-   * 
    * @param elements The number of elements requested.
    */
   public void requestMore(int elements);

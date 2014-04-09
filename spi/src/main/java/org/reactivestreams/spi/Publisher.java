@@ -10,7 +10,6 @@ public interface Publisher<T> {
   /**
    * Subscribe the given {@link org.reactivestreams.spi.Subscriber Subscriber} to this Publisher. A Subscriber can at most be subscribed once
    * to a given Publisher, and to at most one Publisher in total.
-   * 
    * @param subscriber The subscriber to register with this publisher.
    */
   public void subscribe(Subscriber<T> subscriber);
