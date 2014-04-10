@@ -1,6 +1,6 @@
 organization in ThisBuild := "org.reactivestreams"
 
-version in ThisBuild := "0.2-SNAPSHOT"
+version in ThisBuild := "0.3-SNAPSHOT"
 
 licenses in ThisBuild := Seq("CC0" -> url("http://creativecommons.org/publicdomain/zero/1.0/"))
 
