@@ -110,4 +110,4 @@ Subscribers signaling a demand for one element after the reception of an element
 
 ## Legal
 
-This project is a collaboration between Netflix, Twitter, RedHat, Pivotal and Typesafe. The code is offered to the Public Domain in order to allow free use by interested parties who want to create compatible implementations. For details see `COPYING`.
+This project is a collaboration between engineers from Netflix, Twitter, RedHat, Pivotal, Typesafe and many others. The code is offered to the Public Domain in order to allow free use by interested parties who want to create compatible implementations. For details see `COPYING`.
