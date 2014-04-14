@@ -15,3 +15,17 @@ lazy val spi = project
 lazy val tck = project.dependsOn(spi)
 
 publishArtifact := false // for this aggregate project
+
+pomExtra in ThisBuild := (
+  <scm>
+    <url>git@github.com:reactive-streams/reactive-streams.git</url>
+    <connection>scm:git:git@github.com:reactive-streams/reactive-streams.git</connection>
+  </scm>
+  <developers>
+    <developer>
+      <id>reactive-streams-sig</id>
+      <name>Reactive Streams SIG</name>
+      <url>http://reactive-streams.org</url>
+    </developer>
+  </developers>
+  )
