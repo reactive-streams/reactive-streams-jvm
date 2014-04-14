@@ -9,5 +9,3 @@ autoScalaLibrary := false
 crossPaths := false
 
 publishMavenStyle := true
-
-Common.javadocSettings
