@@ -2,6 +2,19 @@
 
 The purpose of Reactive Streams is to provide a standard for asynchronous stream processing with non-blocking backpressure.
 
+The latest preview release is available on Maven Central as
+
+    <dependency>
+      <groupId>org.reactivestreams</groupId>
+      <artifactId>reactive-streams-spi</artifactId>
+      <version>0.3</version>
+    </dependency>
+    <dependency>
+      <groupId>org.reactivestreams</groupId>
+      <artifactId>reactive-streams-tck</artifactId>
+      <version>0.3</version>
+    </dependency>
+
 ## Goals, Design and Scope ##
 
 Handling streams of data—especially “live” data whose volume is not predetermined—requires special care in an asynchronous system. The most prominent issue is that resource consumption needs to be carefully controlled such that a fast data source does not overwhelm the stream destination. Asynchrony is needed in order to enable the parallel use of computing resources, on collaborating network hosts or multiple CPU cores within a single machine.
