@@ -12,8 +12,6 @@ crossPaths := false
 
 publishMavenStyle := true
 
-Common.javadocSettings
-
 libraryDependencies += "org.testng" % "testng" % "5.14.10"
 
 testNGSettings
