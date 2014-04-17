@@ -493,10 +493,10 @@ public class TestEnvironment {
       env.flop(errorMsg);
     }
 
-
     public void expectCompletion(long timeoutMillis, String errorMsg) throws InterruptedException {
       if (!isCompleted()) {
         T val = abq.poll(timeoutMillis, TimeUnit.MILLISECONDS);
+
         if (val == null) {
           env.flop(String.format("%s within %d ms", errorMsg, timeoutMillis));
         } else {
@@ -528,12 +528,12 @@ public class TestEnvironment {
     public T next(long timeoutMillis, String errorMsg) throws InterruptedException {
       Optional<T> value = abq.poll(timeoutMillis, TimeUnit.MILLISECONDS);
 
-      if (value.isEmpty()) {
-        env.flop("Expected element but got end-of-stream");
-      } else if (value.get() == null) {
+      if (value == null) {
         env.flop(String.format("%s within %d ms", errorMsg, timeoutMillis));
-      } else {
+      } else if (value.isDefined()) {
         return value.get();
+      } else {
+        env.flop("Expected element but got end-of-stream");
       }
 
       return null; // keep compiler happy
@@ -541,12 +541,12 @@ public class TestEnvironment {
 
     public Optional<T> nextOrEndOfStream(long timeoutMillis, String errorMsg) throws InterruptedException {
       Optional<T> value = abq.poll(timeoutMillis, TimeUnit.MILLISECONDS);
-      if (value.isDefined()) {
-        return value;
-      } else {
+
+      if (value == null) {
         env.flop(String.format("%s within %d ms", errorMsg, timeoutMillis));
-        return null; // keep compiler happy
       }
+
+      return value;
     }
 
     public List<T> nextN(int elements, long timeoutMillis, String errorMsg) throws InterruptedException {
@@ -564,13 +564,11 @@ public class TestEnvironment {
     public void expectCompletion(long timeoutMillis, String errorMsg) throws InterruptedException {
       Optional<T> value = abq.poll(timeoutMillis, TimeUnit.MILLISECONDS);
 
-      if (value.isEmpty()) {
-        // ok
-      } else if (value.get() == null) {
+      if (value == null) {
         env.flop(String.format("%s within %d ms", errorMsg, timeoutMillis));
-      } else {
+      } else if (value.isDefined()) {
         env.flop("Expected end-of-stream but got " + value.get());
-      }
+      } // else, ok
     }
 
     void expectNone(long withinMillis, String errorMsgPrefix) throws InterruptedException {
