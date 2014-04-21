@@ -1,11 +1,14 @@
 package org.reactivestreams.tck;
 
-import org.reactivestreams.spi.Publisher;
-import org.reactivestreams.spi.Subscriber;
-import org.reactivestreams.spi.Subscription;
+import org.reactivestreams.Handle;
+import org.reactivestreams.Listener;
+import org.reactivestreams.Source;
+import org.reactivestreams.tck.TestEnvironment.Latch;
+import org.reactivestreams.tck.TestEnvironment.ManualPublisher;
+import org.reactivestreams.tck.TestEnvironment.ManualSubscriber;
+import org.reactivestreams.tck.TestEnvironment.Promise;
+import org.reactivestreams.tck.TestEnvironment.Receptacle;
 import org.testng.annotations.Test;
-
-import static org.reactivestreams.tck.TestEnvironment.*;
 
 public abstract class SubscriberVerification<T> {
 
@@ -22,14 +25,14 @@ public abstract class SubscriberVerification<T> {
    * In order to be meaningfully testable your Subscriber must inform the given
    * `SubscriberProbe` of the respective events having been received.
    */
-  abstract Subscriber<T> createSubscriber(SubscriberProbe<T> probe);
+  abstract Listener<T> createSubscriber(SubscriberProbe<T> probe);
 
   /**
    * Helper method required for generating test elements.
    * It must create a Publisher for a stream with exactly the given number of elements.
    * If `elements` is zero the produced stream must be infinite.
    */
-  abstract Publisher<T> createHelperPublisher(int elements);
+  abstract Source<T> createHelperPublisher(int elements);
 
   ////////////////////// TEST SETUP VERIFICATION ///////////////////////////
 
@@ -82,9 +85,9 @@ public abstract class SubscriberVerification<T> {
   void mustNotAcceptAnOnSubscribeEventIfItAlreadyHasAnActiveSubscription() throws InterruptedException {
     new TestSetup(env) {{
       // try to subscribe another time, if the subscriber calls `probe.registerOnSubscribe` the test will fail
-      sub().onSubscribe(
-          new Subscription() {
-            public void requestMore(int elements) {
+      sub().onListen(
+          new Handle() {
+            public void request(int elements) {
               env.flop(String.format("Subscriber %s illegally called `subscription.requestMore(%s)`", sub(), elements));
             }
 
@@ -201,11 +204,11 @@ public abstract class SubscriberVerification<T> {
       super(env);
       tees = env.newManualSubscriber(createHelperPublisher(0));
       probe = new Probe();
-      subscribe(createSubscriber(probe));
+      listen(createSubscriber(probe));
       probe.puppet.expectCompletion(env.defaultTimeoutMillis(), String.format("Subscriber %s did not `registerOnSubscribe`", sub()));
     }
 
-    Subscriber<T> sub() {
+    Listener<T> sub() {
       return subscriber.get();
     }
 

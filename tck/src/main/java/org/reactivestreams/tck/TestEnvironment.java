@@ -1,9 +1,6 @@
 package org.reactivestreams.tck;
 
-import org.reactivestreams.spi.Publisher;
-import org.reactivestreams.spi.Subscriber;
-import org.reactivestreams.spi.Subscription;
-import org.reactivestreams.tck.support.Optional;
+import static org.testng.Assert.fail;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -12,7 +9,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.testng.Assert.fail;
+import org.reactivestreams.Handle;
+import org.reactivestreams.Listener;
+import org.reactivestreams.Source;
+import org.reactivestreams.tck.support.Optional;
 
 public class TestEnvironment {
   public static final int TEST_BUFFER_SIZE = 16;
@@ -60,21 +60,21 @@ public class TestEnvironment {
     }
   }
 
-  public <T> void subscribe(Publisher<T> pub, TestSubscriber<T> sub) throws InterruptedException {
+  public <T> void subscribe(Source<T> pub, TestSubscriber<T> sub) throws InterruptedException {
     subscribe(pub, sub, defaultTimeoutMillis);
   }
 
-  public <T> void subscribe(Publisher<T> pub, TestSubscriber<T> sub, long timeoutMillis) throws InterruptedException {
-      pub.subscribe(sub);
+  public <T> void subscribe(Source<T> pub, TestSubscriber<T> sub, long timeoutMillis) throws InterruptedException {
+      pub.listen(sub);
       sub.subscription.expectCompletion(timeoutMillis, String.format("Could not subscribe %s to Publisher %s", sub, pub));
       verifyNoAsyncErrors();
     }
 
 
-  public <T> ManualSubscriber<T> newManualSubscriber(Publisher<T> pub) throws InterruptedException {
+  public <T> ManualSubscriber<T> newManualSubscriber(Source<T> pub) throws InterruptedException {
     return newManualSubscriber(pub, defaultTimeoutMillis());
   }
-  public <T> ManualSubscriber<T> newManualSubscriber(Publisher<T> pub, long timeoutMillis) throws InterruptedException {
+  public <T> ManualSubscriber<T> newManualSubscriber(Source<T> pub, long timeoutMillis) throws InterruptedException {
     ManualSubscriberWithSubscriptionSupport<T> sub = new ManualSubscriberWithSubscriptionSupport<T>(this);
     subscribe(pub, sub, timeoutMillis);
     return sub;
@@ -111,7 +111,7 @@ public class TestEnvironment {
       }
     }
 
-    public void onSubscribe(Subscription s) {
+    public void onListen(Handle s) {
       if (!subscription.isCompleted()) {
         subscription.complete(s);
       } else {
@@ -128,14 +128,14 @@ public class TestEnvironment {
     }
   }
 
-  static class TestSubscriber<T> implements Subscriber<T> {
-    volatile Promise<Subscription> subscription;
+  static class TestSubscriber<T> implements Listener<T> {
+    volatile Promise<Handle> subscription;
 
     protected final TestEnvironment env;
 
     public TestSubscriber(TestEnvironment env) {
       this.env = env;
-      subscription = new Promise<Subscription>(env);
+      subscription = new Promise<Handle>(env);
     }
 
     @Override
@@ -153,14 +153,14 @@ public class TestEnvironment {
       env.flop(String.format("Unexpected Subscriber::onNext(%s)", element));
     }
     
-    public void onSubscribe(Subscription subscription) {
+    public void onListen(Handle subscription) {
       env.flop(String.format("Unexpected Subscriber::onSubscribe(%s)", subscription));
     }
       
     public void cancel() {
       if (subscription.isCompleted()) {
         subscription.value().cancel();
-        subscription = new Promise<Subscription>(env);
+        subscription = new Promise<Handle>(env);
       } else env.flop("Cannot cancel a subscription before having received it");
     }
   }
@@ -183,7 +183,7 @@ public class TestEnvironment {
     }
 
     void requestMore(int elements) {
-      subscription.value().requestMore(elements);
+      subscription.value().request(elements);
     }
 
     public T requestNextElement() throws InterruptedException {
@@ -315,10 +315,10 @@ public class TestEnvironment {
 
   }
 
-  static class ManualPublisher<T> implements Publisher<T> {
+  static class ManualPublisher<T> implements Source<T> {
     protected final TestEnvironment env;
 
-    Optional<Subscriber<T>> subscriber = Optional.empty();
+    Optional<Listener<T>> subscriber = Optional.empty();
     Receptacle<Integer> requests;
     Latch cancelled;
 
@@ -329,13 +329,13 @@ public class TestEnvironment {
     }
 
     @Override
-    public void subscribe(Subscriber<T> s) {
+    public void listen(Listener<T> s) {
       if (subscriber.isEmpty()) {
         subscriber = Optional.of(s);
 
-        Subscription subs = new Subscription() {
+        Handle subs = new Handle() {
           @Override
-          public void requestMore(int elements) {
+          public void request(int elements) {
             requests.add(elements);
           }
 
@@ -344,7 +344,7 @@ public class TestEnvironment {
             cancelled.close();
           }
         };
-        s.onSubscribe(subs);
+        s.onListen(subs);
 
       } else {
         env.flop("TestPublisher doesn't support more than one Subscriber");

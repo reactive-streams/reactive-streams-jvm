@@ -1,17 +1,16 @@
 package org.reactivestreams.tck;
 
-import org.reactivestreams.api.Processor;
-import org.reactivestreams.spi.Publisher;
-import org.reactivestreams.spi.Subscriber;
-import org.reactivestreams.spi.Subscription;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.reactivestreams.Handle;
+import org.reactivestreams.Listener;
+import org.reactivestreams.Source;
 import org.reactivestreams.tck.TestEnvironment.ManualPublisher;
 import org.reactivestreams.tck.TestEnvironment.ManualSubscriber;
 import org.reactivestreams.tck.TestEnvironment.ManualSubscriberWithSubscriptionSupport;
 import org.reactivestreams.tck.TestEnvironment.Promise;
 import org.testng.annotations.Test;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public abstract class IdentityProcessorVerification<T> {
 
@@ -45,29 +44,29 @@ public abstract class IdentityProcessorVerification<T> {
 
     this.subscriberVerification = new SubscriberVerification<T>(env) {
       @Override
-      Subscriber<T> createSubscriber(SubscriberProbe<T> probe) {
+      Listener<T> createSubscriber(SubscriberProbe<T> probe) {
         return IdentityProcessorVerification.this.createSubscriber(probe);
       }
 
       @Override
-      Publisher<T> createHelperPublisher(int elements) {
+      Source<T> createHelperPublisher(int elements) {
         return IdentityProcessorVerification.this.createHelperPublisher(elements);
       }
     };
 
     publisherVerification = new PublisherVerification<T>(env, publisherShutdownTimeoutMillis) {
       @Override
-      public Publisher<T> createPublisher(int elements) {
+      public Source<T> createPublisher(int elements) {
         return IdentityProcessorVerification.this.createPublisher(elements);
       }
 
       @Override
-      public Publisher<T> createCompletedStatePublisher() {
+      public Source<T> createCompletedStatePublisher() {
         return IdentityProcessorVerification.this.createCompletedStatePublisher();
       }
 
       @Override
-      public Publisher<T> createErrorStatePublisher() {
+      public Source<T> createErrorStatePublisher() {
         return IdentityProcessorVerification.this.createErrorStatePublisher();
       }
 
@@ -79,7 +78,7 @@ public abstract class IdentityProcessorVerification<T> {
    * It must create a Processor, which simply forwards all stream elements from its upstream
    * to its downstream. It must be able to internally buffer the given number of elements.
    */
-  public abstract Processor<T, T> createIdentityProcessor(int bufferSize);
+  public abstract TestProcessor<T, T> createIdentityProcessor(int bufferSize);
 
   /**
    * Helper method required for running the Publisher rules against a Processor.
@@ -88,28 +87,28 @@ public abstract class IdentityProcessorVerification<T> {
    * The stream must not produce the same element twice (in case of an infinite stream this requirement
    * is relaxed to only apply to the elements that are actually requested during all tests).
    */
-  public abstract Publisher<T> createHelperPublisher(int elements);
+  public abstract Source<T> createHelperPublisher(int elements);
 
   /**
    * Return a Publisher in {@code completed} state in order to run additional tests on it,
    * or {@code null} in order to skip them.
    */
-  public abstract Publisher<T> createCompletedStatePublisher();
+  public abstract Source<T> createCompletedStatePublisher();
 
   /**
    * Return a Publisher in {@code error} state in order to run additional tests on it,
    * or {@code null} in order to skip them.
    */
-  public abstract Publisher<T> createErrorStatePublisher();
+  public abstract Source<T> createErrorStatePublisher();
 
   ////////////////////// PUBLISHER RULES VERIFICATION ///////////////////////////
 
   // A Processor
   //   must obey all Publisher rules on its producing side
-  public Publisher<T> createPublisher(int elements) {
-    Processor<T, T> processor = createIdentityProcessor(testBufferSize);
-    Publisher<T> pub = createHelperPublisher(elements);
-    pub.subscribe(processor.getSubscriber());
+  public Source<T> createPublisher(int elements) {
+    TestProcessor<T, T> processor = createIdentityProcessor(testBufferSize);
+    Source<T> pub = createHelperPublisher(elements);
+    pub.listen(processor.getSubscriber());
     return processor.getPublisher(); // we run the PublisherVerification against this
   }
 
@@ -191,11 +190,11 @@ public abstract class IdentityProcessorVerification<T> {
 
   // A Processor
   //   must obey all Subscriber rules on its consuming side
-  public Subscriber<T> createSubscriber(final SubscriberVerification.SubscriberProbe<T> probe) {
-    Processor<T, T> processor = createIdentityProcessor(testBufferSize);
-    processor.getPublisher().subscribe(
-        new Subscriber<T>() {
-          public void onSubscribe(final Subscription subscription) {
+  public Listener<T> createSubscriber(final SubscriberVerification.SubscriberProbe<T> probe) {
+    TestProcessor<T, T> processor = createIdentityProcessor(testBufferSize);
+    processor.getPublisher().listen(
+        new Listener<T>() {
+          public void onListen(final Handle subscription) {
             probe.registerOnSubscribe(
                 new SubscriberVerification.SubscriberPuppet() {
                   public void triggerShutdown() {
@@ -203,7 +202,7 @@ public abstract class IdentityProcessorVerification<T> {
                   }
 
                   public void triggerRequestMore(int elements) {
-                    subscription.requestMore(elements);
+                    subscription.request(elements);
                   }
 
                   public void triggerCancel() {
@@ -502,7 +501,7 @@ public abstract class IdentityProcessorVerification<T> {
     private TestEnvironment.ManualSubscriber<T> tees; // gives us access to an infinite stream of T values
     private Set<T> seenTees = new HashSet<T>();
 
-    final Processor<T, T> processor;
+    final TestProcessor<T, T> processor;
     final int testBufferSize;
 
     public TestSetup(TestEnvironment env, int testBufferSize) throws InterruptedException {
@@ -510,7 +509,7 @@ public abstract class IdentityProcessorVerification<T> {
       this.testBufferSize = testBufferSize;
       tees = env.newManualSubscriber(createHelperPublisher(0));
       processor = createIdentityProcessor(testBufferSize);
-      subscribe(processor.getSubscriber());
+      listen(processor.getSubscriber());
     }
 
     public TestEnvironment.ManualSubscriber<T> newSubscriber() throws InterruptedException {
