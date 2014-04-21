@@ -16,6 +16,8 @@ lazy val tck = project.dependsOn(spi)
 
 publishArtifact := false // for this aggregate project
 
+EclipseKeys.projectFlavor in ThisBuild := EclipseProjectFlavor.Java
+
 pomExtra in ThisBuild := (
   <scm>
     <url>git@github.com:reactive-streams/reactive-streams.git</url>
