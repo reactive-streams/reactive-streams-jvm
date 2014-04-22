@@ -34,13 +34,11 @@ In summary, Reactive Streams is a standard and specification for Stream-oriented
 
 The Reactive Streams specification consists of the following parts:
 
-**The SPI** defines the interoperablility layer between different implementations.
-
-**The API** specifies the types that the users of Reactive Stream libraries use.
+**The API** specifies the types to implement Reactive Streams and achieve interoperablility between different implementations.
 
 ***The Technology Compatibility Kit (TCK)*** is a standard test suite for conformance testing of implementations.
 
-Implementations are free to implement additional features not covered by the specification as long as they conform to the API and SPI requirements and pass the tests in the TCK.
+Implementations are free to implement additional features not covered by the specification as long as they conform to the API requirements and pass the tests in the TCK.
 
 #### Comparison with related technologies ####
 
@@ -50,47 +48,54 @@ Compared to Rx, the SPI described here prescribes a mandatory, non-blocking way 
 
 Iteratees are an abstraction used for consuming a stream, often for parsing it. In this sense they are not a stream transformation or combination tool in themselves.
 
-### SPI Components ###
+### API Components ###
 
-The SPI consists of components that are required to be provided by Reactive Stream implementations but these interfaces should not be exposed to libraries or user code that *use* a Reactive Streams implementation. The reason for this is that the methods used on the SPI level have very strict and rather complex semantic requirements which are likely to be violated by end users.
-
-The components of the SPI are:
+The API consists of the following components that are required to be provided by Reactive Stream implementations:
 
  - Publisher
  - Subscriber
  - Subscription
 
-A *Publisher* is a provider of a potentially unbounded number of sequenced elements, publishing them according to the demand received from its Subscriber(s). A Publisher can serve multiple subscribers subscribed dynamically at various points in time. In the case of multiple subscribers the Publisher should respect the processing rates of all of its subscribers (possibly allowing for a bounded drift between them). It must eventually clean up its resources after all of its subscribers have been unsubscribed and shut down. A Publisher will typically support fanning out to multiple Subscribers in order to support the dynamic assembly of processing networks from building blocks that can freely be shared.
+A *Publisher* is a provider of a potentially unbounded number of sequenced elements, publishing them according to the demand received from its Subscriber(s). 
 
-A *Subscriber* is a component that accepts a sequenced stream of elements provided by a Publisher. At any given time a Subscriber might be subscribed to at most one Publisher. It provides the callback onNext to be called by the upstream Producer, accepting an element that is to be asynchronously processed or enqueued without blocking the Producer. 
+- A `Publisher` will never send more `onNext` events than have been requested via the `Subscription.request` method.
+- A `Publisher` can send less events that requested and end the `Subscription` by emitting `onComplete` or `onError`.
+- Events sent to a `Subscriber` can only be sent sequentially (no concurrent notifications).
+- If a `Publisher` fails it must emit an `onError`.
+- If a `Publisher` terminates successfully (finite stream) it must emit an `onComplete`.
+- If a `Publisher` terminates via either `onError` or `onComplete` it must `cancel` its `Subscription`
+- Once a terminal state has occurred (`onError`, `onNext`) no further events can be sent.
+- Upon receiving a `Subscription.cancel` request it should stop sending events as soon as it can. The `onError` and `onComplete` events are not needed if `Subscription.cancel` was initiated by the `Subscriber`.
+- The `Publisher.subscribe` method can be called as many times as wanted as long as it is with a different `Subscriber` each time. It is up to the `Publisher` whether underlying streams are shared or not. In other words, a `Publisher` can support multi-subscribe and then choose whether each `Subscription` is unicast or multicast.
+- A `Publisher` can refuse subscriptions (calls to `subscribe`) if it is unable or unwilling to serve them (overwhelmed, fronting a single-use data source, etc) and can do so by immediately calling `Subscriber.onError` on the `Subscriber` instance calling `subscribe`.
 
-A Subscriber communicates demand to the Publisher via a *Subscription* which is passed to the Subscriber after the subscription has been established. The Subscription exposes the requestMore(int) method that is used by the Subscriber to signal demand to the Publisher. For each of its subscribers the Publisher obeys the following invariant:
 
-*If N is the total number of demand tokens handed to the Publisher P by a Subscriber S during the time period up to a time T, then the number of onNext calls that are allowed to be performed by P on S before T must be less than or equal to N. The number of pending demand tokens must be tracked by the Producer separately for each of its subscribers.*
+A *`Subscriber`* is a component that accepts a sequenced stream of elements provided by a `Publisher`. At any given time a `Subscriber` might be subscribed to at most one `Publisher`. It provides the callback `onNext` to be called by the upstream `Publisher`, accepting an element that is to be processed or enqueued without blocking the `Publisher`. 
 
-Subscribers that do not currently have an active subscription may subscribe to a Publisher. The only guarantee for subscribers attached at different points in time is that they all observe a common suffix of the stream, i.e. they receive the same elements after a certain point in time but it is not guaranteed that they see exactly the same number of elements. This obviously only holds if the subscriber does not cancel its subscription before the stream has been terminated.
+- `Subscriber` can be used once-and-only-once to subscribe to a `Publisher`.
+
+
+A `Subscriber` communicates demand to the `Publisher` via a *`Subscription`* which is passed to the `Subscriber` after the subscription has been established. The `Subscription` exposes the `request(int)` method that is used by the `Subscriber` to signal demand to the `Publisher`. 
+
+- a `Subscription` can be used once-and-only-once to represent a subscription by a `Subscriber` to a `Publisher`.
+
+For each of its subscribers the `Publisher` obeys the following invariant:
+
+*If N is the total number of demand tokens handed to the `Publisher` P by a `Subscriber` S during the time period up to a time T, then the number of `onNext` calls that are allowed to be performed by P on S before T must be less than or equal to N. The number of pending demand tokens must be tracked by the `Producer` separately for each of its subscribers.*
+
+`Subscriber`s that do not currently have an active subscription may subscribe to a `Publisher`. The only guarantee for subscribers attached at different points in time is that they all observe a common suffix of the stream, i.e. they receive the same elements after a certain point in time but it is not guaranteed that they see exactly the same number of elements. This obviously only holds if the subscriber does not cancel its subscription before the stream has been terminated.
 
 > In practice there is a difference between the guarantees that different publishers can provide for subscribers attached at different points in time. For example Publishers serving elements from a strict collection (“cold”) might guarantee that all subscribers see *exactly* the same elements (unless unsubscribed before completion) since they can replay the elements from the collection at any point in time. Other publishers might represent an ephemeral source of elements (e.g. a “hot” TCP stream) and keep only a limited output buffer to replay for future subscribers.
 
-At any time the Publisher may signal that it is not able to provide more elements. This is done by invoking onComplete on its subscribers.
+At any time the `Publisher` may signal that it is not able to provide more elements. This is done by invoking `onComplete` on its subscribers.
 
-> For example a Publisher representing a strict collection signals completion to its subscriber after it provided all the elements. Now a later subscriber might still receive the whole collection before receiving onComplete.
-
-### API components ###
-
-The purpose of the API is to provide the types that users interact with directly. SPI methods and interfaces should not be exposed expect for the purpose of writing Reactive Streams implementations.
-
-The API counterpart for Publisher is *Producer* and for Subscriber is *Consumer*. The combination of these two—a stream processing element with asynchronous input and output—is called *Processor*.
-
-The only operation supported by any Producer–Consumer pair is their ability to establish a connection for the purpose of transferring the stream of elements from Producer to Consumer; this is achieved by the method `produceTo()`. Concrete implementations of Reactive Streams are expected to offer a rich set of combinators and transformations, but these are not the subject of this specification. The reason is that implementations shall have the freedom to formulate the end-user API in an idiomatic fashion for the respective platform, language and use-case they target.
-
-In addition there is one method each on Producer and Consumer to obtain a reference to the underlying Publisher or Subscriber, respectively. These are necessary for implementations, but is not to be considered end-user API.
+> For example a `Publisher` representing a strict collection signals completion to its subscriber after it provided all the elements. Now a later subscriber might still receive the whole collection before receiving onComplete.
 
 ### Asynchronous processing ###
 
-The Reactive Streams SPI prescribes that all processing of elements (onNext) or termination signals (onError, onComplete) happens outside of the execution stack of the Publisher. This is achieved by scheduling the processing to run asynchronously, possibly on a different thread. The Subscriber should make sure to minimize the amount of processing steps used to initiate this process, meaning that all its SPI-mandated methods shall return as quickly as possible.
+The Reactive Streams API prescribes that all processing of elements (`onNext`) or termination signals (`onError`, `onComplete`) happens outside of the execution stack of the `Publisher`. This is achieved by scheduling the processing to run asynchronously, possibly on a different thread. The Subscriber should make sure to minimize the amount of processing steps used to initiate this process, meaning that all its API-mandated methods shall return as quickly as possible. Note that this does not mean synchronous processing is not permitted; see "Relationship to synchronous stream-processing" below.
 
-In contrast to communicating back-pressure by blocking the publisher, a non-blocking solution needs to communicate demand through a dedicated control channel. This channel is provided by the Subscription: the subscriber controls the maximum amount of future elements it is willing receive by sending explicit demand tokens (by calling requestMore(int)).
+In contrast to communicating back-pressure by blocking the publisher, a non-blocking solution needs to communicate demand through a dedicated control channel. This channel is provided by the `Subscription`: the subscriber controls the maximum amount of future elements it is willing receive by sending explicit demand tokens (by calling request(int)).
 
 #### Relationship to synchronous stream-processing ####
 
