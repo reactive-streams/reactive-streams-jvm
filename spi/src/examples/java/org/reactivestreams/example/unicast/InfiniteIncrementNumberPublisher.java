@@ -2,18 +2,18 @@ package org.reactivestreams.example.unicast;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.reactivestreams.Handle;
-import org.reactivestreams.Listener;
-import org.reactivestreams.Source;
+import org.reactivestreams.Subscription;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Publisher;
 
-class InfiniteIncrementNumberPublisher implements Source<Integer> {
+class InfiniteIncrementNumberPublisher implements Publisher<Integer> {
 
     @Override
-    public void listen(final Listener<Integer> s) {
+    public void subscribe(final Subscriber<Integer> s) {
 
         final AtomicInteger i = new AtomicInteger();
 
-        Handle subscription = new Handle() {
+        Subscription subscription = new Subscription() {
 
             AtomicInteger capacity = new AtomicInteger();
 
@@ -46,7 +46,7 @@ class InfiniteIncrementNumberPublisher implements Source<Integer> {
 
         };
 
-        s.onListen(subscription);
+        s.onSubscribe(subscription);
 
     }
 }

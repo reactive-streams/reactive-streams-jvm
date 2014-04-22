@@ -2,10 +2,10 @@ package org.reactivestreams.example.unicast;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
-import org.reactivestreams.Handle;
-import org.reactivestreams.Listener;
+import org.reactivestreams.Subscription;
+import org.reactivestreams.Subscriber;
 
-class NumberSubscriberThatHopsThreads implements Listener<Integer> {
+class NumberSubscriberThatHopsThreads implements Subscriber<Integer> {
 
     final int BUFFER_SIZE = 10;
     private final ArrayBlockingQueue<Integer> buffer = new ArrayBlockingQueue<>(BUFFER_SIZE);
@@ -17,7 +17,7 @@ class NumberSubscriberThatHopsThreads implements Listener<Integer> {
     }
 
     @Override
-    public void onListen(Handle s) {
+    public void onSubscribe(Subscription s) {
         System.out.println("onSubscribe => request " + BUFFER_SIZE);
         s.request(BUFFER_SIZE);
         startAsyncWork(s);
@@ -39,7 +39,7 @@ class NumberSubscriberThatHopsThreads implements Listener<Integer> {
         terminated = true;
     }
 
-    private void startAsyncWork(final Handle s) {
+    private void startAsyncWork(final Subscription s) {
         System.out.println("**** Start new worker thread");
         /* don't write real code like this! just for quick demo */
         new Thread(new Runnable() {

@@ -1,15 +1,15 @@
 package org.reactivestreams.tck;
 
-import org.reactivestreams.Listener;
-import org.reactivestreams.Source;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Publisher;
 
 /**
- * The TCK uses this to pull together the 2 sides of {@link Source} and {@link Listener}.
+ * The TCK uses this to pull together the 2 sides of {@link Publisher} and {@link Subscriber}.
  */
-public interface TestProcessor<I, O> extends Source<I>, Listener<O> {
+public interface TestProcessor<I, O> extends Publisher<I>, Subscriber<O> {
 
-    Listener<O> getSubscriber();
+    Subscriber<O> getSubscriber();
 
-    Source<I> getPublisher();
+    Publisher<I> getPublisher();
 
 }

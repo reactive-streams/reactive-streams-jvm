@@ -1,6 +1,6 @@
 package org.reactivestreams.example.unicast;
 
-import org.reactivestreams.Source;
+import org.reactivestreams.Publisher;
 
 public class UnicastExample {
 
@@ -11,11 +11,11 @@ public class UnicastExample {
      * @throws InterruptedException
      */
     public static void main(String... args) throws InterruptedException {
-        Source<Integer> dataStream = new InfiniteIncrementNumberPublisher();
+        Publisher<Integer> dataStream = new InfiniteIncrementNumberPublisher();
 
-        dataStream.listen(new NumberSubscriberThatHopsThreads("A"));
+        dataStream.subscribe(new NumberSubscriberThatHopsThreads("A"));
         Thread.sleep(2000);
-        dataStream.listen(new NumberSubscriberThatHopsThreads("B"));
+        dataStream.subscribe(new NumberSubscriberThatHopsThreads("B"));
     }
 
 }

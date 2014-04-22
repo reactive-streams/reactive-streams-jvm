@@ -2,10 +2,10 @@ package org.reactivestreams.example.multicast;
 
 import java.util.concurrent.ArrayBlockingQueue;
 
-import org.reactivestreams.Handle;
-import org.reactivestreams.Listener;
+import org.reactivestreams.Subscription;
+import org.reactivestreams.Subscriber;
 
-public class StockPriceSubscriber implements Listener<Stock> {
+public class StockPriceSubscriber implements Subscriber<Stock> {
 
     private final ArrayBlockingQueue<Stock> buffer;
     private final int delayPerStock;
@@ -23,7 +23,7 @@ public class StockPriceSubscriber implements Listener<Stock> {
     }
 
     @Override
-    public void onListen(Handle s) {
+    public void onSubscribe(Subscription s) {
         System.out.println("StockPriceSubscriber.onSubscribe => request " + buffer.remainingCapacity());
         s.request(buffer.remainingCapacity());
         startAsyncWork(s);
@@ -45,7 +45,7 @@ public class StockPriceSubscriber implements Listener<Stock> {
         terminated = true;
     }
 
-    private void startAsyncWork(final Handle s) {
+    private void startAsyncWork(final Subscription s) {
         System.out.println("StockPriceSubscriber => Start new worker thread");
         /* don't write real code like this! just for quick demo */
         new Thread(new Runnable() {

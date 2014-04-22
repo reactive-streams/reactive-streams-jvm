@@ -2,9 +2,9 @@ package org.reactivestreams.example.multicast;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-import org.reactivestreams.Handle;
-import org.reactivestreams.Listener;
-import org.reactivestreams.Source;
+import org.reactivestreams.Subscription;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Publisher;
 import org.reactivestreams.example.multicast.NeverEndingStockStream.Handler;
 
 /**
@@ -14,11 +14,11 @@ import org.reactivestreams.example.multicast.NeverEndingStockStream.Handler;
  * <p>
  * If the subscriber can not keep up, it will drop (different strategies could be implemented, configurable, etc).
  */
-public class StockPricePublisher implements Source<Stock> {
+public class StockPricePublisher implements Publisher<Stock> {
 
     @Override
-    public void listen(final Listener<Stock> s) {
-        s.onListen(new Handle() {
+    public void subscribe(final Subscriber<Stock> s) {
+        s.onSubscribe(new Subscription() {
 
             AtomicInteger capacity = new AtomicInteger();
             EventHandler handler = new EventHandler(s, capacity);
@@ -46,10 +46,10 @@ public class StockPricePublisher implements Source<Stock> {
     }
 
     private static final class EventHandler implements Handler {
-        private final Listener<Stock> s;
+        private final Subscriber<Stock> s;
         private final AtomicInteger capacity;
 
-        private EventHandler(Listener<Stock> s, AtomicInteger capacity) {
+        private EventHandler(Subscriber<Stock> s, AtomicInteger capacity) {
             this.s = s;
             this.capacity = capacity;
         }

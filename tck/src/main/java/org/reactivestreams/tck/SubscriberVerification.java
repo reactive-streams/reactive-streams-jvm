@@ -1,8 +1,8 @@
 package org.reactivestreams.tck;
 
-import org.reactivestreams.Handle;
-import org.reactivestreams.Listener;
-import org.reactivestreams.Source;
+import org.reactivestreams.Subscription;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.TestEnvironment.Latch;
 import org.reactivestreams.tck.TestEnvironment.ManualPublisher;
 import org.reactivestreams.tck.TestEnvironment.ManualSubscriber;
@@ -25,14 +25,14 @@ public abstract class SubscriberVerification<T> {
    * In order to be meaningfully testable your Subscriber must inform the given
    * `SubscriberProbe` of the respective events having been received.
    */
-  abstract Listener<T> createSubscriber(SubscriberProbe<T> probe);
+  abstract Subscriber<T> createSubscriber(SubscriberProbe<T> probe);
 
   /**
    * Helper method required for generating test elements.
    * It must create a Publisher for a stream with exactly the given number of elements.
    * If `elements` is zero the produced stream must be infinite.
    */
-  abstract Source<T> createHelperPublisher(int elements);
+  abstract Publisher<T> createHelperPublisher(int elements);
 
   ////////////////////// TEST SETUP VERIFICATION ///////////////////////////
 
@@ -85,8 +85,8 @@ public abstract class SubscriberVerification<T> {
   void mustNotAcceptAnOnSubscribeEventIfItAlreadyHasAnActiveSubscription() throws InterruptedException {
     new TestSetup(env) {{
       // try to subscribe another time, if the subscriber calls `probe.registerOnSubscribe` the test will fail
-      sub().onListen(
-          new Handle() {
+      sub().onSubscribe(
+          new Subscription() {
             public void request(int elements) {
               env.flop(String.format("Subscriber %s illegally called `subscription.requestMore(%s)`", sub(), elements));
             }
@@ -204,11 +204,11 @@ public abstract class SubscriberVerification<T> {
       super(env);
       tees = env.newManualSubscriber(createHelperPublisher(0));
       probe = new Probe();
-      listen(createSubscriber(probe));
+      subscribe(createSubscriber(probe));
       probe.puppet.expectCompletion(env.defaultTimeoutMillis(), String.format("Subscriber %s did not `registerOnSubscribe`", sub()));
     }
 
-    Listener<T> sub() {
+    Subscriber<T> sub() {
       return subscriber.get();
     }
 

@@ -11,8 +11,8 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import org.reactivestreams.Handle;
-import org.reactivestreams.Source;
+import org.reactivestreams.Subscription;
+import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.TestEnvironment.Latch;
 import org.reactivestreams.tck.TestEnvironment.ManualSubscriber;
 import org.reactivestreams.tck.TestEnvironment.ManualSubscriberWithSubscriptionSupport;
@@ -37,19 +37,19 @@ public abstract class PublisherVerification<T> {
    * It must create a Publisher for a stream with exactly the given number of elements.
    * If `elements` is zero the produced stream must be infinite.
    */
-  public abstract Source<T> createPublisher(int elements);
+  public abstract Publisher<T> createPublisher(int elements);
 
   /**
    * Return a Publisher in {@code completed} state in order to run additional tests on it,
    * or {@code null} in order to skip them.
    */
-  public abstract Source<T> createCompletedStatePublisher();
+  public abstract Publisher<T> createCompletedStatePublisher();
 
   /**
    * Return a Publisher in {@code error} state in order to run additional tests on it,
    * or {@code null} in order to skip them.
    */
-  public abstract Source<T> createErrorStatePublisher();
+  public abstract Publisher<T> createErrorStatePublisher();
 
   ////////////////////// TEST SETUP VERIFICATION ///////////////////////////
 
@@ -57,7 +57,7 @@ public abstract class PublisherVerification<T> {
   public void createPublisher3MustProduceAStreamOfExactly3Elements() throws Throwable {
     activePublisherTest(3, new PublisherTestRun<T>() {
       @Override
-      public void run(Source<T> pub) throws InterruptedException {
+      public void run(Publisher<T> pub) throws InterruptedException {
         TestEnvironment.ManualSubscriber<T> sub = env.newManualSubscriber(pub);
         assertTrue(requestNextElementOrEndOfStream(pub, sub).isDefined(), String.format("Publisher %s produced no elements", pub));
         assertTrue(requestNextElementOrEndOfStream(pub, sub).isDefined(), String.format("Publisher %s produced only 1 element", pub));
@@ -65,7 +65,7 @@ public abstract class PublisherVerification<T> {
         sub.requestEndOfStream();
       }
 
-      Optional<T> requestNextElementOrEndOfStream(Source<T> pub, TestEnvironment.ManualSubscriber<T> sub) throws InterruptedException {
+      Optional<T> requestNextElementOrEndOfStream(Publisher<T> pub, TestEnvironment.ManualSubscriber<T> sub) throws InterruptedException {
         return sub.requestNextElementOrEndOfStream("Timeout while waiting for next element from Publisher" + pub);
       }
 
@@ -83,16 +83,16 @@ public abstract class PublisherVerification<T> {
   public void publisherSubscribeWhenCompletedMustTriggerOnCompleteAndNotOnSubscribe() throws Throwable {
     completedPublisherTest(new PublisherTestRun<T>() {
       @Override
-      public void run(final Source<T> pub) throws InterruptedException {
+      public void run(final Publisher<T> pub) throws InterruptedException {
         final Latch latch = new Latch(env);
-        pub.listen(
+        pub.subscribe(
             new TestEnvironment.TestSubscriber<T>(env) {
               public void onComplete() {
                 latch.assertOpen(String.format("Publisher %s called `onComplete` twice on new Subscriber", pub));
                 latch.close();
               }
 
-              public void onListen(Handle subscription) {
+              public void onSubscribe(Subscription subscription) {
                 env.flop(String.format("Publisher created by `createCompletedStatePublisher()` (%s) called `onSubscribe` on new Subscriber", pub));
               }
             });
@@ -111,9 +111,9 @@ public abstract class PublisherVerification<T> {
   public void publisherSubscribeWhenInErrorStateMustTriggerOnErrorAndNotOnSubscribe() throws Throwable {
     errorPublisherTest(new PublisherTestRun<T>() {
       @Override
-      public void run(final Source<T> pub) throws InterruptedException {
+      public void run(final Publisher<T> pub) throws InterruptedException {
         final Latch latch = new Latch(env);
-        pub.listen(
+        pub.subscribe(
             new TestEnvironment.TestSubscriber<T>(env) {
               public void onError(Throwable cause) {
                 latch.assertOpen(String.format("Error-state Publisher %s called `onError` twice on new Subscriber", pub));
@@ -139,7 +139,7 @@ public abstract class PublisherVerification<T> {
   public void publisherSubscribeWhenInShutDownStateMustTriggerOnErrorAndNotOnSubscribe() throws Throwable {
     activePublisherTest(3, new PublisherTestRun<T>() {
       @Override
-      public void run(final Source<T> pub) throws InterruptedException {
+      public void run(final Publisher<T> pub) throws InterruptedException {
         TestEnvironment.ManualSubscriber<T> sub = env.newManualSubscriber(pub);
         sub.cancel();
 
@@ -149,7 +149,7 @@ public abstract class PublisherVerification<T> {
         Thread.sleep(publisherShutdownTimeoutMillis);
 
         final Latch latch = new Latch(env);
-        pub.listen(
+        pub.subscribe(
             new TestEnvironment.TestSubscriber<T>(env) {
               public void onError(Throwable cause) {
                 latch.assertOpen(String.format("shut-down-state Publisher %s called `onError` twice on new Subscriber", pub));
@@ -169,12 +169,12 @@ public abstract class PublisherVerification<T> {
   public void publisherSubscribeWhenActiveMustCallOnSubscribeFirst() throws Throwable {
     activePublisherTest(1, new PublisherTestRun<T>() {
       @Override
-      public void run(Source<T> pub) throws InterruptedException {
+      public void run(Publisher<T> pub) throws InterruptedException {
         final Latch latch = new Latch(env);
-        final Handle[] sub = {null};
-        pub.listen(
+        final Subscription[] sub = {null};
+        pub.subscribe(
             new TestSubscriber<T>(env) {
-              public void onListen(Handle subscription) {
+              public void onSubscribe(Subscription subscription) {
                 latch.close();
                 sub[0] = subscription;
               }
@@ -194,19 +194,19 @@ public abstract class PublisherVerification<T> {
   public void publisherSubscribeWhenActiveMustRejectDoubleSubscription() throws Throwable {
     activePublisherTest(1, new PublisherTestRun<T>() {
       @Override
-      public void run(Source<T> pub) throws InterruptedException {
+      public void run(Publisher<T> pub) throws InterruptedException {
         final Latch latch = new Latch(env);
         final Promise<Throwable> errorCause = new Promise<Throwable>(env);
         TestSubscriber<T> sub = new TestSubscriber<T>(env) {
-          public void onListen(Handle subscription) { latch.close(); }
+          public void onSubscribe(Subscription subscription) { latch.close(); }
           public void onError(Throwable cause) { errorCause.complete(cause); }
         };
-        pub.listen(sub);
+        pub.subscribe(sub);
         latch.expectClose(env.defaultTimeoutMillis(), "Active Publisher "+ pub+" did not call `onSubscribe` on first subscription request");
         errorCause.assertUncompleted("Active Publisher "+ pub+" unexpectedly called `onError` on first subscription request");
 
         latch.reOpen();
-        pub.listen(sub);
+        pub.subscribe(sub);
         errorCause.expectCompletion(env.defaultTimeoutMillis(), "Active Publisher "+ pub+" did not call `onError` on double subscription request");
         if(!IllegalStateException.class.isInstance(errorCause.value()))
           env.flop("Publisher " + pub + " called `onError` with " + errorCause.value() + " rather than an `IllegalStateException` on double subscription request");
@@ -223,7 +223,7 @@ public abstract class PublisherVerification<T> {
   public void subscriptionRequestMoreWhenCancelledMustIgnoreTheCall() throws Throwable {
     activePublisherTest(1, new PublisherTestRun<T>() {
       @Override
-      public void run(Source<T> pub) throws InterruptedException {
+      public void run(Publisher<T> pub) throws InterruptedException {
         ManualSubscriber<T> sub = env.newManualSubscriber(pub);
               sub.subscription.value().cancel();
               sub.subscription.value().request(1); // must not throw
@@ -241,7 +241,7 @@ public abstract class PublisherVerification<T> {
   public void subscriptionRequestMoreMustResultInTheCorrectNumberOfProducedElements() throws Throwable {
     activePublisherTest(5, new PublisherTestRun<T>() {
       @Override
-      public void run(Source<T> pub) throws InterruptedException {
+      public void run(Publisher<T> pub) throws InterruptedException {
 
         ManualSubscriber<T> sub = env.newManualSubscriber(pub);
 
@@ -266,7 +266,7 @@ public abstract class PublisherVerification<T> {
   public void subscriptionRequestMoreMustThrowIfArgumentIsNonPositive() throws Throwable {
     activePublisherTest(1, new PublisherTestRun<T>() {
       @Override
-      public void run(Source<T> pub) throws Throwable {
+      public void run(Publisher<T> pub) throws Throwable {
 
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
         env.expectThrowingOf(
@@ -300,7 +300,7 @@ public abstract class PublisherVerification<T> {
   public void subscriptionCancelWhenCancelledMustIgnoreCall() throws Throwable {
     activePublisherTest(1, new PublisherTestRun<T>() {
       @Override
-      public void run(Source<T> pub) throws InterruptedException {
+      public void run(Publisher<T> pub) throws InterruptedException {
         ManualSubscriber<T> sub = env.newManualSubscriber(pub);
         sub.subscription.value().cancel(); // first time must succeed
         sub.subscription.value().cancel(); // the second time must not throw
@@ -315,7 +315,7 @@ public abstract class PublisherVerification<T> {
   public void onSubscriptionCancelThePublisherMustEventuallyCeaseToCallAnyMethodsOnTheSubscriber() throws Throwable {
     activePublisherTest(0, new PublisherTestRun<T>() {
       @Override
-      public void run(Source<T> pub) throws InterruptedException {
+      public void run(Publisher<T> pub) throws InterruptedException {
         // infinite stream
 
         final AtomicBoolean drop = new AtomicBoolean(true);
@@ -348,9 +348,9 @@ public abstract class PublisherVerification<T> {
   public void onSubscriptionCancelThePublisherMustEventuallyDropAllReferencesToTheSubscriber() throws Throwable {
     final ReferenceQueue<ManualSubscriber<T>> queue = new ReferenceQueue<ManualSubscriber<T>>();
 
-    final Function<Source<T>, WeakReference<ManualSubscriber<T>>> run = new Function<Source<T>, WeakReference<ManualSubscriber<T>>>() {
+    final Function<Publisher<T>, WeakReference<ManualSubscriber<T>>> run = new Function<Publisher<T>, WeakReference<ManualSubscriber<T>>>() {
       @Override
-      public WeakReference<ManualSubscriber<T>> apply(Source<T> pub) throws Exception {
+      public WeakReference<ManualSubscriber<T>> apply(Publisher<T> pub) throws Exception {
         ManualSubscriber<T> sub = env.newManualSubscriber(pub);
         WeakReference<ManualSubscriber<T>> ref = new WeakReference<ManualSubscriber<T>>(sub, queue);
         sub.requestMore(1);
@@ -362,7 +362,7 @@ public abstract class PublisherVerification<T> {
 
     activePublisherTest(3, new PublisherTestRun<T>() {
       @Override
-      public void run(Source<T> pub) throws Exception {
+      public void run(Publisher<T> pub) throws Exception {
         WeakReference<ManualSubscriber<T>> ref = run.apply(pub);
 
         // cancel may be run asynchronously so we add a sleep before running the GC
@@ -392,7 +392,7 @@ public abstract class PublisherVerification<T> {
     activePublisherTest(5, new PublisherTestRun<T>() {
 
       @Override
-      public void run(Source<T> pub) throws InterruptedException {
+      public void run(Publisher<T> pub) throws InterruptedException {
         ManualSubscriber<T> sub1 = env.newManualSubscriber(pub);
         ManualSubscriber<T> sub2 = env.newManualSubscriber(pub);
         ManualSubscriber<T> sub3 = env.newManualSubscriber(pub);
@@ -453,7 +453,7 @@ public abstract class PublisherVerification<T> {
   public void mustCallOnCompleteOnASubscriberAfterHavingProducedTheFinalStreamElementToIt() throws Throwable {
     activePublisherTest(3, new PublisherTestRun<T>() {
       @Override
-      public void run(Source<T> pub) throws InterruptedException {
+      public void run(Publisher<T> pub) throws InterruptedException {
         ManualSubscriber<T> sub = env.newManualSubscriber(pub);
         sub.requestNextElement();
         sub.requestNextElement();
@@ -492,11 +492,11 @@ public abstract class PublisherVerification<T> {
   /////////////////////// TEST INFRASTRUCTURE //////////////////////
 
   interface PublisherTestRun<T> {
-    public void run(Source<T> pub) throws Throwable;
+    public void run(Publisher<T> pub) throws Throwable;
   }
 
   public void activePublisherTest(int elements, PublisherTestRun<T> body) throws Throwable {
-    Source<T> pub = createPublisher(elements);
+    Publisher<T> pub = createPublisher(elements);
     body.run(pub);
     env.verifyNoAsyncErrors();
   }
@@ -509,7 +509,7 @@ public abstract class PublisherVerification<T> {
     potentiallyPendingTest(createErrorStatePublisher(), body);
   }
 
-  public void potentiallyPendingTest(Source<T> pub, PublisherTestRun<T> body) throws Throwable {
+  public void potentiallyPendingTest(Publisher<T> pub, PublisherTestRun<T> body) throws Throwable {
     if (pub != null) {
       body.run(pub);
       env.verifyNoAsyncErrors();
