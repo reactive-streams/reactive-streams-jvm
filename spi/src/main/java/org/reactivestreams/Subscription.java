@@ -14,7 +14,10 @@ public interface Subscription {
      * <p>
      * It can be called however often and whenever needed.
      * <p>
-     * Whatever has been signalled can be sent by the {@link Publisher} so only signal demand for what can be safely handled.
+     * Whatever has been requested can be sent by the {@link Publisher} so only signal demand for what can be safely handled.
+     * <p>
+     * A {@link Publisher} can send less than is requested if the stream ends but
+     * then must emit either {@link Subscriber#onError(Throwable)} or {@link Subscriber#onComplete()}.
      * 
      * @param n
      */

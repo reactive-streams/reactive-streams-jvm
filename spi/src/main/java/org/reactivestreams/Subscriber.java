@@ -21,7 +21,7 @@ public interface Subscriber<T> {
      * <p>
      * No data will start flowing until {@link Subscription#request(int)} is invoked.
      * <p>
-     * It is the resonsibility of this {@link Subscriber} instance to call {@link Subscription#request(int)} whenever more data is wanted.
+     * It is the responsibility of this {@link Subscriber} instance to call {@link Subscription#request(int)} whenever more data is wanted.
      * <p>
      * The {@link Publisher} will send notifications only in response to {@link Subscription#request(int)}.
      * 
