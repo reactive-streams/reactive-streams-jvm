@@ -284,7 +284,7 @@ public abstract class SubscriberVerification<T> {
     }
   }
 
-  interface SubscriberProbe<T> {
+  public interface SubscriberProbe<T> {
     /**
      * Must be called by the test subscriber when it has received the `onSubscribe` event.
      */
@@ -306,7 +306,7 @@ public abstract class SubscriberVerification<T> {
     void registerOnError(Throwable cause);
   }
 
-  interface SubscriberPuppet {
+  public interface SubscriberPuppet {
     void triggerShutdown();
 
     void triggerRequestMore(int elements);
