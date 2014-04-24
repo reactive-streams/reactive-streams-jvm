@@ -487,7 +487,7 @@ public abstract class PublisherVerification<T> {
 
   /////////////////////// TEST INFRASTRUCTURE //////////////////////
 
-  interface PublisherTestRun<T> {
+  public interface PublisherTestRun<T> {
     public void run(Publisher<T> pub) throws Throwable;
   }
 
