@@ -10,9 +10,9 @@ homepage in ThisBuild := Some(url("http://www.reactive-streams.org/"))
 
 publishTo in ThisBuild := Some("releases" at "https://oss.sonatype.org/service/local/staging/deploy/maven2")
 
-lazy val spi = project
+lazy val api = project
 
-lazy val tck = project.dependsOn(spi)
+lazy val tck = project.dependsOn(api)
 
 publishArtifact := false // for this aggregate project
 

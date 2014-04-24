@@ -1,17 +1,16 @@
 package org.reactivestreams.tck;
 
-import org.reactivestreams.api.Processor;
-import org.reactivestreams.spi.Publisher;
-import org.reactivestreams.spi.Subscriber;
-import org.reactivestreams.spi.Subscription;
+import java.util.HashSet;
+import java.util.Set;
+
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.TestEnvironment.ManualPublisher;
 import org.reactivestreams.tck.TestEnvironment.ManualSubscriber;
 import org.reactivestreams.tck.TestEnvironment.ManualSubscriberWithSubscriptionSupport;
 import org.reactivestreams.tck.TestEnvironment.Promise;
 import org.testng.annotations.Test;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public abstract class IdentityProcessorVerification<T> {
 
@@ -76,13 +75,13 @@ public abstract class IdentityProcessorVerification<T> {
 
   /**
    * This is the main method you must implement in your test incarnation.
-   * It must create a Processor, which simply forwards all stream elements from its upstream
+   * It must create a ReactiveSubject, which simply forwards all stream elements from its upstream
    * to its downstream. It must be able to internally buffer the given number of elements.
    */
-  public abstract Processor<T, T> createIdentityProcessor(int bufferSize);
+  public abstract ReactiveSubject<T, T> createIdentityReactiveSubject(int bufferSize);
 
   /**
-   * Helper method required for running the Publisher rules against a Processor.
+   * Helper method required for running the Publisher rules against a ReactiveSubject.
    * It must create a Publisher for a stream with exactly the given number of elements.
    * If `elements` is zero the produced stream must be infinite.
    * The stream must not produce the same element twice (in case of an infinite stream this requirement
@@ -104,13 +103,13 @@ public abstract class IdentityProcessorVerification<T> {
 
   ////////////////////// PUBLISHER RULES VERIFICATION ///////////////////////////
 
-  // A Processor
+  // A ReactiveSubject
   //   must obey all Publisher rules on its producing side
   public Publisher<T> createPublisher(int elements) {
-    Processor<T, T> processor = createIdentityProcessor(testBufferSize);
+    ReactiveSubject<T, T> processor = createIdentityReactiveSubject(testBufferSize);
     Publisher<T> pub = createHelperPublisher(elements);
-    pub.subscribe(processor.getSubscriber());
-    return processor.getPublisher(); // we run the PublisherVerification against this
+    pub.subscribe(processor);
+    return processor; // we run the PublisherVerification against this
   }
 
   // A Publisher
@@ -119,9 +118,9 @@ public abstract class IdentityProcessorVerification<T> {
   public void mustSupportAPendingElementCountUpToLongMaxValue() throws Exception {
     new TestSetup(env, testBufferSize) {{
       TestEnvironment.ManualSubscriber<T> sub = newSubscriber();
-      sub.requestMore(Integer.MAX_VALUE);
-      sub.requestMore(Integer.MAX_VALUE);
-      sub.requestMore(2); // if the Subscription only keeps an int counter without overflow protection it will now be at zero
+      sub.request(Integer.MAX_VALUE);
+      sub.request(Integer.MAX_VALUE);
+      sub.request(2); // if the Subscription only keeps an int counter without overflow protection it will now be at zero
 
       final T x = sendNextTFromUpstream();
       expectNextElement(sub, x);
@@ -158,15 +157,15 @@ public abstract class IdentityProcessorVerification<T> {
   public void mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError() throws Exception {
     new TestSetup(env, testBufferSize) {{
       ManualSubscriberWithErrorCollection<T> sub1 = new ManualSubscriberWithErrorCollection<T>(env);
-      env.subscribe(processor.getPublisher(), sub1);
+      env.subscribe(processor, sub1);
       ManualSubscriberWithErrorCollection<T> sub2 = new ManualSubscriberWithErrorCollection<T>(env);
-      env.subscribe(processor.getPublisher(), sub2);
+      env.subscribe(processor, sub2);
 
-      sub1.requestMore(1);
+      sub1.request(1);
       expectRequestMore();
       final T x = sendNextTFromUpstream();
       expectNextElement(sub1, x);
-      sub1.requestMore(1);
+      sub1.request(1);
 
       // sub1 now has received and element and has 1 pending
       // sub2 has not yet requested anything
@@ -187,11 +186,11 @@ public abstract class IdentityProcessorVerification<T> {
 
   ////////////////////// SUBSCRIBER RULES VERIFICATION ///////////////////////////
 
-  // A Processor
+  // A ReactiveSubject
   //   must obey all Subscriber rules on its consuming side
   public Subscriber<T> createSubscriber(final SubscriberVerification.SubscriberProbe<T> probe) {
-    Processor<T, T> processor = createIdentityProcessor(testBufferSize);
-    processor.getPublisher().subscribe(
+    ReactiveSubject<T, T> processor = createIdentityReactiveSubject(testBufferSize);
+    processor.subscribe(
         new Subscriber<T>() {
           public void onSubscribe(final Subscription subscription) {
             probe.registerOnSubscribe(
@@ -201,7 +200,7 @@ public abstract class IdentityProcessorVerification<T> {
                   }
 
                   public void triggerRequestMore(int elements) {
-                    subscription.requestMore(elements);
+                    subscription.request(elements);
                   }
 
                   public void triggerCancel() {
@@ -223,12 +222,12 @@ public abstract class IdentityProcessorVerification<T> {
           }
         });
 
-    return processor.getSubscriber(); // we run the SubscriberVerification against this
+    return processor; // we run the SubscriberVerification against this
   }
 
   ////////////////////// OTHER SPEC RULE VERIFICATION ///////////////////////////
 
-  // A Processor
+  // A ReactiveSubject
   //   must cancel its upstream Subscription if its last downstream Subscription has been cancelled
   @Test
   public void mustCancelItsUpstreamSubscriptionIfItsLastDownstreamSubscriptionHasBeenCancelled() throws Exception {
@@ -241,23 +240,23 @@ public abstract class IdentityProcessorVerification<T> {
     }};
   }
 
-  // A Processor
+  // A ReactiveSubject
   //   must immediately pass on `onError` events received from its upstream to its downstream
   @Test
   public void mustImmediatelyPassOnOnErrorEventsReceivedFromItsUpstreamToItsDownstream() throws Exception {
     new TestSetup(env, testBufferSize) {{
       ManualSubscriberWithErrorCollection<T> sub = new ManualSubscriberWithErrorCollection<T>(env);
-      env.subscribe(processor.getPublisher(), sub);
+      env.subscribe(processor, sub);
 
       Exception ex = new RuntimeException("Test exception");
       sendError(ex);
-      sub.expectError(ex); // "immediately", i.e. without a preceding requestMore
+      sub.expectError(ex); // "immediately", i.e. without a preceding request
 
       env.verifyNoAsyncErrors();
     }};
   }
 
-  // A Processor
+  // A ReactiveSubject
   //   must be prepared to receive incoming elements from its upstream even if a downstream subscriber has not requested anything yet
   @Test
   public void mustBePreparedToReceiveIncomingElementsFromItsUpstreamEvenIfADownstreamSubscriberHasNotRequestedYet() throws Exception {
@@ -268,7 +267,7 @@ public abstract class IdentityProcessorVerification<T> {
         final T y = sendNextTFromUpstream();
         sub.expectNone(50);
 
-        sub.requestMore(2);
+        sub.request(2);
         sub.expectNext(x);
         sub.expectNext(y);
 
@@ -417,7 +416,7 @@ public abstract class IdentityProcessorVerification<T> {
   public void mustRequestFromUpstreamForElementsThatHaveBeenRequestedLongAgo() throws Exception {
     new TestSetup(env, testBufferSize) {{
       TestEnvironment.ManualSubscriber<T> sub1 = newSubscriber();
-      sub1.requestMore(20);
+      sub1.request(20);
 
       int totalRequests = expectRequestMore();
       final T x = sendNextTFromUpstream();
@@ -442,7 +441,7 @@ public abstract class IdentityProcessorVerification<T> {
       expectNextElement(sub1, z);
       sub2.expectNone(); // since sub2 hasn't requested anything yet
 
-      sub2.requestMore(1);
+      sub2.request(1);
       expectNextElement(sub2, z);
 
       if (totalRequests == 3) {
@@ -465,7 +464,7 @@ public abstract class IdentityProcessorVerification<T> {
       TestEnvironment.ManualSubscriber<T> sub1 = newSubscriber();
       TestEnvironment.ManualSubscriber<T> sub2 = newSubscriber();
 
-      sub1.requestMore(testBufferSize + 1);
+      sub1.request(testBufferSize + 1);
       int pending = 0;
       int sent = 0;
       final T[] tees = (T[]) new Object[testBufferSize];
@@ -500,19 +499,19 @@ public abstract class IdentityProcessorVerification<T> {
     private TestEnvironment.ManualSubscriber<T> tees; // gives us access to an infinite stream of T values
     private Set<T> seenTees = new HashSet<T>();
 
-    final Processor<T, T> processor;
+    final ReactiveSubject<T, T> processor;
     final int testBufferSize;
 
     public TestSetup(TestEnvironment env, int testBufferSize) throws InterruptedException {
       super(env);
       this.testBufferSize = testBufferSize;
       tees = env.newManualSubscriber(createHelperPublisher(0));
-      processor = createIdentityProcessor(testBufferSize);
-      subscribe(processor.getSubscriber());
+      processor = createIdentityReactiveSubject(testBufferSize);
+      subscribe(processor);
     }
 
     public TestEnvironment.ManualSubscriber<T> newSubscriber() throws InterruptedException {
-      return env.newManualSubscriber(processor.getPublisher());
+      return env.newManualSubscriber(processor);
     }
 
     public T nextT() throws InterruptedException {

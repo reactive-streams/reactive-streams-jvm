@@ -1,10 +1,7 @@
 package org.reactivestreams.tck;
 
-import org.reactivestreams.spi.Publisher;
-import org.reactivestreams.spi.Subscription;
-import org.reactivestreams.tck.support.Optional;
-import org.testng.SkipException;
-import org.testng.annotations.Test;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
@@ -14,9 +11,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.reactivestreams.tck.TestEnvironment.*;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscription;
+import org.reactivestreams.tck.TestEnvironment.Latch;
+import org.reactivestreams.tck.TestEnvironment.ManualSubscriber;
+import org.reactivestreams.tck.TestEnvironment.ManualSubscriberWithSubscriptionSupport;
+import org.reactivestreams.tck.TestEnvironment.Promise;
+import org.reactivestreams.tck.TestEnvironment.TestSubscriber;
+import org.reactivestreams.tck.support.Optional;
+import org.testng.SkipException;
+import org.testng.annotations.Test;
 
 public abstract class PublisherVerification<T> {
 
@@ -212,7 +216,7 @@ public abstract class PublisherVerification<T> {
     });
   }
 
-  // Subscription::requestMore(Int)
+  // Subscription::request(Int)
   //   when Subscription is cancelled
   //     must ignore the call
   @Test
@@ -222,17 +226,17 @@ public abstract class PublisherVerification<T> {
       public void run(Publisher<T> pub) throws InterruptedException {
         ManualSubscriber<T> sub = env.newManualSubscriber(pub);
               sub.subscription.value().cancel();
-              sub.subscription.value().requestMore(1); // must not throw
+              sub.subscription.value().request(1); // must not throw
       }
     });
     }
 
-  // Subscription::requestMore(Int)
+  // Subscription::request(Int)
   //   when Subscription is not cancelled
   //     must register the given number of additional elements to be produced to the respective subscriber
   // A Publisher
   //   must not call `onNext`
-  //    more times than the total number of elements that was previously requested with Subscription::requestMore by the corresponding subscriber
+  //    more times than the total number of elements that was previously requested with Subscription::request by the corresponding subscriber
   @Test
   public void subscriptionRequestMoreMustResultInTheCorrectNumberOfProducedElements() throws Throwable {
     activePublisherTest(5, new PublisherTestRun<T>() {
@@ -241,21 +245,21 @@ public abstract class PublisherVerification<T> {
 
         ManualSubscriber<T> sub = env.newManualSubscriber(pub);
 
-        sub.expectNone("Publisher " + pub + " produced value before the first `requestMore`: ");
-        sub.requestMore(1);
-        sub.nextElement("Publisher " + pub + " produced no element after first `requestMore`");
+        sub.expectNone("Publisher " + pub + " produced value before the first `request`: ");
+        sub.request(1);
+        sub.nextElement("Publisher " + pub + " produced no element after first `request`");
         sub.expectNone("Publisher " + pub + " produced unrequested: ");
 
-        sub.requestMore(1);
-        sub.requestMore(2);
-        sub.nextElements(3, env.defaultTimeoutMillis(), "Publisher " + pub + " produced less than 3 elements after two respective `requestMore` calls");
+        sub.request(1);
+        sub.request(2);
+        sub.nextElements(3, env.defaultTimeoutMillis(), "Publisher " + pub + " produced less than 3 elements after two respective `request` calls");
 
         sub.expectNone("Publisher " + pub + "produced unrequested ");
       }
     });
   }
 
-  // Subscription::requestMore(Int)
+  // Subscription::request(Int)
   //   when Subscription is not cancelled
   //     must throw a `java.lang.IllegalArgumentException` if the argument is <= 0
   @Test
@@ -267,21 +271,21 @@ public abstract class PublisherVerification<T> {
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
         env.expectThrowingOf(
             IllegalArgumentException.class,
-            "Calling `requestMore(-1)` a subscription to " + pub + " did not fail with an `IllegalArgumentException`",
+            "Calling `request(-1)` a subscription to " + pub + " did not fail with an `IllegalArgumentException`",
             new Runnable() {
               @Override
               public void run() {
-                sub.subscription.value().requestMore(-1);
+                sub.subscription.value().request(-1);
               }
             });
 
         env.expectThrowingOf(
             IllegalArgumentException.class,
-            "Calling `requestMore(0)` a subscription to " + pub + " did not fail with an `IllegalArgumentException`",
+            "Calling `request(0)` a subscription to " + pub + " did not fail with an `IllegalArgumentException`",
             new Runnable() {
               @Override
               public void run() {
-                sub.subscription.value().requestMore(0);
+                sub.subscription.value().request(0);
               }
             });
         sub.cancel();
@@ -323,7 +327,7 @@ public abstract class PublisherVerification<T> {
           }
         };
         env.subscribe(pub, sub);
-        sub.requestMore(Integer.MAX_VALUE);
+        sub.request(Integer.MAX_VALUE);
         sub.cancel();
         Thread.sleep(env.defaultTimeoutMillis());
 
@@ -349,7 +353,7 @@ public abstract class PublisherVerification<T> {
       public WeakReference<ManualSubscriber<T>> apply(Publisher<T> pub) throws Exception {
         ManualSubscriber<T> sub = env.newManualSubscriber(pub);
         WeakReference<ManualSubscriber<T>> ref = new WeakReference<ManualSubscriber<T>>(sub, queue);
-        sub.requestMore(1);
+        sub.request(1);
         sub.nextElement();
         sub.cancel();
         return ref;
@@ -393,25 +397,25 @@ public abstract class PublisherVerification<T> {
         ManualSubscriber<T> sub2 = env.newManualSubscriber(pub);
         ManualSubscriber<T> sub3 = env.newManualSubscriber(pub);
 
-        sub1.requestMore(1);
+        sub1.request(1);
         T x1 = sub1.nextElement("Publisher " + pub + " did not produce the requested 1 element on 1st subscriber");
-        sub2.requestMore(2);
+        sub2.request(2);
         List<T> y1 = sub2.nextElements(2, "Publisher " + pub + " did not produce the requested 2 elements on 2nd subscriber");
-        sub1.requestMore(1);
+        sub1.request(1);
         T x2 = sub1.nextElement("Publisher " + pub + " did not produce the requested 1 element on 1st subscriber");
-        sub3.requestMore(3);
+        sub3.request(3);
         List<T> z1 = sub3.nextElements(3, "Publisher " + pub + " did not produce the requested 3 elements on 3rd subscriber");
-        sub3.requestMore(1);
+        sub3.request(1);
         T z2 = sub3.nextElement("Publisher " + pub + " did not produce the requested 1 element on 3rd subscriber");
-        sub3.requestMore(1);
+        sub3.request(1);
         T z3 = sub3.nextElement("Publisher " + pub + " did not produce the requested 1 element on 3rd subscriber");
         sub3.requestEndOfStream("Publisher " + pub + " did not complete the stream as expected on 3rd subscriber");
-        sub2.requestMore(3);
+        sub2.request(3);
         List<T> y2 = sub2.nextElements(3, "Publisher " + pub + " did not produce the requested 3 elements on 2nd subscriber");
         sub2.requestEndOfStream("Publisher " + pub + " did not complete the stream as expected on 2nd subscriber");
-        sub1.requestMore(2);
+        sub1.request(2);
         List<T> x3 = sub1.nextElements(2, "Publisher " + pub + " did not produce the requested 2 elements on 1st subscriber");
-        sub1.requestMore(1);
+        sub1.request(1);
         T x4 = sub1.nextElement("Publisher " + pub + " did not produce the requested 1 element on 1st subscriber");
         sub1.requestEndOfStream("Publisher " + pub + " did not complete the stream as expected on 1st subscriber");
 
