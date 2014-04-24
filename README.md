@@ -93,15 +93,42 @@ At any time the `Publisher` may signal that it is not able to provide more eleme
 
 > For example a `Publisher` representing a strict collection signals completion to its subscriber after it provided all the elements. Now a later subscriber might still receive the whole collection before receiving onComplete.
 
-### Asynchronous processing ###
+### Asynchronous vs Synchronous Processing ###
 
-The Reactive Streams API prescribes that all processing of elements (`onNext`) or termination signals (`onError`, `onComplete`) happens outside of the execution stack of the `Publisher`. This is achieved by scheduling the processing to run asynchronously, possibly on a different thread. The Subscriber should make sure to minimize the amount of processing steps used to initiate this process, meaning that all its API-mandated methods shall return as quickly as possible. Note that this does not mean synchronous processing is not permitted; see "Relationship to synchronous stream-processing" below.
+The Reactive Streams API prescribes that all processing of elements (`onNext`) or termination signals (`onError`, `onComplete`) do not *block* the `Publisher`. Each of the `on*` handlers can process the events synchronously or asynchronously. 
 
-In contrast to communicating back-pressure by blocking the publisher, a non-blocking solution needs to communicate demand through a dedicated control channel. This channel is provided by the `Subscription`: the subscriber controls the maximum amount of future elements it is willing receive by sending explicit demand tokens (by calling request(int)).
+For example, this `onNext` implementation does synchronous transformation and enqueues the result for further asynchronous processing:
+
+```java
+void onNext(T t) {
+  queue.offer(transform(t));
+}
+```
+
+In a push-based model such as this doing asynchronous processing, back-pressure needs to be provided otherwise buffer bloat can occur.
+
+In contrast to communicating back-pressure by blocking the publisher, a non-blocking solution needs to communicate demand through a dedicated control channel. This channel is provided by the `Subscription`: the `Subscriber` controls the maximum amount of future elements it is willing receive by sending explicit demand tokens (by calling `request(int)`).
+
+Expanding on the `onNext` example above, as the queue is drained and processed asynchronously it would signal demand such as this:
+
+```java
+// TODO replace with fully functioning code example rather than this pseudo-code snippet
+void process() {
+   eventLoop.schedule(() -> {
+	    T t;
+   		while((t = queue.poll()) != null) {
+			doWork(t);
+			if(queue.size() < THRESHOLD) {
+				subscription.request(queue.capacity());
+			}
+		}
+   })
+}
+```
 
 #### Relationship to synchronous stream-processing ####
 
-This document describes asynchronous, non-blocking backpressure boundaries but in between those boundaries any kind of synchronous stream processing model is permitted. This is useful for performance optimization (eliminating inter-thread synchronization) and it conveniently transports backpressure implicitly (the calling method cannot continue while the call lasts). As an example consider a section consisting of three connected Processors, A, B and C:
+This document defines a protocol for asynchronous, non-blocking backpressure boundaries but in between those boundaries any kind of synchronous stream processing model is permitted. This is useful for performance optimization (eliminating inter-thread synchronization) and it conveniently transports backpressure implicitly (the calling method cannot continue while the call lasts). As an example consider a section consisting of three connected Processors, A, B and C:
 
     (...) --> A[S1 --> S2] --> B[S3 --> S4 --> S5] --> C[S6] --> (...)
 
