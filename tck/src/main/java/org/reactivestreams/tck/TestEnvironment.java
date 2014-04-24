@@ -1,9 +1,6 @@
 package org.reactivestreams.tck;
 
-import org.reactivestreams.spi.Publisher;
-import org.reactivestreams.spi.Subscriber;
-import org.reactivestreams.spi.Subscription;
-import org.reactivestreams.tck.support.Optional;
+import static org.testng.Assert.fail;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -12,7 +9,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.testng.Assert.fail;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
+import org.reactivestreams.tck.support.Optional;
 
 public class TestEnvironment {
   public static final int TEST_BUFFER_SIZE = 16;
@@ -182,8 +182,8 @@ public class TestEnvironment {
       received.complete();
     }
 
-    public void requestMore(int elements) {
-      subscription.value().requestMore(elements);
+    public void request(int elements) {
+      subscription.value().request(elements);
     }
 
     public T requestNextElement() throws InterruptedException {
@@ -199,7 +199,7 @@ public class TestEnvironment {
     }
 
     public T requestNextElement(long timeoutMillis, String errorMsg) throws InterruptedException {
-      requestMore(1);
+        request(1);
       return nextElement(timeoutMillis, errorMsg);
     }
 
@@ -212,7 +212,7 @@ public class TestEnvironment {
     }
 
     public Optional<T> requestNextElementOrEndOfStream(long timeoutMillis, String errorMsg) throws InterruptedException {
-      requestMore(1);
+        request(1);
       return nextElementOrEndOfStream(timeoutMillis, errorMsg);
     }
 
@@ -229,12 +229,12 @@ public class TestEnvironment {
     }
 
     public void requestEndOfStream(long timeoutMillis, String errorMsg) throws InterruptedException {
-      requestMore(1);
+        request(1);
       expectCompletion(timeoutMillis, errorMsg);
     }
 
     public List<T> requestNextElements(int elements, long timeoutMillis, String errorMsg) throws InterruptedException {
-      requestMore(elements);
+        request(elements);
       return nextElements(elements, timeoutMillis, errorMsg);
     }
 
@@ -343,7 +343,7 @@ public class TestEnvironment {
 
         Subscription subs = new Subscription() {
           @Override
-          public void requestMore(int elements) {
+          public void request(int elements) {
             requests.add(elements);
           }
 
@@ -379,7 +379,7 @@ public class TestEnvironment {
     }
 
     public int nextRequestMore(long timeoutMillis) throws InterruptedException {
-      return requests.next(timeoutMillis, "Did not receive expected `requestMore` call");
+      return requests.next(timeoutMillis, "Did not receive expected `request` call");
     }
 
     public int expectRequestMore() throws InterruptedException {
@@ -389,7 +389,7 @@ public class TestEnvironment {
     public int expectRequestMore(long timeoutMillis) throws InterruptedException {
       int requested = nextRequestMore(timeoutMillis);
       if (requested <= 0) {
-        env.flop(String.format("Requests cannot be zero or negative but received requestMore(%s)", requested));
+        env.flop(String.format("Requests cannot be zero or negative but received request(%s)", requested));
         return 0; // keep compiler happy
       } else
         return requested;
@@ -402,7 +402,7 @@ public class TestEnvironment {
     public void expectExactRequestMore(int expected, long timeoutMillis) throws InterruptedException {
       int requested = expectRequestMore(timeoutMillis);
       if (requested != expected)
-        env.flop(String.format("Received `requestMore(%d)` on upstream but expected `requestMore(%d)`", requested, expected));
+        env.flop(String.format("Received `request(%d)` on upstream but expected `request(%d)`", requested, expected));
     }
 
     public void expectNoRequestMore() throws InterruptedException {
@@ -410,7 +410,7 @@ public class TestEnvironment {
     }
 
     public void expectNoRequestMore(long timeoutMillis) throws InterruptedException {
-      requests.expectNone(timeoutMillis, "Received an unexpected call to: requestMore");
+      requests.expectNone(timeoutMillis, "Received an unexpected call to: request");
     }
 
     public void expectCancelling() throws InterruptedException {
