@@ -58,7 +58,7 @@ The API consists of the following components that are required to be provided by
 
 A *Publisher* is a provider of a potentially unbounded number of sequenced elements, publishing them according to the demand received from its Subscriber(s). 
 
-- A `Publisher` will never send more `onNext` events than have been requested via the `Subscription.request` method.
+- The number of `onNext` events emitted by a `Publisher` to a `Subscriber` will at no point in time exceed the cumulative demand that has been signaled via that `Subscriber`’s `Subscription`.
 - A `Publisher` can send less events that requested and end the `Subscription` by emitting `onComplete` or `onError`.
 - Events sent to a `Subscriber` can only be sent sequentially (no concurrent notifications).
 - If a `Publisher` fails it must emit an `onError`.
