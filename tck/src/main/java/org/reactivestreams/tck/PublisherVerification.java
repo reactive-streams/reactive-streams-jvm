@@ -1,10 +1,7 @@
 package org.reactivestreams.tck;
 
-import org.reactivestreams.spi.Publisher;
-import org.reactivestreams.spi.Subscription;
-import org.reactivestreams.tck.support.Optional;
-import org.testng.SkipException;
-import org.testng.annotations.Test;
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
 
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
@@ -14,9 +11,16 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
 
-import static org.reactivestreams.tck.TestEnvironment.*;
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
+import org.reactivestreams.Subscription;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.tck.TestEnvironment.Latch;
+import org.reactivestreams.tck.TestEnvironment.ManualSubscriber;
+import org.reactivestreams.tck.TestEnvironment.ManualSubscriberWithSubscriptionSupport;
+import org.reactivestreams.tck.TestEnvironment.Promise;
+import org.reactivestreams.tck.TestEnvironment.TestSubscriber;
+import org.reactivestreams.tck.support.Optional;
+import org.testng.SkipException;
+import org.testng.annotations.Test;
 
 public abstract class PublisherVerification<T> {
 
@@ -222,7 +226,7 @@ public abstract class PublisherVerification<T> {
       public void run(Publisher<T> pub) throws InterruptedException {
         ManualSubscriber<T> sub = env.newManualSubscriber(pub);
               sub.subscription.value().cancel();
-              sub.subscription.value().requestMore(1); // must not throw
+              sub.subscription.value().request(1); // must not throw
       }
     });
     }
@@ -271,7 +275,7 @@ public abstract class PublisherVerification<T> {
             new Runnable() {
               @Override
               public void run() {
-                sub.subscription.value().requestMore(-1);
+                sub.subscription.value().request(-1);
               }
             });
 
@@ -281,7 +285,7 @@ public abstract class PublisherVerification<T> {
             new Runnable() {
               @Override
               public void run() {
-                sub.subscription.value().requestMore(0);
+                sub.subscription.value().request(0);
               }
             });
         sub.cancel();

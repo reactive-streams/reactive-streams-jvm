@@ -1,11 +1,14 @@
 package org.reactivestreams.tck;
 
-import org.reactivestreams.spi.Publisher;
-import org.reactivestreams.spi.Subscriber;
-import org.reactivestreams.spi.Subscription;
+import org.reactivestreams.Subscription;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.tck.TestEnvironment.Latch;
+import org.reactivestreams.tck.TestEnvironment.ManualPublisher;
+import org.reactivestreams.tck.TestEnvironment.ManualSubscriber;
+import org.reactivestreams.tck.TestEnvironment.Promise;
+import org.reactivestreams.tck.TestEnvironment.Receptacle;
 import org.testng.annotations.Test;
-
-import static org.reactivestreams.tck.TestEnvironment.*;
 
 public abstract class SubscriberVerification<T> {
 
@@ -84,7 +87,7 @@ public abstract class SubscriberVerification<T> {
       // try to subscribe another time, if the subscriber calls `probe.registerOnSubscribe` the test will fail
       sub().onSubscribe(
           new Subscription() {
-            public void requestMore(int elements) {
+            public void request(int elements) {
               env.flop(String.format("Subscriber %s illegally called `subscription.requestMore(%s)`", sub(), elements));
             }
 

@@ -1,9 +1,6 @@
 package org.reactivestreams.tck;
 
-import org.reactivestreams.spi.Publisher;
-import org.reactivestreams.spi.Subscriber;
-import org.reactivestreams.spi.Subscription;
-import org.reactivestreams.tck.support.Optional;
+import static org.testng.Assert.fail;
 
 import java.util.LinkedList;
 import java.util.List;
@@ -12,7 +9,10 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.testng.Assert.fail;
+import org.reactivestreams.Subscription;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.tck.support.Optional;
 
 public class TestEnvironment {
   public static final int TEST_BUFFER_SIZE = 16;
@@ -183,7 +183,7 @@ public class TestEnvironment {
     }
 
     public void requestMore(int elements) {
-      subscription.value().requestMore(elements);
+      subscription.value().request(elements);
     }
 
     public T requestNextElement() throws InterruptedException {
@@ -343,7 +343,7 @@ public class TestEnvironment {
 
         Subscription subs = new Subscription() {
           @Override
-          public void requestMore(int elements) {
+          public void request(int elements) {
             requests.add(elements);
           }
 
