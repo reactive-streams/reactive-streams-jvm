@@ -85,7 +85,8 @@ A *`Subscriber`* is a component that accepts a sequenced stream of elements prov
 
 A `Subscriber` communicates demand to the `Publisher` via a *`Subscription`* which is passed to the `Subscriber` after the subscription has been established. The `Subscription` exposes the `request(int)` method that is used by the `Subscriber` to signal demand to the `Publisher`. 
 
-- a `Subscription` can be used once-and-only-once to represent a subscription by a `Subscriber` to a `Publisher`.
+- A `Subscription` can be used once-and-only-once to represent a subscription by a `Subscriber` to a `Publisher`.
+- Calls from a `Subscriber` to `Subscription` such as `Subscription.request(int n)` must be dispatched asynchronously (separate thread, event loop, trampoline, etc) so as to not cause a StackOverflow since `Subscriber.onNext` -> `Subscription.request` -> `Subscriber.onNext` can recurse infinitely.
 
 For each of its subscribers the `Publisher` obeys the following invariant:
 
