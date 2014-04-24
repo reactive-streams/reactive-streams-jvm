@@ -61,7 +61,7 @@ A *Publisher* is a provider of a potentially unbounded number of sequenced eleme
 The protocol of a `Publisher`/`Subscriber` relationship is defined as:
 
 ```
-onSubscribe onNext* (onError | onComplete)?
+onError | (onSubscribe onNext* (onError | onComplete)?)
 ```
 
 - The number of `onNext` events emitted by a `Publisher` to a `Subscriber` will at no point in time exceed the cumulative demand that has been signaled via that `Subscriber`’s `Subscription`.
