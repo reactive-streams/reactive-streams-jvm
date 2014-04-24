@@ -74,8 +74,8 @@ onSubscribe onNext* (onError | onComplete)?
 - Upon receiving a `Subscription.cancel` request it should stop sending events as soon as it can. 
 - Calling `onError` or `onComplete` is not required after having received a `Subscription.cancel`.
 - The `Publisher.subscribe` method can be called as many times as wanted as long as it is with a different `Subscriber` each time. It is up to the `Publisher` whether underlying streams are shared or not. In other words, a `Publisher` can support multi-subscribe and then choose whether each `Subscription` is unicast or multicast.
-- A `Publisher` can refuse subscriptions (calls to `subscribe`) if it is unable or unwilling to serve them (overwhelmed, fronting a single-use data source, etc) and can do so by immediately calling `Subscriber.onError` on the `Subscriber` instance calling `subscribe`.
-- A `Publisher` should not throw an `Exception`. The only legal way to signal failure or reject a `Subscription` is via the `Subscriber.onError` method.
+- A `Publisher` can refuse subscriptions (calls to `subscribe`) if it is unable or unwilling to serve them (overwhelmed, fronting a single-use data source, etc) and can do so by calling `Subscriber.onError` instead of `Subscriber.onSubscribe` on the `Subscriber` instance calling `subscribe`.
+- A `Publisher` should not throw an `Exception`. The only legal way to signal failure (or reject a `Subscription`) is via the `Subscriber.onError` method.
 
 
 A *`Subscriber`* is a component that accepts a sequenced stream of elements provided by a `Publisher`. At any given time a `Subscriber` might be subscribed to at most one `Publisher`. It provides the callback `onNext` to be called by the upstream `Publisher`, accepting an element that is to be processed or enqueued without blocking the `Publisher`. 
