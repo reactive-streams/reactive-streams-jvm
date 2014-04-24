@@ -71,7 +71,8 @@ onSubscribe onNext* (onError | onComplete)?
 - If a `Publisher` terminates successfully (finite stream) it must emit an `onComplete`.
 - If a `Publisher` terminates via either `onError` or `onComplete` it must `cancel` its `Subscription`
 - Once a terminal state has been signaled (`onError`, `onNext`) no further events can be sent.
-- Upon receiving a `Subscription.cancel` request it should stop sending events as soon as it can. The `onError` and `onComplete` events are not needed if `Subscription.cancel` was initiated by the `Subscriber`.
+- Upon receiving a `Subscription.cancel` request it should stop sending events as soon as it can. 
+- Calling `onError` or `onComplete` is not required after having received a `Subscription.cancel`.
 - The `Publisher.subscribe` method can be called as many times as wanted as long as it is with a different `Subscriber` each time. It is up to the `Publisher` whether underlying streams are shared or not. In other words, a `Publisher` can support multi-subscribe and then choose whether each `Subscription` is unicast or multicast.
 - A `Publisher` can refuse subscriptions (calls to `subscribe`) if it is unable or unwilling to serve them (overwhelmed, fronting a single-use data source, etc) and can do so by immediately calling `Subscriber.onError` on the `Subscriber` instance calling `subscribe`.
 
