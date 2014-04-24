@@ -69,7 +69,7 @@ onSubscribe onNext* (onError | onComplete)?
 - Events sent to a `Subscriber` can only be sent sequentially (no concurrent notifications).
 - If a `Publisher` fails it must emit an `onError`.
 - If a `Publisher` terminates successfully (finite stream) it must emit an `onComplete`.
-- If a `Publisher` terminates via either `onError` or `onComplete` it must `cancel` its `Subscription`
+- If a Publisher signals either `onError` or `onComplete` on a `Subscriber`, that `Subscriber`’s `Subscription` must be considered canceled.
 - Once a terminal state has been signaled (`onError`, `onNext`) no further events can be sent.
 - Upon receiving a `Subscription.cancel` request it should stop sending events as soon as it can. 
 - Calling `onError` or `onComplete` is not required after having received a `Subscription.cancel`.
