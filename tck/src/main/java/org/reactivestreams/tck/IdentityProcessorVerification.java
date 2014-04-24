@@ -44,12 +44,12 @@ public abstract class IdentityProcessorVerification<T> {
 
     this.subscriberVerification = new SubscriberVerification<T>(env) {
       @Override
-      Subscriber<T> createSubscriber(SubscriberProbe<T> probe) {
+      public Subscriber<T> createSubscriber(SubscriberProbe<T> probe) {
         return IdentityProcessorVerification.this.createSubscriber(probe);
       }
 
       @Override
-      Publisher<T> createHelperPublisher(int elements) {
+      public Publisher<T> createHelperPublisher(int elements) {
         return IdentityProcessorVerification.this.createHelperPublisher(elements);
       }
     };
@@ -155,30 +155,28 @@ public abstract class IdentityProcessorVerification<T> {
   //   must call `onError` on all its subscribers if it encounters a non-recoverable error
   @Test
   public void mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError() throws Exception {
-    new TestSetup(env, testBufferSize) {
-      {
-        ManualSubscriberWithErrorCollection<T> sub1 = new ManualSubscriberWithErrorCollection<T>(env);
-        env.subscribe(processor.getPublisher(), sub1);
-        ManualSubscriberWithErrorCollection<T> sub2 = new ManualSubscriberWithErrorCollection<T>(env);
-        env.subscribe(processor.getPublisher(), sub2);
+    new TestSetup(env, testBufferSize) {{
+      ManualSubscriberWithErrorCollection<T> sub1 = new ManualSubscriberWithErrorCollection<T>(env);
+      env.subscribe(processor.getPublisher(), sub1);
+      ManualSubscriberWithErrorCollection<T> sub2 = new ManualSubscriberWithErrorCollection<T>(env);
+      env.subscribe(processor.getPublisher(), sub2);
 
-        sub1.requestMore(1);
-        expectRequestMore();
-        final T x = sendNextTFromUpstream();
-        expectNextElement(sub1, x);
-        sub1.requestMore(1);
+      sub1.requestMore(1);
+      expectRequestMore();
+      final T x = sendNextTFromUpstream();
+      expectNextElement(sub1, x);
+      sub1.requestMore(1);
 
-        // sub1 now has received and element and has 1 pending
-        // sub2 has not yet requested anything
+      // sub1 now has received and element and has 1 pending
+      // sub2 has not yet requested anything
 
-        Exception ex = new RuntimeException("Test exception");
-        sendError(ex);
-        sub1.expectError(ex);
-        sub2.expectError(ex);
+      Exception ex = new RuntimeException("Test exception");
+      sendError(ex);
+      sub1.expectError(ex);
+      sub2.expectError(ex);
 
-        env.verifyNoAsyncErrors();
-      }
-    };
+      env.verifyNoAsyncErrors();
+    }};
   }
 
   @Test
@@ -497,7 +495,7 @@ public abstract class IdentityProcessorVerification<T> {
 
   /////////////////////// TEST INFRASTRUCTURE //////////////////////
 
-  abstract class TestSetup extends ManualPublisher<T> {
+  public abstract class TestSetup extends ManualPublisher<T> {
     private TestEnvironment.ManualSubscriber<T> tees; // gives us access to an infinite stream of T values
     private Set<T> seenTees = new HashSet<T>();
 
@@ -539,7 +537,7 @@ public abstract class IdentityProcessorVerification<T> {
     }
   }
 
-  private class ManualSubscriberWithErrorCollection<A> extends ManualSubscriberWithSubscriptionSupport<A> {
+  public class ManualSubscriberWithErrorCollection<A> extends ManualSubscriberWithSubscriptionSupport<A> {
     TestEnvironment.Promise<Throwable> error;
 
     public ManualSubscriberWithErrorCollection(TestEnvironment env) {

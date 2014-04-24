@@ -25,19 +25,19 @@ public abstract class SubscriberVerification<T> {
    * In order to be meaningfully testable your Subscriber must inform the given
    * `SubscriberProbe` of the respective events having been received.
    */
-  abstract Subscriber<T> createSubscriber(SubscriberProbe<T> probe);
+  public abstract Subscriber<T> createSubscriber(SubscriberProbe<T> probe);
 
   /**
    * Helper method required for generating test elements.
    * It must create a Publisher for a stream with exactly the given number of elements.
    * If `elements` is zero the produced stream must be infinite.
    */
-  abstract Publisher<T> createHelperPublisher(int elements);
+  public abstract Publisher<T> createHelperPublisher(int elements);
 
   ////////////////////// TEST SETUP VERIFICATION ///////////////////////////
 
   @Test
-  void exerciseHappyPath() throws InterruptedException {
+  public void exerciseHappyPath() throws InterruptedException {
     new TestSetup(env) {{
       puppet().triggerRequestMore(1);
 
@@ -66,7 +66,7 @@ public abstract class SubscriberVerification<T> {
   //   must asynchronously schedule a respective event to the subscriber
   //   must not call any methods on the Subscription, the Publisher or any other Publishers or Subscribers
   @Test
-  void onSubscribeAndOnNextMustAsynchronouslyScheduleAnEvent() {
+  public void onSubscribeAndOnNextMustAsynchronouslyScheduleAnEvent() {
     // cannot be meaningfully tested, or can it?
   }
 
@@ -75,14 +75,14 @@ public abstract class SubscriberVerification<T> {
   //   must not call any methods on the Subscription, the Publisher or any other Publishers or Subscribers
   //   must consider the Subscription cancelled after having received the event
   @Test
-  void onCompleteAndOnErrorMustAsynchronouslyScheduleAnEvent() {
+  public void onCompleteAndOnErrorMustAsynchronouslyScheduleAnEvent() {
     // cannot be meaningfully tested, or can it?
   }
 
   // A Subscriber
   //   must not accept an `onSubscribe` event if it already has an active Subscription
   @Test
-  void mustNotAcceptAnOnSubscribeEventIfItAlreadyHasAnActiveSubscription() throws InterruptedException {
+  public void mustNotAcceptAnOnSubscribeEventIfItAlreadyHasAnActiveSubscription() throws InterruptedException {
     new TestSetup(env) {{
       // try to subscribe another time, if the subscriber calls `probe.registerOnSubscribe` the test will fail
       sub().onSubscribe(
@@ -103,7 +103,7 @@ public abstract class SubscriberVerification<T> {
   // A Subscriber
   //   must call Subscription::cancel during shutdown if it still has an active Subscription
   @Test
-  void mustCallSubscriptionCancelDuringShutdownIfItStillHasAnActiveSubscription() throws InterruptedException {
+  public void mustCallSubscriptionCancelDuringShutdownIfItStillHasAnActiveSubscription() throws InterruptedException {
     new TestSetup(env) {{
       puppet().triggerShutdown();
       expectCancelling();
@@ -115,14 +115,14 @@ public abstract class SubscriberVerification<T> {
   // A Subscriber
   //   must ensure that all calls on a Subscription take place from the same thread or provide for respective external synchronization
   @Test
-  void mustEnsureThatAllCallsOnASubscriptionTakePlaceFromTheSameThreadOrProvideExternalSync() {
+  public void mustEnsureThatAllCallsOnASubscriptionTakePlaceFromTheSameThreadOrProvideExternalSync() {
     // cannot be meaningfully tested, or can it?
   }
 
   // A Subscriber
   //   must be prepared to receive one or more `onNext` events after having called Subscription::cancel
   @Test
-  void mustBePreparedToReceiveOneOrMoreOnNextEventsAfterHavingCalledSubscriptionCancel() throws InterruptedException {
+  public void mustBePreparedToReceiveOneOrMoreOnNextEventsAfterHavingCalledSubscriptionCancel() throws InterruptedException {
     new TestSetup(env) {{
       puppet().triggerRequestMore(1);
       puppet().triggerCancel();
@@ -136,7 +136,7 @@ public abstract class SubscriberVerification<T> {
   // A Subscriber
   //   must be prepared to receive an `onComplete` event with a preceding Subscription::requestMore call
   @Test
-  void mustBePreparedToReceiveAnOnCompleteEventWithAPrecedingSubscriptionRequestMore() throws InterruptedException {
+  public void mustBePreparedToReceiveAnOnCompleteEventWithAPrecedingSubscriptionRequestMore() throws InterruptedException {
     new TestSetup(env) {{
       puppet().triggerRequestMore(1);
       sendCompletion();
@@ -149,7 +149,7 @@ public abstract class SubscriberVerification<T> {
   // A Subscriber
   //   must be prepared to receive an `onComplete` event without a preceding Subscription::requestMore call
   @Test
-  void mustBePreparedToReceiveAnOnCompleteEventWithoutAPrecedingSubscriptionRequestMore() throws InterruptedException {
+  public void mustBePreparedToReceiveAnOnCompleteEventWithoutAPrecedingSubscriptionRequestMore() throws InterruptedException {
     new TestSetup(env) {{
       sendCompletion();
       probe.expectCompletion();
@@ -161,7 +161,7 @@ public abstract class SubscriberVerification<T> {
   // A Subscriber
   //   must be prepared to receive an `onError` event with a preceding Subscription::requestMore call
   @Test
-  void mustBePreparedToReceiveAnOnErrorEventWithAPrecedingSubscriptionRequestMore() throws InterruptedException {
+  public void mustBePreparedToReceiveAnOnErrorEventWithAPrecedingSubscriptionRequestMore() throws InterruptedException {
     new TestSetup(env) {{
       puppet().triggerRequestMore(1);
       Exception ex = new RuntimeException("Test exception");
@@ -175,7 +175,7 @@ public abstract class SubscriberVerification<T> {
   // A Subscriber
   //   must be prepared to receive an `onError` event without a preceding Subscription::requestMore call
   @Test
-  void mustBePreparedToReceiveAnOnErrorEventWithoutAPrecedingSubscriptionRequestMore() throws InterruptedException {
+  public void mustBePreparedToReceiveAnOnErrorEventWithoutAPrecedingSubscriptionRequestMore() throws InterruptedException {
     new TestSetup(env) {{
       Exception ex = new RuntimeException("Test exception");
       sendError(ex);
@@ -187,7 +187,7 @@ public abstract class SubscriberVerification<T> {
   // A Subscriber
   //   must make sure that all calls on its `onXXX` methods happen-before the processing of the respective events
   @Test
-  void mustMakeSureThatAllCallsOnItsMethodsHappenBeforeTheProcessingOfTheRespectiveEvents() {
+  public void mustMakeSureThatAllCallsOnItsMethodsHappenBeforeTheProcessingOfTheRespectiveEvents() {
     // cannot be meaningfully tested, or can it?
   }
 
@@ -195,7 +195,7 @@ public abstract class SubscriberVerification<T> {
 
   /////////////////////// TEST INFRASTRUCTURE //////////////////////
 
-  class TestSetup extends ManualPublisher<T> {
+  public class TestSetup extends ManualPublisher<T> {
     ManualSubscriber<T> tees; // gives us access to an infinite stream of T values
     Probe probe;
     T lastT = null;
@@ -208,24 +208,24 @@ public abstract class SubscriberVerification<T> {
       probe.puppet.expectCompletion(env.defaultTimeoutMillis(), String.format("Subscriber %s did not `registerOnSubscribe`", sub()));
     }
 
-    Subscriber<T> sub() {
+    public Subscriber<T> sub() {
       return subscriber.get();
     }
 
-    SubscriberPuppet puppet() {
+    public SubscriberPuppet puppet() {
       return probe.puppet.value();
     }
 
-    void sendNextTFromUpstream() throws InterruptedException {
+    public void sendNextTFromUpstream() throws InterruptedException {
       sendNext(nextT());
     }
 
-    T nextT() throws InterruptedException {
+    public T nextT() throws InterruptedException {
       lastT = tees.requestNextElement();
       return lastT;
     }
 
-    class Probe implements SubscriberProbe<T> {
+    public class Probe implements SubscriberProbe<T> {
       Promise<SubscriberPuppet> puppet = new Promise<SubscriberPuppet>(env);
       Receptacle<T> elements = new Receptacle<T>(env);
       Latch completed = new Latch(env);
@@ -251,30 +251,30 @@ public abstract class SubscriberVerification<T> {
         error.complete(cause);
       }
 
-      void expectNext(T expected) throws InterruptedException {
+      public void expectNext(T expected) throws InterruptedException {
         expectNext(expected, env.defaultTimeoutMillis());
       }
 
-      void expectNext(T expected, long timeoutMillis) throws InterruptedException {
+      public void expectNext(T expected, long timeoutMillis) throws InterruptedException {
         T received = elements.next(timeoutMillis, String.format("Subscriber %s did not call `registerOnNext(%s)`", sub(), expected));
         if (!received.equals(expected)) {
           env.flop(String.format("Subscriber %s called `registerOnNext(%s)` rather than `registerOnNext(%s)`", sub(), received, expected));
         }
       }
 
-      void expectCompletion() throws InterruptedException {
+      public void expectCompletion() throws InterruptedException {
         expectCompletion(env.defaultTimeoutMillis());
       }
 
-      void expectCompletion(long timeoutMillis) throws InterruptedException {
+      public void expectCompletion(long timeoutMillis) throws InterruptedException {
         completed.expectClose(timeoutMillis, String.format("Subscriber %s did not call `registerOnComplete()`", sub()));
       }
 
-      void expectError(Throwable expected) throws InterruptedException {
+      public void expectError(Throwable expected) throws InterruptedException {
         expectError(expected, env.defaultTimeoutMillis());
       }
 
-      void expectError(Throwable expected, long timeoutMillis) throws InterruptedException {
+      public void expectError(Throwable expected, long timeoutMillis) throws InterruptedException {
         error.expectCompletion(timeoutMillis, String.format("Subscriber %s did not call `registerOnError(%s)`", sub(), expected));
         if (error.value() != expected) {
           env.flop(String.format("Subscriber %s called `registerOnError(%s)` rather than `registerOnError(%s)`", sub(), error.value(), expected));
@@ -287,7 +287,7 @@ public abstract class SubscriberVerification<T> {
     }
   }
 
-  interface SubscriberProbe<T> {
+  public interface SubscriberProbe<T> {
     /**
      * Must be called by the test subscriber when it has received the `onSubscribe` event.
      */
@@ -309,7 +309,7 @@ public abstract class SubscriberVerification<T> {
     void registerOnError(Throwable cause);
   }
 
-  interface SubscriberPuppet {
+  public interface SubscriberPuppet {
     void triggerShutdown();
 
     void triggerRequestMore(int elements);

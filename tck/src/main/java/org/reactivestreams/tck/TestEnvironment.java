@@ -89,7 +89,7 @@ public class TestEnvironment {
 
   // ---- classes ----
 
-  static class ManualSubscriberWithSubscriptionSupport<T> extends ManualSubscriber<T> {
+  public static class ManualSubscriberWithSubscriptionSupport<T> extends ManualSubscriber<T> {
 
     public ManualSubscriberWithSubscriptionSupport(TestEnvironment env) {
       super(env);
@@ -128,7 +128,7 @@ public class TestEnvironment {
     }
   }
 
-  static class TestSubscriber<T> implements Subscriber<T> {
+  public static class TestSubscriber<T> implements Subscriber<T> {
     volatile Promise<Subscription> subscription;
 
     protected final TestEnvironment env;
@@ -165,7 +165,7 @@ public class TestEnvironment {
     }
   }
 
-  static class ManualSubscriber<T> extends TestSubscriber<T> {
+  public static class ManualSubscriber<T> extends TestSubscriber<T> {
     Receptacle<T> received = new Receptacle<T>(env);
 
     public ManualSubscriber(TestEnvironment env) {
@@ -182,7 +182,7 @@ public class TestEnvironment {
       received.complete();
     }
 
-    void requestMore(int elements) {
+    public void requestMore(int elements) {
       subscription.value().request(elements);
     }
 
@@ -254,6 +254,10 @@ public class TestEnvironment {
       return received.next(timeoutMillis, errorMsg);
     }
 
+    public Optional<T> nextElementOrEndOfStream() throws InterruptedException {
+      return nextElementOrEndOfStream(env.defaultTimeoutMillis(), "Did not receive expected stream completion");
+    }
+
     public Optional<T> nextElementOrEndOfStream(long timeoutMillis) throws InterruptedException {
       return nextElementOrEndOfStream(timeoutMillis, "Did not receive expected stream completion");
     }
@@ -278,26 +282,30 @@ public class TestEnvironment {
       return received.nextN(elements, timeoutMillis, errorMsg);
     }
 
-    void expectNext(T expected) throws InterruptedException {
+    public void expectNext(T expected) throws InterruptedException {
       expectNext(expected, env.defaultTimeoutMillis());
     }
 
-    void expectNext(T expected, long timeoutMillis) throws InterruptedException {
+    public void expectNext(T expected, long timeoutMillis) throws InterruptedException {
       T received = nextElement(timeoutMillis, "Did not receive expected element on downstream");
       if (!received.equals(expected)) {
         env.flop(String.format("Expected element %s on downstream but received %s", expected, received));
       }
     }
 
-    void expectCompletion(long timeoutMillis) throws InterruptedException {
+    public void expectCompletion() throws InterruptedException {
+      expectCompletion(env.defaultTimeoutMillis(), "Did not receive expected stream completion");
+    }
+
+    public void expectCompletion(long timeoutMillis) throws InterruptedException {
       expectCompletion(timeoutMillis, "Did not receive expected stream completion");
     }
 
-    void expectCompletion(String errorMsg) throws InterruptedException {
+    public void expectCompletion(String errorMsg) throws InterruptedException {
       expectCompletion(env.defaultTimeoutMillis(), errorMsg);
     }
 
-    void expectCompletion(long timeoutMillis, String errorMsg) throws InterruptedException {
+    public void expectCompletion(long timeoutMillis, String errorMsg) throws InterruptedException {
       received.expectCompletion(timeoutMillis, errorMsg);
     }
 
@@ -315,7 +323,7 @@ public class TestEnvironment {
 
   }
 
-  static class ManualPublisher<T> implements Publisher<T> {
+  public static class ManualPublisher<T> implements Publisher<T> {
     protected final TestEnvironment env;
 
     Optional<Subscriber<T>> subscriber = Optional.empty();
@@ -415,7 +423,7 @@ public class TestEnvironment {
   }
 
   /** like a CountDownLatch, but resettable and with some convenience methods */
-  static class Latch {
+  public static class Latch {
     private final TestEnvironment env;
     volatile private CountDownLatch countDownLatch = new CountDownLatch(1);
 
@@ -456,7 +464,7 @@ public class TestEnvironment {
   }
 
   // simple promise for *one* value, which cannot be reset
-  static class Promise<T> {
+  public static class Promise<T> {
     private final TestEnvironment env;
 
     public Promise(TestEnvironment env) {
@@ -507,7 +515,7 @@ public class TestEnvironment {
   }
 
    // a "Promise" for multiple values, which also supports "end-of-stream reached"
-  static class Receptacle<T> {
+  public static class Receptacle<T> {
     final int QUEUE_SIZE = 2 * TEST_BUFFER_SIZE;
      private final TestEnvironment env;
 

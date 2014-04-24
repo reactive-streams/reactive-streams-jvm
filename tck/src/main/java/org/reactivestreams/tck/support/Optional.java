@@ -39,7 +39,7 @@ public abstract class Optional<T> {
     return !isEmpty();
   }
 
-  static class Some<T> extends Optional<T> {
+  public static class Some<T> extends Optional<T> {
     private final T value;
 
     Some(T value) {
