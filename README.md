@@ -50,23 +50,23 @@ The API consists of the following components that are required to be provided by
 
 A *Publisher* is a provider of a potentially unbounded number of sequenced elements, publishing them according to the demand received from its Subscriber(s). 
 
-The protocol of a `Publisher`/`Subscriber` relationship is defined as:
+In response to a call to `Publisher.subscribe(Subscriber)` the possible invocation sequences for methods on the `Subscriber` are given by the following protocol:
 
 ```
 onError | (onSubscribe onNext* (onError | onComplete)?)
 ```
 
 - The number of `onNext` events emitted by a `Publisher` to a `Subscriber` will at no point in time exceed the cumulative demand that has been signaled via that `Subscriber`’s `Subscription`.
-- A `Publisher` can send less events that requested and end the `Subscription` by emitting `onComplete` or `onError`.
+- A `Publisher` can send less events than requested and terminate the `Subscription` by calling `onComplete` or `onError`.
 - Events sent to a `Subscriber` can only be sent sequentially (no concurrent notifications).
 - If a `Publisher` fails it must emit an `onError`.
 - If a `Publisher` terminates successfully (finite stream) it must emit an `onComplete`.
 - If a Publisher signals either `onError` or `onComplete` on a `Subscriber`, that `Subscriber`’s `Subscription` must be considered canceled.
 - Once a terminal state has been signaled (`onError`, `onNext`) no further events can be sent.
 - Upon receiving a `Subscription.cancel` request it should stop sending events as soon as it can. 
-- Calling `onError` or `onComplete` is not required after having received a `Subscription.cancel`.
+- `Subscription`'s which have been canceled should not receive subsequent `onError` or `onComplete` events, but implementations will not be able to strictly guarantee this in all cases due to the intrinsic race condition between actions taken concurrently by `Publisher` and `Subscriber`.
 - The `Publisher.subscribe` method can be called as many times as wanted as long as it is with a different `Subscriber` each time. It is up to the `Publisher` whether underlying streams are shared or not. In other words, a `Publisher` can support multi-subscribe and then choose whether each `Subscription` is unicast or multicast.
-- A `Publisher` can refuse subscriptions (calls to `subscribe`) if it is unable or unwilling to serve them (overwhelmed, fronting a single-use data source, etc) and can do so by calling `Subscriber.onError` instead of `Subscriber.onSubscribe` on the `Subscriber` instance calling `subscribe`.
+- A `Publisher` can reject calls to its `subscribe` method if it is unable or unwilling to serve them (e.g. because it is overwhelmed or bounded by a finite number of underlying resources, etc...). It does this by calling `onError` on the `Subscriber` passed to `Publisher.subscribe` instead of calling `onSubscribe`".
 - A `Publisher` should not throw an `Exception`. The only legal way to signal failure (or reject a `Subscription`) is via the `Subscriber.onError` method.
 - The `Subscription.request` method must behave asynchronously (separate thread, event loop, trampoline, etc) so as to not cause a StackOverflow since `Subscriber.onNext` -> `Subscription.request` -> `Subscriber.onNext` can recurse infinitely. This allows a `Subscriber` to directly invoke `Subscription.request` and isolate the async responsibility to the `Subscription` instance which has responsibility for scheduling events.
 
