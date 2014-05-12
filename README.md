@@ -115,8 +115,7 @@ public interface Subscription {
 - The `Subscription.request` method SHOULD NOT synchronously perform heavy computations.
 - The `Subscription.cancel` method MUST assume that it will be invoked synchronously and SHOULD NOT synchronously perform heavy computations.
 
-
-
+A `Subscription` is shared by exactly one `Publisher` and one `Subscriber` for the purpose of mediating the data exchange between this pair. This is the reason why the `subscribe()` method does not return the created `Subscription`, but instead returns `void`; the `Subscription` is only passed to the `Subscriber` via the `onSubscribe` callback.
 
 ### Asynchronous vs Synchronous Processing ###
 
@@ -157,6 +156,7 @@ All of these variants are "asynchronous streams". They all have their place and 
 
 The Reactive Streams contract allows implementations the flexibility to manage resources and scheduling and mix asynchronous and synchronous processing within the bounds of a non-blocking, asynchronous, push-based stream.
 
+In order to allow fully asynchronous implementations of all participating SPI elements—`Publisher`/`Subscription`/`Subscriber`—all methods defined by these interfaces return `void`.
 
 
 ### Subscriber controlled queue bounds ###
