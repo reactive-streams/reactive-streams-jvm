@@ -16,7 +16,7 @@ https://github.com/reactive-streams/reactive-streams/blob/master/COPYING.
 
 Underwriting parties:
 
-github name    | Real Name, Address, Company
+github name    | Real Name, Email Address used for git commits, Company
 ---------------+----------------------------------------------------------------------------
-rkuhn          | Roland Kuhn, Stavby-Bärsta Myrhagen 74, 74794 Alunda, Sweden, Typesafe Inc.
+rkuhn          | Roland Kuhn, rk@rkuhn.info, Typesafe Inc.
 
