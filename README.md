@@ -78,7 +78,7 @@ At any time the Publisher may signal that it is not able to provide more element
 
 ### API components ###
 
-The purpose of the API is to provide the types that users interact with directly. SPI methods and interfaces should not be exposed expect for the purpose of writing Reactive Streams implementations.
+The purpose of the API is to provide the types that users interact with directly. SPI methods and interfaces should not be exposed except for the purpose of writing Reactive Streams implementations.
 
 The API counterpart for Publisher is *Producer* and for Subscriber is *Consumer*. The combination of these two—a stream processing element with asynchronous input and output—is called *Processor*.
 
