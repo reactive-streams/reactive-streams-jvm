@@ -19,4 +19,4 @@ Underwriting parties:
 github name    | Real Name, Email Address used for git commits, Company
 ---------------+----------------------------------------------------------------------------
 rkuhn          | Roland Kuhn, rk@rkuhn.info, Typesafe Inc.
-
+benjchristensen| Ben Christensen, benjchristensen@gmail.com, Netflix Inc.
