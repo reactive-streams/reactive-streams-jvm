@@ -4,16 +4,18 @@ The purpose of Reactive Streams is to provide a standard for asynchronous stream
 
 The latest preview release is available on Maven Central as
 
-    <dependency>
-      <groupId>org.reactivestreams</groupId>
-      <artifactId>reactive-streams-spi</artifactId>
-      <version>0.3</version>
-    </dependency>
-    <dependency>
-      <groupId>org.reactivestreams</groupId>
-      <artifactId>reactive-streams-tck</artifactId>
-      <version>0.3</version>
-    </dependency>
+```xml
+<dependency>
+  <groupId>org.reactivestreams</groupId>
+  <artifactId>reactive-streams-spi</artifactId>
+  <version>0.3</version>
+</dependency>
+<dependency>
+  <groupId>org.reactivestreams</groupId>
+  <artifactId>reactive-streams-tck</artifactId>
+  <version>0.3</version>
+</dependency>
+```
 
 ## Goals, Design and Scope ##
 
