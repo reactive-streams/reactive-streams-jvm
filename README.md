@@ -124,7 +124,11 @@ public interface Processor<T, R> extends Subscriber<T>, Publisher<R> {
 }
 ````
 
-- A Processor represents a processing stage—which is both a `Subscriber` and a `Publisher` and obeys the contracts of both.
+- A `Processor` represents a processing stage—which is both a `Subscriber` and a `Publisher` and obeys the contracts of both.
+- A `Processor` must cancel its upstream Subscription if its last downstream Subscription has been cancelled
+- A `Processor` must immediately pass on `onError` events received from its upstream to its downstream
+- A `Processor` must be prepared to receive incoming elements from its upstream even if a downstream subscriber has not 
+  requested anything yet
 
 ### Asynchronous vs Synchronous Processing ###
 
