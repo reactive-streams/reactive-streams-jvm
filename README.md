@@ -74,6 +74,16 @@ public interface Subscriber<T> {
 - A `Subscriber` MUST NOT block a `Publisher` thread.
 - A `Subscriber` MUST signal demand via `Subscription.request` to receive notifications.
 - A `Subscriber` MAY behave synchronously or asynchronously but SHOULD NOT synchronously perform heavy computations in its methods (`onNext`, `onError`, `onComplete`, `onSubscribe`).
+- A `Subscriber.onNext(T t)` and `Subscriber.onSubscribe(Subscription s)` MUST NOT call any methods on the `Subscription`, the `Publisher` or any other `Publishers` or `Subscribers`.
+- A `Subscriber.onComplete()` and `Subscriber.onError(Throwable t)` MUST NOT call any methods on the `Subscription`, the `Publisher` or any other `Publishers` or `Subscribers`.
+- A `Subscriber.onComplete()` and `Subscriber.onError(Throwable t)` MUST consider the Subscription cancelled after having received the event
+- A `Subscriber` MUST NOT accept an `onSubscribe` event if it already has an active Subscription. What exactly "not accepting" means is left to the implementation but should include behavior that makes the user aware of the usage error (e.g. by logging, throwing an exception or similar).
+- A `Subscriber` MUST call `Subscription.cancel()` during shutdown if it still has an active `Subscription`.
+- A `Subscriber` MUST ensure that all calls on a `Subscription` take place from the same thread or provide for respective external synchronization.
+- A `Subscriber` MUST be prepared to receive one or more `onNext` events after having called `Subscription.cancel()` if there are still requested elements pending.
+- A `Subscriber` MUST be prepared to receive an `onComplete` event with or without a preceding `Subscription.request(int n)` call.
+- A `Subscriber` MUST be prepared to receive an `onError` event with or without a preceding `Subscription.request(int n)` call.
+- A `Subscriber` MUST make sure that all calls on its `onXXX` methods happen-before the processing of the respective events. I.e. the Subscriber must take care of properly publishing the event to its processing logic.
 
 
 #### Publisher ([Code](https://github.com/reactive-streams/reactive-streams/blob/master/api/src/main/java/org/reactivestreams/Publisher.java))
@@ -95,10 +105,15 @@ public interface Publisher<T> {
 - `Subscription`'s which have been canceled SHOULD NOT receive subsequent `onError` or `onComplete` events, but implementations will not be able to strictly guarantee this in all cases due to the intrinsic race condition between actions taken concurrently by `Publisher` and `Subscriber`.
 - A `Publisher` SHOULD NOT throw an `Exception`. The only legal way to signal failure (or reject a `Subscription`) is via the `Subscriber.onError` method.
 - The `Subscriber.onSubscribe` method on a given `Subscriber` instance MUST NOT be called more than once.
-- The `Publisher.subscribe` method MAY be called as many times as wanted but MUST be with a different `Subscriber` each time.
+- The `Publisher.subscribe` method MAY be called as many times as wanted but MUST be with a different `Subscriber` each time, based on object equality. It MUST reject the Subscription with a `java.lang.IllegalStateException` if the same Subscriber already has an active `Subscription` with this `Publisher`.
 - A `Publisher` MAY support multi-subscribe and choose whether each `Subscription` is unicast or multicast.
 - A `Publisher` MAY reject calls to its `subscribe` method if it is unable or unwilling to serve them (e.g. because it is overwhelmed or bounded by a finite number of underlying resources, etc...). If rejecting it MUST do this by calling `onError` on the `Subscriber` passed to `Publisher.subscribe` instead of calling `onSubscribe`".
-
+- A `Publisher` in `completed` state MUST NOT call `Subscriber.onSubscribe` and MUST emit an `Subscriber.onComplete` on the given `Subscriber`
+- A `Publisher` in `error` state MUST NOT call `Subscriber.onSubscribe` and MUST emit an `Subscriber.onError` with the error cause on the given `Subscriber`
+- A `Publisher` in `shut-down` state MUST NOT call `Subscriber.onSubscribe` and MUST emit an `Subscriber.onError` with `java.lang.IllegalStateException` on the given `Subscriber`
+- A `Publisher` MUST support a pending element count up to 2^63-1 (java.lang.Long.MAX_VALUE) and provide for overflow protection.
+- A `Publisher` MUST produce the same elements in the same sequence for all its subscribers. Producing the stream elements at (temporarily) differing rates to different subscribers is allowed.  
+- A `Publisher` MUST start producing with the oldest element still available for a new subscriber.
 
 
 #### Subscription ([Code](https://github.com/reactive-streams/reactive-streams/blob/master/api/src/main/java/org/reactivestreams/Subscription.java))
@@ -115,7 +130,15 @@ public interface Subscription {
 - The `Subscription.request` method MUST assume that it will be invoked synchronously and MUST NOT allow unbounded recursion such as `Subscriber.onNext` -> `Subscription.request` -> `Subscriber.onNext`. 
 - The `Subscription.request` method SHOULD NOT synchronously perform heavy computations.
 - The `Subscription.cancel` method MUST assume that it will be invoked synchronously and SHOULD NOT synchronously perform heavy computations.
-
+- When the `Subscription` is cancelled, `Subscription.request(int n)` MUST ignore the call.
+- When the `Subscription` is cancelled, `Subscription.cancel()` MUST ignore the call.
+- When the `Subscription` is not cancelled, `Subscription.request(int n)` MUST register the given number of additional elements to be produced to the respective subscriber.
+- When the `Subscription` is not cancelled, `Subscription.request(int n)` MUST throw a `java.lang.IllegalArgumentException` if the argument is <= 0.
+- When the `Subscription` is not cancelled, `Subscription.request(int n)` COULD synchronously call `onNext` on this (or other) subscriber(s) if and only if the next element is already available.
+- When the `Subscription` is not cancelled, `Subscription.request(int n)` COULD synchronously call `onComplete` or `onError` on this (or other) subscriber(s).
+- When the `Subscription` is not cancelled, `Subscription.cancel()` the `Publisher` MUST eventually cease to call any methods on the corresponding subscriber.
+- When the `Subscription` is not cancelled, `Subscription.cancel()` the `Publisher` MUST eventually drop any references to the corresponding subscriber. Re-subscribing with the same `Subscriber` instance is discouraged, but this specification does not mandate that it is disallowed since that would mean having to store previously canceled subscriptions indefinitely.
+- When the `Subscription` is not cancelled, `Subscription.cancel()` the `Publisher` MUST shut itself down if the given Subscription is the last downstream `Subscription`. Explicitly adding "keep-alive" Subscribers SHOULD prevent automatic shutdown if required.
 
 #### Processor ([Code](https://github.com/reactive-streams/reactive-streams/blob/master/api/src/main/java/org/reactivestreams/Processor.java))
 
