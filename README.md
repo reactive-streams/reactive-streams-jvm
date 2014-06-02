@@ -6,13 +6,13 @@ The latest preview release is available on Maven Central as
 
     <dependency>
       <groupId>org.reactivestreams</groupId>
-      <artifactId>reactive-streams-spi</artifactId>
-      <version>0.3</version>
+      <artifactId>reactive-streams</artifactId>
+      <version>0.4.M1</version>
     </dependency>
     <dependency>
       <groupId>org.reactivestreams</groupId>
       <artifactId>reactive-streams-tck</artifactId>
-      <version>0.3</version>
+      <version>0.4.M1</version>
     </dependency>
 
 ## Goals, Design and Scope ##
@@ -47,6 +47,7 @@ The API consists of the following components that are required to be provided by
  - Publisher
  - Subscriber
  - Subscription
+ - Processor
 
 A *Publisher* is a provider of a potentially unbounded number of sequenced elements, publishing them according to the demand received from its Subscriber(s). 
 
@@ -90,11 +91,11 @@ public interface Publisher<T> {
 - If a `Publisher` terminates successfully (finite stream) it MUST emit an `onComplete`.
 - If a Publisher signals either `onError` or `onComplete` on a `Subscriber`, that `Subscriber`’s `Subscription` MUST be considered canceled.
 - Once a terminal state has been signaled (`onError`, `onComplete`) it is REQUIRED that no further events can be sent.
-- Upon receiving a `Subscription.cancel` request it SHOULD stop sending events as soon as it can. 
+- Upon receiving a `Subscription.cancel` request it SHOULD stop sending events as soon as it can.
 - `Subscription`'s which have been canceled SHOULD NOT receive subsequent `onError` or `onComplete` events, but implementations will not be able to strictly guarantee this in all cases due to the intrinsic race condition between actions taken concurrently by `Publisher` and `Subscriber`.
 - A `Publisher` SHOULD NOT throw an `Exception`. The only legal way to signal failure (or reject a `Subscription`) is via the `Subscriber.onError` method.
 - The `Subscriber.onSubscribe` method on a given `Subscriber` instance MUST NOT be called more than once.
-- The `Publisher.subscribe` method MAY be called as many times as wanted but MUST be with a different `Subscriber` each time. 
+- The `Publisher.subscribe` method MAY be called as many times as wanted but MUST be with a different `Subscriber` each time.
 - A `Publisher` MAY support multi-subscribe and choose whether each `Subscription` is unicast or multicast.
 - A `Publisher` MAY reject calls to its `subscribe` method if it is unable or unwilling to serve them (e.g. because it is overwhelmed or bounded by a finite number of underlying resources, etc...). If rejecting it MUST do this by calling `onError` on the `Subscriber` passed to `Publisher.subscribe` instead of calling `onSubscribe`".
 
@@ -116,7 +117,14 @@ public interface Subscription {
 - The `Subscription.cancel` method MUST assume that it will be invoked synchronously and SHOULD NOT synchronously perform heavy computations.
 
 
+#### Processor ([Code](https://github.com/reactive-streams/reactive-streams/blob/master/api/src/main/java/org/reactivestreams/Processor.java))
 
+```java
+public interface Processor<T, R> extends Subscriber<T>, Publisher<R> {
+}
+````
+
+- A Processor represents a processing stage—which is both a `Subscriber` and a `Publisher` and obeys the contracts of both.
 
 ### Asynchronous vs Synchronous Processing ###
 
