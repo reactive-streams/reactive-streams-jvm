@@ -21,4 +21,4 @@ github name    | Real Name, Email Address used for git commits, Company
 rkuhn          | Roland Kuhn, rk@rkuhn.info, Typesafe Inc.
 benjchristensen| Ben Christensen, benjchristensen@gmail.com, Netflix Inc.
 viktorklang    | Viktor Klang, viktor.klang@gmail.com, Typesafe Inc.
-smaldini       | Stephane Maldini, stephane.maldini@gmail.com, Pivotal Software Inc. Inc.
+smaldini       | Stephane Maldini, stephane.maldini@gmail.com, Pivotal Software Inc.
