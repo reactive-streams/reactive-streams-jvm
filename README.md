@@ -136,6 +136,8 @@ public interface Subscription {
 13. When the `Subscription` is not cancelled, `Subscription.cancel()` the `Publisher` MUST eventually drop any references to the corresponding subscriber. Re-subscribing with the same `Subscriber` instance is discouraged, but this specification does not mandate that it is disallowed since that would mean having to store previously canceled subscriptions indefinitely.
 14. When the `Subscription` is not cancelled, `Subscription.cancel()` the `Publisher` MUST transition to a `shut-down` state [see 1.17] if the given `Subscription` is the last downstream `Subscription`. Explicitly adding "keep-alive" Subscribers SHOULD prevent automatic shutdown if required.
 
+A `Subscription` is shared by exactly one `Publisher` and one `Subscriber` for the purpose of mediating the data exchange between this pair. This is the reason why the `subscribe()` method does not return the created `Subscription`, but instead returns `void`; the `Subscription` is only passed to the `Subscriber` via the `onSubscribe` callback.
+
 #### 4.Processor ([Code](https://github.com/reactive-streams/reactive-streams/blob/master/api/src/main/java/org/reactivestreams/Processor.java))
 
 ```java
@@ -187,6 +189,7 @@ All of these variants are "asynchronous streams". They all have their place and 
 
 The Reactive Streams contract allows implementations the flexibility to manage resources and scheduling and mix asynchronous and synchronous processing within the bounds of a non-blocking, asynchronous, push-based stream.
 
+In order to allow fully asynchronous implementations of all participating SPI elements—`Publisher`/`Subscription`/`Subscriber`—all methods defined by these interfaces return `void`.
 
 
 ### Subscriber controlled queue bounds ###
