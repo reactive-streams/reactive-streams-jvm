@@ -63,6 +63,14 @@ onError | (onSubscribe onNext* (onError | onComplete)?)
 - The terms emit, signal or send are interchangeable. The specifications below will use `signal`.
 - The terms `synchronously` or `synchronous` refer to executing in the calling `Thread`.
 
+#### Under Discussion
+- 1.10
+- 1.14
+- 1.18
+- 2.3
+- 3.3
+
+
 ### SPECIFICATION
 
 #### 1. Publisher ([Code](https://github.com/reactive-streams/reactive-streams/blob/master/api/src/main/java/org/reactivestreams/Publisher.java))
@@ -128,7 +136,7 @@ public interface Subscription {
 
 1. A `Subscription.request` and `Subscription.cancel` MUST not be called outside its `Subscriber` context. A `Subscription` represents the unique relationship between a `Subscriber` and a `Publisher` [see 1.11].
 2. Calls from a `Subscriber` to `Subscription.request(int n)` can be made directly since it is the responsibility of `Subscription` to handle async dispatching.
-3. The `Subscription.request` method MUST assume that it will be invoked synchronously and MUST NOT allow unbounded recursion such as `Subscriber.onNext` -> `Subscription.request` -> `Subscriber.onNext`. 
+3. The `Subscription.request` method MUST assume that it will be invoked synchronously and MUST NOT allow unbounded recursion such as `Subscriber.onNext` -> `Subscription.request` -> `Subscriber.onNext`.  _[Under Discussion]_
 4. The `Subscription.request` method SHOULD NOT synchronously perform heavy computations.
 5. The `Subscription.cancel` method MUST assume that it will be invoked synchronously and SHOULD NOT synchronously perform heavy computations.
 6. After the `Subscription` is cancelled, additional `Subscription.request(int n)` MUST be NOPs.
