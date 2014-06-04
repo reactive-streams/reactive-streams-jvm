@@ -140,8 +140,8 @@ public interface Subscription {
 
 | ID     | Rule                                                                                                   |
 | ------ | ------------------------------------------------------------------------------------------------------ |
-| 1      | A `Subscription.request` and `Subscription.cancel` MUST not be called outside its `Subscriber` context. A `Subscription` represents the unique relationship between a `Subscriber` and a `Publisher` [see 1.11] |
-| 2      | Calls from a `Subscriber` to `Subscription.request(int n)` can be made directly since it is the responsibility of `Subscription` to handle async dispatching |
+| 1      | `Subscription.request` and `Subscription.cancel` MUST not be called outside from the `Subscriber` context. A `Subscription` represents the unique relationship between a `Subscriber` and a `Publisher` [see 1.11] |
+| 2      | Calls from a `Subscriber` to `Subscription.request(int n)` MAY be made directly since it is the responsibility of `Subscription` to handle async dispatching |
 | 3      | The `Subscription.request` method MUST assume that it will be invoked synchronously and MUST NOT allow unbounded recursion such as `Subscriber.onNext` -> `Subscription.request` -> `Subscriber.onNext`.  _[Under Discussion]_ |
 | 4      | The `Subscription.request` method SHOULD NOT synchronously perform heavy computations |
 | 5      | The `Subscription.cancel` method MUST assume that it will be invoked synchronously and SHOULD NOT synchronously perform heavy computations |
