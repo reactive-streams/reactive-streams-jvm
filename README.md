@@ -83,7 +83,7 @@ public interface Publisher<T> {
 
 | ID     | Rule                                                                                                   |
 | ------ | ------------------------------------------------------------------------------------------------------ |
-| 1      | The number of `onNext` signaled by a `Publisher` to a `Subscriber` MUST NOT exceed the cumulative demand that has been |
+| 1      | The number of `onNext` signaled by a `Publisher` to a `Subscriber` MUST NOT exceed the cumulative demand that has been signaled via that `Subscriber`’s `Subscription` |
 | 2      | A `Publisher` MAY signal less `onNext` than requested and terminate the `Subscription` by calling `onComplete` or `onError` |
 | 3      | Events signaled to a `Subscriber` MUST be signaled sequentially (no concurrent notifications) |
 | 4      | If a `Publisher` fails it MUST signal an `onError` |
