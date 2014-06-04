@@ -57,11 +57,11 @@ In response to a call to `Publisher.subscribe(Subscriber)` the possible invocati
 onError | (onSubscribe onNext* (onError | onComplete)?)
 ```
 
-NOTE: The specifications below use binding words in CAPLOCKS from https://www.ietf.org/rfc/rfc2119.txt
+#### NOTES
 
-NOTE: The terms emit, signal or send are interchangeable. The specifications below will use `signal`.
-
-NOTE: The terms `synchronously` or `synchronous` refer to executing in the calling `Thread`.
+- The specifications below use binding words in CAPLOCKS from https://www.ietf.org/rfc/rfc2119.txt
+- The terms emit, signal or send are interchangeable. The specifications below will use `signal`.
+- The terms `synchronously` or `synchronous` refer to executing in the calling `Thread`.
 
 ### SPECIFICATION
 
@@ -82,15 +82,15 @@ public interface Publisher<T> {
 7. Once a terminal state has been signaled (`onError`, `onComplete`) it is REQUIRED that no further signals occur.
 8. Upon receiving a `Subscription.cancel` request it SHOULD, as soon as it can, stop signaling its `Subscriber`.
 9. `Subscription`'s which have been canceled SHOULD NOT receive subsequent `onError` or `onComplete` signals, but implementations will not be able to strictly guarantee this in all cases due to the intrinsic race condition between actions taken concurrently by `Publisher` and `Subscriber`.
-10. A `Publisher` SHOULD NOT throw an `Exception`. The only legal way to signal failure (or reject a `Subscription`) is via the `Subscriber.onError` method. [Under Discussion]
+10. A `Publisher` SHOULD NOT throw an `Exception`. The only legal way to signal failure (or reject a `Subscription`) is via the `Subscriber.onError` method. _[Under Discussion]_
 11. The `Subscriber.onSubscribe` method on a given `Subscriber` instance MUST NOT be called more than once (based on object equality).
 12. The `Publisher.subscribe` method MAY be called as many times as wanted but MUST be with a different Subscriber each time [see 1.11]. It MUST reject the Subscription with a `java.lang.IllegalStateException` if the same Subscriber already has an active `Subscription` with this `Publisher`. The cause message MUST include a reference to this rule and/or quote the full rule.
 13. A `Publisher` MAY support multi-subscribe and choose whether each `Subscription` is unicast or multicast.
-14. A `Publisher` MAY reject calls to its `subscribe` method if it is unable or unwilling to serve them (e.g. because it is overwhelmed or bounded by a finite number of underlying resources, etc...). If rejecting it MUST do this by calling `onError` on the `Subscriber` passed to `Publisher.subscribe` instead of calling `onSubscribe`". [Under Discussion]
+14. A `Publisher` MAY reject calls to its `subscribe` method if it is unable or unwilling to serve them (e.g. because it is overwhelmed or bounded by a finite number of underlying resources, etc...). If rejecting it MUST do this by calling `onError` on the `Subscriber` passed to `Publisher.subscribe` instead of calling `onSubscribe`". _[Under Discussion]_
 15. A `Publisher` in `completed` state MUST NOT call `Subscriber.onSubscribe` and MUST signal an `Subscriber.onComplete` on the given `Subscriber`
 16. A `Publisher` in `error` state MUST NOT call `Subscriber.onSubscribe` and MUST signal an `Subscriber.onError` with the error cause on the given `Subscriber`
 17. A `Publisher` in `shut-down` state MUST NOT call `Subscriber.onSubscribe` and MUST signal an `Subscriber.onError` with `java.lang.IllegalStateException` on the given `Subscriber`. The cause message MUST include a reference to this rule and/or quote the full rule.
-18. A `Publisher` MUST support a pending element count up to 2^63-1 (java.lang.Long.MAX_VALUE) and provide for overflow protection. [Under Discussion]
+18. A `Publisher` MUST support a pending element count up to 2^63-1 (java.lang.Long.MAX_VALUE) and provide for overflow protection. _[Under Discussion]_
 19. A `Publisher` MUST produce the same elements in the same sequence for all its subscribers. Producing the stream elements at (temporarily) differing rates to different subscribers is allowed.  
 20. A `Publisher` MUST start producing with the oldest element still available for a new `Subscription`.
 
