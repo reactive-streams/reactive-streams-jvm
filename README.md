@@ -107,8 +107,8 @@ public interface Subscriber<T> {
 
 | ID     | Rule                                                                                                   |
 | ------ | ------------------------------------------------------------------------------------------------------ |
-| 1      | A `Subscriber` MUST signal demand via `Subscription.request(int n)` to receive onNext signals |
-| 2      | If a `Subscriber` suspects that its processing of events will negatively impact its `Publisher`'s responsivity, it is RECOMMENDED that it asynchronously dispatches its signals |
+| 1      | A `Subscriber` MUST signal demand via `Subscription.request(int n)` to receive `onNext` signals |
+| 2      | If a `Subscriber` suspects that its processing of signals will negatively impact its `Publisher`'s responsivity, it is RECOMMENDED that it asynchronously dispatches its signals |
 | 3      | `Subscriber.onComplete()` and `Subscriber.onError(Throwable t)` MUST NOT call any methods on the `Subscription`, the `Publisher` or any other `Publishers` or `Subscribers` |
 | 4      | `Subscriber.onComplete()` and `Subscriber.onError(Throwable t)` MUST consider the Subscription cancelled after having received the signal |
 | 5      | A `Subscriber` MUST call `Subscription.cancel()` on the given `Subscription` after an `onSubscribe` signal if it already has an active `Subscription` |
