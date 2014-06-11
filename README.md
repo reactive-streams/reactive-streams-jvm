@@ -59,7 +59,7 @@ onError | (onSubscribe onNext* (onError | onComplete)?)
 
 #### NOTES
 
-- The specifications below use binding words in CAPLOCKS from https://www.ietf.org/rfc/rfc2119.txt
+- The specifications below use binding words in capital letters from https://www.ietf.org/rfc/rfc2119.txt
 - The terms emit, signal or send are interchangeable. The specifications below will use `signal`.
 - The terms `synchronously` or `synchronous` refer to executing in the calling `Thread`.
 
@@ -83,16 +83,15 @@ public interface Publisher<T> {
 | 6      | If a `Publisher` signals either `onError` or `onComplete` on a `Subscriber`, that `Subscriber`’s `Subscription` MUST be considered canceled |
 | 7      | Once a terminal state has been signaled (`onError`, `onComplete`) it is REQUIRED that no further signals occur. Situational scenario MAY apply [see 2.13] |
 | 9      | `Subscription`'s which have been canceled SHOULD NOT receive subsequent `onError` or `onComplete` signals, but implementations will not be able to strictly guarantee this in all cases due to the intrinsic race condition between actions taken concurrently by `Publisher` and `Subscriber` |
-| 10     | `Publisher.subscribe` SHOULD NOT throw an `Exception`. The only legal way to signal failure (or reject a `Subscription`) is via the `onError` method |
+| 10     | `Publisher.subscribe` SHOULD NOT throw a non-fatal  `Throwable`. The only legal way to signal failure (or reject a `Subscription`) is via the `onError` method. Non-fatal `Throwable` excludes any non-recoverable exception by the application (e.g. OutOfMemory) |
 | 12     | `Publisher.subscribe` MAY be called as many times as wanted but MUST be with a different `Subscriber` each time [see 2.12]. It MUST reject the `Subscription` with a `java.lang.IllegalStateException` if the same `Subscriber` already has an active `Subscription` with this `Publisher`. The cause message MUST include a reference to this rule and/or quote the full rule |
 | 13     | A `Publisher` MAY support multi-subscribe and choose whether each `Subscription` is unicast or multicast |
 | 14     | A `Publisher` MAY reject calls to its `subscribe` method if it is unable or unwilling to serve them (e.g. because it is overwhelmed or bounded by a finite number of underlying resources, etc...). If rejecting it MUST do this by calling `onError` on the `Subscriber` passed to `Publisher.subscribe` instead of calling `onSubscribe`" |
-| 15     | A `Publisher` in `completed` state MUST NOT call `onSubscribe` and MUST signal an `onComplete` on the given `Subscriber` |
-| 16     | A `Publisher` in `error` state MUST NOT call `onSubscribe` and MUST signal an `onError` with the error cause on the given `Subscriber` |
+| 15     | A `Publisher` in `completed` state MUST NOT call `onSubscribe` and MUST signal errors using `onError` for the corresponding `Subscriber` |
+| 16     | A `Publisher` in `error` state MUST NOT call `onSubscribe` and MUST signal errors using `onError` for the corresponding `Subscriber` |
 | 17     | A `Publisher` in `shut-down` state MUST NOT call `onSubscribe` and MUST signal an `onError` with `java.lang.IllegalStateException` on the given `Subscriber`. The cause message MUST include a reference to this rule and/or quote the full rule |
 | 18     | A `Publisher` MUST support a pending element count up to 2^63-1 (java.lang.Long.MAX_VALUE) and provide for overflow protection.
-| 19     | A `Publisher` MUST produce the same elements in the same sequence for all its subscribers and MAY produce the stream elements at (temporarily) differing rates to different subscribers |
-| 20     | A `Publisher` MUST start producing with the oldest element still available for a new `Subscription` |
+| 19     | A `Publisher` MUST produce the same elements, starting with the oldest element still available, in the same sequence for all its subscribers and MAY produce the stream elements at (temporarily) differing rates to different subscribers |
 
 #### 2. Subscriber ([Code](https://github.com/reactive-streams/reactive-streams/blob/master/api/src/main/java/org/reactivestreams/Subscriber.java))
 
@@ -137,7 +136,7 @@ public interface Subscription {
 | 1      | `Subscription.request` or `Subscription.cancel` MUST not be called outside of its `Subscriber` context. A `Subscription` represents the unique relationship between a `Subscriber` and a `Publisher` [see 2.12] |
 | 2      | The `Subscription` MUST allow the `Subscriber` to call `Subscription.request` synchronously from within `onNext` or `onSubscribe` |
 | 3      | `Subscription.request` MUST NOT allow unbounded recursion such as `Subscriber.onNext` -> `Subscription.request` -> `Subscriber.onNext` |
-| 4      | `Subscription.request` SHOULD NOT synchronously perform heavy computations |
+| 4      | `Subscription.request` SHOULD NOT synchronously perform heavy computations that would impact its caller's responsivity |
 | 5      | `Subscription.cancel` MUST NOT synchronously perform heavy computations, MUST be idempotent and MUST be thread-safe |
 | 6      | After the `Subscription` is cancelled, additional `Subscription.request(int n)` MUST be NOPs |
 | 7      | After the `Subscription` is cancelled, additional `Subscription.cancel()` MUST be NOPs |
@@ -145,8 +144,8 @@ public interface Subscription {
 | 9      | While the `Subscription` is not cancelled, `Subscription.request(int n)` MUST throw a `java.lang.IllegalArgumentException` if the argument is <= 0. The cause message MUST include a reference to this rule and/or quote the full rule |
 | 10     | While the `Subscription` is not cancelled, `Subscription.request(int n)` MAY synchronously call `onNext` on this (or other) subscriber(s) |
 | 11     | While the `Subscription` is not cancelled, `Subscription.request(int n)` MAY synchronously call `onComplete` or `onError` on this (or other) subscriber(s) |
-| 12     | While the `Subscription` is not cancelled, `Subscription.cancel()` the `Publisher` MUST eventually stop signaling its `Subscriber`. The operation is NOT REQUIRED to affect the `Subscription` immediately. |
-| 13     | While the `Subscription` is not cancelled, `Subscription.cancel()` the `Publisher` MUST eventually drop any references to the corresponding subscriber. Re-subscribing with the same `Subscriber` object is discouraged [see 2.12], but this specification does not mandate that it is disallowed since that would mean having to store previously canceled subscriptions indefinitely |
+| 12     | While the `Subscription` is not cancelled, `Subscription.cancel()` MUST request the `Publisher` to eventually stop signaling its `Subscriber`. The operation is NOT REQUIRED to affect the `Subscription` immediately. |
+| 13     | While the `Subscription` is not cancelled, `Subscription.cancel()` MUST request the `Publisher` to eventually drop any references to the corresponding subscriber. Re-subscribing with the same `Subscriber` object is discouraged [see 2.12], but this specification does not mandate that it is disallowed since that would mean having to store previously canceled subscriptions indefinitely |
 | 14     | While the `Subscription` is not cancelled, invoking `Subscription.cancel` MAY cause the `Publisher` to transition into the `shut-down` state if no other `Subscription` exists at this point [see 1.17].
 | 15     | `Subscription.cancel` MUST NOT throw an `Exception` and MUST signal `onError` to its `Subscriber` |
 | 16     | `Subscription.request` MUST NOT throw an `Exception` and MUST signal `onError` to its `Subscriber` |
@@ -207,7 +206,7 @@ All of these variants are "asynchronous streams". They all have their place and 
 
 The Reactive Streams contract allows implementations the flexibility to manage resources and scheduling and mix asynchronous and synchronous processing within the bounds of a non-blocking, asynchronous, push-based stream.
 
-In order to allow fully asynchronous implementations of all participating SPI elements—`Publisher`/`Subscription`/`Subscriber`—all methods defined by these interfaces return `void`.
+In order to allow fully asynchronous implementations of all participating API elements—`Publisher`/`Subscription`/`Subscriber`/`Processor`—all methods defined by these interfaces return `void`.
 
 
 ### Subscriber controlled queue bounds ###
