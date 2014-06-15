@@ -86,12 +86,14 @@ public interface Publisher<T> {
 | 10     | `Publisher.subscribe` SHOULD NOT throw a non-fatal  `Throwable`. The only legal way to signal failure (or reject a `Subscription`) is via the `onError` method. Non-fatal `Throwable` excludes any non-recoverable exception by the application (e.g. OutOfMemory) |
 | 12     | `Publisher.subscribe` MAY be called as many times as wanted but MUST be with a different `Subscriber` each time [see 2.12]. It MUST reject the `Subscription` with a `java.lang.IllegalStateException` if the same `Subscriber` already has an active `Subscription` with this `Publisher`. The cause message MUST include a reference to this rule and/or quote the full rule |
 | 13     | A `Publisher` MAY support multi-subscribe and choose whether each `Subscription` is unicast or multicast |
-| 14     | A `Publisher` MAY reject calls to its `subscribe` method if it is unable or unwilling to serve them (e.g. because it is overwhelmed or bounded by a finite number of underlying resources, etc...). If rejecting it MUST do this by calling `onError` on the `Subscriber` passed to `Publisher.subscribe` instead of calling `onSubscribe`" |
+| 14     | A `Publisher` MAY reject calls to its `subscribe` method if it is unable or unwilling to serve them [1]. If rejecting it MUST do this by calling `onError` on the `Subscriber` passed to `Publisher.subscribe` instead of calling `onSubscribe`" |
 | 15     | A `Publisher` in `completed` state MUST NOT call `onSubscribe` and MUST signal errors using `onError` for the corresponding `Subscriber` |
 | 16     | A `Publisher` in `error` state MUST NOT call `onSubscribe` and MUST signal errors using `onError` for the corresponding `Subscriber` |
 | 17     | A `Publisher` in `shut-down` state MUST NOT call `onSubscribe` and MUST signal an `onError` with `java.lang.IllegalStateException` on the given `Subscriber`. The cause message MUST include a reference to this rule and/or quote the full rule |
 | 18     | A `Publisher` MUST support a pending element count up to 2^63-1 (java.lang.Long.MAX_VALUE) and provide for overflow protection.
 | 19     | A `Publisher` MUST produce the same elements, starting with the oldest element still available, in the same sequence for all its subscribers and MAY produce the stream elements at (temporarily) differing rates to different subscribers |
+
+[1] :  A Publisher can be overwhelmed, bounded by a finite number of underlying resources, exhausted [see 1.15], shut-down [see 1.16] or in failed state [see 1.17]. 
 
 #### 2. Subscriber ([Code](https://github.com/reactive-streams/reactive-streams/blob/master/api/src/main/java/org/reactivestreams/Subscriber.java))
 
