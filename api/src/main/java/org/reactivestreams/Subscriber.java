@@ -8,12 +8,12 @@ package org.reactivestreams;
  * After signaling demand:
  * <ul>
  * <li>One or more invocations of {@link #onNext(Object)} up to the maximum number defined by {@link Subscription#request(int)}</li>
- * <li>Single invocation of {@link #onError(Throwable)} or {@link #onCompleted()} which signals a terminal state after which no further events will be sent.
+ * <li>Single invocation of {@link #onError(Throwable)} or {@link Subscriber#onComplete()} which signals a terminal state after which no further events will be sent.
  * </ul>
  * <p>
- * Demand can be signalled via {@link Subscription#request(int)} whenever the {@link Subscriber} instance is capable of handling more.
+ * Demand can be signaled via {@link Subscription#request(int)} whenever the {@link Subscriber} instance is capable of handling more.
  *
- * @param <T>
+ * @param <T> the Type of element signaled.
  */
 public interface Subscriber<T> {
     /**
@@ -33,7 +33,7 @@ public interface Subscriber<T> {
     /**
      * Data notification sent by the {@link Publisher} in response to requests to {@link Subscription#request(int)}.
      * 
-     * @param t
+     * @param t the element signaled
      */
     public void onNext(T t);
 
@@ -41,8 +41,8 @@ public interface Subscriber<T> {
      * Failed terminal state.
      * <p>
      * No further events will be sent even if {@link Subscription#request(int)} is invoked again.
-     * 
-     * @param t
+     *
+     * @param t the throwable signaled
      */
     public void onError(Throwable t);
 

@@ -14,7 +14,7 @@ public interface Publisher<T> {
      * If the {@link Publisher} rejects the subscription attempt or otherwise fails it will 
      * signal the error via {@link Subscriber#onError}.
      * 
-     * @param s
+     * @param s the {@link Subscriber} that will consume signals from this {@link Publisher}
      */
     public void subscribe(Subscriber<T> s);
 }
