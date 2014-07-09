@@ -90,8 +90,7 @@ public interface Publisher<T> {
 | 15     | A `Publisher` in `completed` state MUST NOT call `onSubscribe` and MUST signal errors using `onError` for the corresponding `Subscriber` |
 | 16     | A `Publisher` in `error` state MUST NOT call `onSubscribe` and MUST signal errors using `onError` for the corresponding `Subscriber` |
 | 17     | A `Publisher` in `shut-down` state MUST NOT call `onSubscribe` and MUST signal an `onError` with `java.lang.IllegalStateException` on the given `Subscriber`. The cause message MUST include a reference to this rule and/or quote the full rule |
-| 18     | A `Publisher` MUST support a pending element count up to 2^63-1 (java.lang.Long.MAX_VALUE) and provide for overflow protection.
-| 19     | A `Publisher` MUST produce the same elements, starting with the oldest element still available, in the same sequence for all its subscribers and MAY produce the stream elements at (temporarily) differing rates to different subscribers |
+| 18     | A `Publisher` MUST produce the same elements, starting with the oldest element still available, in the same sequence for all its subscribers and MAY produce the stream elements at (temporarily) differing rates to different subscribers |
 
 [1] :  A Publisher can be overwhelmed, bounded by a finite number of underlying resources, exhausted [see 1.15], shut-down [see 1.16] or in failed state [see 1.17]. 
 
@@ -151,6 +150,7 @@ public interface Subscription {
 | 14     | While the `Subscription` is not cancelled, invoking `Subscription.cancel` MAY cause the `Publisher` to transition into the `shut-down` state if no other `Subscription` exists at this point [see 1.17].
 | 15     | `Subscription.cancel` MUST NOT throw an `Exception` and MUST signal `onError` to its `Subscriber` |
 | 16     | `Subscription.request` MUST NOT throw an `Exception` and MUST signal `onError` to its `Subscriber` |
+| 17     | A `Subscription MUST support an unbounded number of calls to request and MUST support a pending request count up to 2^63-1 (java.lang.Long.MAX_VALUE). If more than 2^63-1 are requested in pending then it MUST signal an onError with `java.lang.IllegalStateException` on the given `Subscriber`. The cause message MUST include a reference to this rule and/or quote the full rule. |
 
 A `Subscription` is shared by exactly one `Publisher` and one `Subscriber` for the purpose of mediating the data exchange between this pair. This is the reason why the `subscribe()` method does not return the created `Subscription`, but instead returns `void`; the `Subscription` is only passed to the `Subscriber` via the `onSubscribe` callback.
 
