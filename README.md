@@ -164,10 +164,7 @@ public interface Processor<T, R> extends Subscriber<T>, Publisher<R> {
 | ID     | Rule                                                                                                   |
 | ------ | ------------------------------------------------------------------------------------------------------ |
 | 1      | A `Processor` represents a processing stage—which is both a `Subscriber` and a `Publisher` and MUST obey the contracts of both [1] |
-| 2      | A `Processor` MUST cancel its upstream Subscription if its last downstream Subscription has been cancelled |
-| 3      | A `Processor` MAY choose to recover an `onError` signal. If it chooses to do so, it MUST consider the `Subscription` canceled, otherwise it MUST propagate the `onError` signal to its Subscribers immediately |
-
-[1] A `Processor` must be prepared to receive incoming elements from its upstream even if a downstream subscriber has not requested anything yet.
+| 2      | A `Processor` MAY choose to recover an `onError` signal. If it chooses to do so, it MUST consider the `Subscription` canceled, otherwise it MUST propagate the `onError` signal to its Subscribers immediately |
 
 ### Asynchronous vs Synchronous Processing ###
 
