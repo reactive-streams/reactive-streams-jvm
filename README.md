@@ -120,7 +120,8 @@ public interface Subscriber<T> {
 | 10     | A `Subscriber` MUST be prepared to receive an `onError` signal with or without a preceding `Subscription.request(int n)` call |
 | 11     | A `Subscriber` MUST make sure that all calls on its `onXXX` methods happen-before [1] the processing of the respective signals. I.e. the Subscriber must take care of properly publishing the signal to its processing logic |
 | 12     | `Subscriber.onSubscribe` MUST NOT be called more than once (based on object equality) |
-| 13     | A failing `onComplete` (e.g. throwing an exception) is a specification violation and MUST signal `onError` with `java.lang.IllegalStateException`. The cause message MUST include a reference to this rule and/or quote the full rule |
+| 13     | A failing `onComplete` invocation (e.g. throwing an exception) is a specification violation and MUST signal `onError` with `java.lang.IllegalStateException`. The cause message MUST include a reference to this rule and/or quote the full rule |
+| 14     | A failing `onError` invocation (e.g. throwing an exception) is a violation of the specification. In this case the `Publisher` MUST consider a possible `Subscription` for this `Subscriber` as canceled. The `Publisher` MUST raise this error condition in a fashion that is adequate for the runtime environment (e.g. by throwing an exception, notifying a supervisor, logging, etc.). |
 
 [1] : See JMM definition of Happen-Before in section 17.4.5. on http://docs.oracle.com/javase/specs/jls/se7/html/jls-17.html
 
