@@ -7,6 +7,8 @@ package org.reactivestreams.tck.support;
 public class NonFatal {
   /**
    * Returns true if the provided `Throwable` is to be considered non-fatal, or false if it is to be considered fatal
+   * @param t throwable to be matched for fatal-ness
+   * @return true if is a non-fatal throwable, false otherwise
    */
   public static boolean apply(Throwable t) {
     if (t instanceof StackOverflowError) {
