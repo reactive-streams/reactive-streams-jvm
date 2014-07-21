@@ -1,0 +1,7 @@
+name: TCKSuite
+threadCount: 1
+
+tests:
+  - name: TCK
+    classes:
+      - org.reactivestreams.tck.IdentityProcessorVerificationDelegationTest
