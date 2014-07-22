@@ -12,7 +12,8 @@ public interface Subscription {
     /**
      * No events will be sent by a {@link Publisher} until demand is signaled via this method.
      * <p>
-     * It can be called however often and whenever needed.
+     * It can be called however often and whenever needed—but the outstanding cumulative demand must never exceed Long.MAX_VALUE.
+     * An outstanding cumulative demand of Long.MAX_VALUE may be treated by the {@link Publisher} as "effectively unbounded".
      * <p>
      * Whatever has been requested can be sent by the {@link Publisher} so only signal demand for what can be safely handled.
      * <p>
@@ -21,7 +22,7 @@ public interface Subscription {
      * 
      * @param n the strictly positive number of elements to requests to the upstream {@link Publisher}
      */
-    public void request(int n);
+    public void request(long n);
 
     /**
      * Request the {@link Publisher} to stop sending data and clean up resources.
