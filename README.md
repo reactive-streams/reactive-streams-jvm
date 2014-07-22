@@ -81,13 +81,13 @@ public interface Publisher<T> {
 | 4      | If a `Publisher` fails it MUST signal an `onError` |
 | 5      | If a `Publisher` terminates successfully (finite stream) it MUST signal an `onComplete` |
 | 6      | If a `Publisher` signals either `onError` or `onComplete` on a `Subscriber`, that `Subscriber`’s `Subscription` MUST be considered canceled |
-| 7      | Once a terminal state has been signaled (`onError`, `onComplete`) it is REQUIRED that no further signals occur. Situational scenario MAY apply [see 2.13] |
-| 9      | `Subscription`'s which have been canceled SHOULD NOT receive subsequent `onError` or `onComplete` signals, but implementations will not be able to strictly guarantee this in all cases due to the intrinsic race condition between actions taken concurrently by `Publisher` and `Subscriber` |
-| 10     | `Publisher.subscribe` SHOULD NOT throw a non-fatal  `Throwable`. The only legal way to signal failure (or reject a `Subscription`) is via the `onError` method. Non-fatal `Throwable` excludes any non-recoverable exception by the application (e.g. OutOfMemory) |
-| 11     | `Publisher.subscribe` MAY be called as many times as wanted but MUST be with a different `Subscriber` each time [see 2.12]. It is RECOMMENDED to reject the `Subscription` with a `java.lang.IllegalStateException` if the same `Subscriber` already has an active `Subscription` with this `Publisher`. The cause message MUST include a reference to this rule and/or quote the full rule |
-| 12     | A `Publisher` MAY support multi-subscribe and choose whether each `Subscription` is unicast or multicast |
-| 13     | A `Publisher` MAY reject calls to its `subscribe` method if it is unable or unwilling to serve them [1]. If rejecting it MUST do this by calling `onError` on the `Subscriber` passed to `Publisher.subscribe` instead of calling `onSubscribe`" |
-| 14     | A `Publisher` MUST produce the same elements, starting with the oldest element still available, in the same sequence for all its subscribers and MAY produce the stream elements at (temporarily) differing rates to different subscribers |
+| 7      | Once a terminal state has been signaled (`onError`, `onComplete`) it is REQUIRED that no further signals occur. Situational scenario MAY apply [see 2.13] 
+| 8      | `Subscription`'s which have been canceled SHOULD NOT receive subsequent `onError` or `onComplete` signals, but implementations will not be able to strictly guarantee this in all cases due to the intrinsic race condition between actions taken concurrently by `Publisher` and `Subscriber` |
+| 9     | `Publisher.subscribe` SHOULD NOT throw a non-fatal  `Throwable`. The only legal way to signal failure (or reject a `Subscription`) is via the `onError` method. Non-fatal `Throwable` excludes any non-recoverable exception by the application (e.g. OutOfMemory) |
+| 10     | `Publisher.subscribe` MAY be called as many times as wanted but MUST be with a different `Subscriber` each time [see 2.12]. It is RECOMMENDED to reject the `Subscription` with a `java.lang.IllegalStateException` if the same `Subscriber` already has an active `Subscription` with this `Publisher`. The cause message MUST include a reference to this rule and/or quote the full rule |
+| 11     | A `Publisher` MAY support multi-subscribe and choose whether each `Subscription` is unicast or multicast |
+| 12     | A `Publisher` MAY reject calls to its `subscribe` method if it is unable or unwilling to serve them [1]. If rejecting it MUST do this by calling `onError` on the `Subscriber` passed to `Publisher.subscribe` instead of calling `onSubscribe`" |
+| 13     | A `Publisher` MUST produce the same elements, starting with the oldest element still available, in the same sequence for all its subscribers and MAY produce the stream elements at (temporarily) differing rates to different subscribers |
 
 [1] :  A stateful Publisher can be overwhelmed, bounded by a finite number of underlying resources, exhausted, shut-down or in a failed state. 
 
