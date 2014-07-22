@@ -174,7 +174,7 @@ Take this example:
 nioSelectorThreadOrigin map(f) filter(p) consumeTo(toNioSelectorOutput)
 ```
 
-It has an async origin and an async destination. Let's assume that both origin and destination are selector event loops. The `Subscription.request(n)` must be chained from the destination to the origin. This is now where each implementation can choose how do do this.
+It has an async origin and an async destination. Let's assume that both origin and destination are selector event loops. The `Subscription.request(n)` must be chained from the destination to the origin. This is now where each implementation can choose how to do this.
 
 The following uses the pipe `|` character to signal async boundaries (queue and schedule) and `R#` to represent resources (possibly threads).
 
