@@ -23,4 +23,4 @@ benjchristensen| Ben Christensen, benjchristensen@gmail.com, Netflix Inc.
 viktorklang    | Viktor Klang, viktor.klang@gmail.com, Typesafe Inc.
 smaldini       | Stephane Maldini, stephane.maldini@gmail.com, Pivotal Software Inc.
 savulchik      | Stanislav Savulchik, s.savulchik@gmail.com
-
+ktoso          | Konrad Malawski, konrad.malawski@project13.pl, Typesafe Inc.

@@ -148,7 +148,7 @@ public interface Subscription {
 | 14     | While the `Subscription` is not cancelled, invoking `Subscription.cancel` MAY cause the `Publisher` to transition into the `shut-down` state if no other `Subscription` exists at this point [see 1.17].
 | 15     | `Subscription.cancel` MUST NOT throw an `Exception` and MUST signal `onError` to its `Subscriber` |
 | 16     | `Subscription.request` MUST NOT throw an `Exception` and MUST signal `onError` to its `Subscriber` |
-| 17     | A `Subscription MUST support an unbounded number of calls to request and MUST support a pending request count up to 2^63-1 (java.lang.Long.MAX_VALUE). A pending request count of exactly 2^63-1 (java.lang.Long.MAX_VALUE) MAY be considered by the `Publisher` as `effectively unbounded`[1]. If more than 2^63-1 are requested in pending then it MUST signal an onError with `java.lang.IllegalStateException` on the given `Subscriber`. The cause message MUST include a reference to this rule and/or quote the full rule. |
+| 17     | A `Subscription` MUST support an unbounded number of calls to request and MUST support a pending request count up to 2^63-1 (`java.lang.Long.MAX_VALUE`). A pending request count of exactly 2^63-1 (`java.lang.Long.MAX_VALUE`) MAY be considered by the `Publisher` as `effectively unbounded`[1]. If more than 2^63-1 are requested in pending then it MUST signal an onError with `java.lang.IllegalStateException` on the given `Subscriber`. The cause message MUST include a reference to this rule and/or quote the full rule. |
 
 [1] : As it is not feasibly reachable with current or forseen hardware within a reasonable amount of time (1 element per nanosecond would take 292 years) to fulfill a demand of 2^63-1.
 
