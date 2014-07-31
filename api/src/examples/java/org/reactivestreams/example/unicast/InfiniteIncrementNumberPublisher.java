@@ -18,7 +18,7 @@ class InfiniteIncrementNumberPublisher implements Publisher<Integer> {
             AtomicInteger capacity = new AtomicInteger();
 
             @Override
-            public void request(int n) {
+            public void request(long n) {
                 System.out.println("signalAdditionalDemand => " + n);
                 if (capacity.getAndAdd(n) == 0) {
                     // start sending again if it wasn't already running

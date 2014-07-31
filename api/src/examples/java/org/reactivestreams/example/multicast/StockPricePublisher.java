@@ -1,6 +1,6 @@
 package org.reactivestreams.example.multicast;
 
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 import org.reactivestreams.Subscription;
 import org.reactivestreams.Subscriber;
@@ -20,11 +20,11 @@ public class StockPricePublisher implements Publisher<Stock> {
     public void subscribe(final Subscriber<Stock> s) {
         s.onSubscribe(new Subscription() {
 
-            AtomicInteger capacity = new AtomicInteger();
+            AtomicLong capacity = new AtomicLong();
             EventHandler handler = new EventHandler(s, capacity);
 
             @Override
-            public void request(int n) {
+            public void request(long n) {
                 if (capacity.getAndAdd(n) == 0) {
                     // was at 0, so start up consumption again
                     startConsuming();
@@ -47,16 +47,16 @@ public class StockPricePublisher implements Publisher<Stock> {
 
     private static final class EventHandler implements Handler {
         private final Subscriber<Stock> s;
-        private final AtomicInteger capacity;
+        private final AtomicLong capacity;
 
-        private EventHandler(Subscriber<Stock> s, AtomicInteger capacity) {
+        private EventHandler(Subscriber<Stock> s, AtomicLong capacity) {
             this.s = s;
             this.capacity = capacity;
         }
 
         @Override
         public void handle(Stock event) {
-            int c = capacity.get();
+            long c = capacity.get();
             if (c == 0) {
                 // shortcut instead of doing decrement/increment loops while no capacity
                 return;
