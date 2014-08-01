@@ -35,7 +35,7 @@ public class NeverEndingStockStream {
 
     public static synchronized void removeHandler(Handler handler) {
         // too lazy to do the array handling
-        HashSet<Handler> set = new HashSet<>(Arrays.asList(INSTANCE.handlers));
+        HashSet<Handler> set = new HashSet<Handler>(Arrays.asList(INSTANCE.handlers));
         set.remove(handler);
         INSTANCE.handlers = set.toArray(new Handler[set.size()]);
     }

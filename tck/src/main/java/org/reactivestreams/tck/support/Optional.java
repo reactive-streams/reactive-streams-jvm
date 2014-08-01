@@ -5,7 +5,7 @@ import java.util.NoSuchElementException;
 // simplest possible version of Scala's Option type
 public abstract class Optional<T> {
 
-  private static final Optional NONE = new Optional() {
+  private static final Optional<Object> NONE = new Optional<Object>() {
     @Override
     public Object get() {
       throw new NoSuchElementException(".get call on None!");
@@ -17,12 +17,12 @@ public abstract class Optional<T> {
     }
   };
 
-  protected Optional() {
+  private Optional() {
   }
 
   @SuppressWarnings("unchecked")
   public static <T> Optional<T> empty() {
-    return NONE;
+    return (Optional<T>) NONE;
   }
 
   @SuppressWarnings("unchecked")

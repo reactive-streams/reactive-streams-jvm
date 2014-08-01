@@ -18,6 +18,15 @@ public class Annotations {
   }
 
   /**
+   * Used to mark stochastic tests which MAY yield false positives (pass) can violate the tested rule in some specific scenario.
+   */
+  @Target(ElementType.METHOD)
+  @Retention(RetentionPolicy.SOURCE)
+  static @interface Stochastic {
+
+  }
+
+  /**
    * Used to mark tests that MUST pass in all (even very restricted types of) Publishers / Subscribers.
    */
   @Target(ElementType.METHOD)
@@ -31,7 +40,7 @@ public class Annotations {
    */
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.SOURCE)
-  @interface Additional {
+  static @interface Additional {
     /** Description of situation when it's OK to not pass this test */
     String value() default "";
 

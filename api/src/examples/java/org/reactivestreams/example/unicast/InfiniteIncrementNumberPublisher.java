@@ -1,6 +1,5 @@
 package org.reactivestreams.example.unicast;
 
-import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicLong;
 
 import org.reactivestreams.Subscription;

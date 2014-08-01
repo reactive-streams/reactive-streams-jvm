@@ -73,21 +73,21 @@ public interface Publisher<T> {
 }
 ````
 
-| ID     | Rule                                                                                                   |
-| ------ | ------------------------------------------------------------------------------------------------------ |
-| 1      | The number of `onNext` signaled by a `Publisher` to a `Subscriber` MUST NOT exceed the cumulative demand that has been signaled via that `Subscriber`’s `Subscription` |
-| 2      | A `Publisher` MAY signal less `onNext` than requested and terminate the `Subscription` by calling `onComplete` or `onError` |
-| 3      | `onSubscribe`, `onNext`, `onError` and `onComplete` signaled to a `Subscriber` MUST be signaled sequentially (no concurrent notifications) |
-| 4      | If a `Publisher` fails it MUST signal an `onError` |
-| 5      | If a `Publisher` terminates successfully (finite stream) it MUST signal an `onComplete` |
-| 6      | If a `Publisher` signals either `onError` or `onComplete` on a `Subscriber`, that `Subscriber`’s `Subscription` MUST be considered canceled |
-| 7      | Once a terminal state has been signaled (`onError`, `onComplete`) it is REQUIRED that no further signals occur. Situational scenario MAY apply [see 2.13] 
-| 8      | `Subscription`'s which have been canceled SHOULD NOT receive subsequent `onError` or `onComplete` signals, but implementations will not be able to strictly guarantee this in all cases due to the intrinsic race condition between actions taken concurrently by `Publisher` and `Subscriber` |
-| 9     | `Publisher.subscribe` SHOULD NOT throw a non-fatal  `Throwable`. The only legal way to signal failure (or reject a `Subscription`) is via the `onError` method. Non-fatal `Throwable` excludes any non-recoverable exception by the application (e.g. OutOfMemory) |
-| 10     | `Publisher.subscribe` MAY be called as many times as wanted but MUST be with a different `Subscriber` each time [see 2.12]. It is RECOMMENDED to reject the `Subscription` with a `java.lang.IllegalStateException` if the same `Subscriber` already has an active `Subscription` with this `Publisher`. The cause message MUST include a reference to this rule and/or quote the full rule |
-| 11     | A `Publisher` MAY support multi-subscribe and choose whether each `Subscription` is unicast or multicast |
-| 12     | A `Publisher` MAY reject calls to its `subscribe` method if it is unable or unwilling to serve them [1]. If rejecting it MUST do this by calling `onError` on the `Subscriber` passed to `Publisher.subscribe` instead of calling `onSubscribe`" |
-| 13     | A `Publisher` MUST produce the same elements, starting with the oldest element still available, in the same sequence for all its subscribers and MAY produce the stream elements at (temporarily) differing rates to different subscribers |
+| ID                        | Rule                                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------ |
+| <a name="1.1">1</a>       | The number of `onNext` signaled by a `Publisher` to a `Subscriber` MUST NOT exceed the cumulative demand that has been signaled via that `Subscriber`’s `Subscription` |
+| <a name="1.2">2</a>       | A `Publisher` MAY signal less `onNext` than requested and terminate the `Subscription` by calling `onComplete` or `onError` |
+| <a name="1.3">3</a>       | `onSubscribe`, `onNext`, `onError` and `onComplete` signaled to a `Subscriber` MUST be signaled sequentially (no concurrent notifications) |
+| <a name="1.4">4</a>       | If a `Publisher` fails it MUST signal an `onError` |
+| <a name="1.5">5</a>       | If a `Publisher` terminates successfully (finite stream) it MUST signal an `onComplete` |
+| <a name="1.6">6</a>       | If a `Publisher` signals either `onError` or `onComplete` on a `Subscriber`, that `Subscriber`’s `Subscription` MUST be considered canceled |
+| <a name="1.7">7</a>       | Once a terminal state has been signaled (`onError`, `onComplete`) it is REQUIRED that no further signals occur. Situational scenario MAY apply [see 2.13] 
+| <a name="1.8">8</a>       | `Subscription`'s which have been canceled SHOULD NOT receive subsequent `onError` or `onComplete` signals, but implementations will not be able to strictly guarantee this in all cases due to the intrinsic race condition between actions taken concurrently by `Publisher` and `Subscriber` |
+| <a name="1.9">9</a>       | `Publisher.subscribe` SHOULD NOT throw a non-fatal  `Throwable`. The only legal way to signal failure (or reject a `Subscription`) is via the `onError` method. Non-fatal `Throwable` excludes any non-recoverable exception by the application (e.g. OutOfMemory) |
+| <a name="1.10">10</a>     | `Publisher.subscribe` MAY be called as many times as wanted but MUST be with a different `Subscriber` each time [see 2.12]. It is RECOMMENDED to reject the `Subscription` with a `java.lang.IllegalStateException` if the same `Subscriber` already has an active `Subscription` with this `Publisher`. The cause message MUST include a reference to this rule and/or quote the full rule |
+| <a name="1.11">11</a>     | A `Publisher` MAY support multi-subscribe and choose whether each `Subscription` is unicast or multicast |
+| <a name="1.12">12</a>     | A `Publisher` MAY reject calls to its `subscribe` method if it is unable or unwilling to serve them [1]. If rejecting it MUST do this by calling `onError` on the `Subscriber` passed to `Publisher.subscribe` instead of calling `onSubscribe`" |
+| <a name="1.13">13</a>     | A `Publisher` MUST produce the same elements, starting with the oldest element still available, in the same sequence for all its subscribers and MAY produce the stream elements at (temporarily) differing rates to different subscribers |
 
 [1] :  A stateful Publisher can be overwhelmed, bounded by a finite number of underlying resources, exhausted, shut-down or in a failed state. 
 
@@ -102,22 +102,22 @@ public interface Subscriber<T> {
 }
 ````
 
-| ID     | Rule                                                                                                   |
-| ------ | ------------------------------------------------------------------------------------------------------ |
-| 1      | A `Subscriber` MUST signal demand via `Subscription.request(long n)` to receive `onNext` signals |
-| 2      | If a `Subscriber` suspects that its processing of signals will negatively impact its `Publisher`'s responsivity, it is RECOMMENDED that it asynchronously dispatches its signals |
-| 3      | `Subscriber.onComplete()` and `Subscriber.onError(Throwable t)` MUST NOT call any methods on the `Subscription` or the `Publisher` |
-| 4      | `Subscriber.onComplete()` and `Subscriber.onError(Throwable t)` MUST consider the Subscription cancelled after having received the signal |
-| 5      | A `Subscriber` MUST call `Subscription.cancel()` on the given `Subscription` after an `onSubscribe` signal if it already has an active `Subscription` |
-| 6      | A `Subscriber` MUST call `Subscription.cancel()` if it is no longer valid to the `Publisher` without the `Publisher` having signaled `onError` or `onComplete` |
-| 7      | A `Subscriber` MUST ensure that all calls on its `Subscription` take place from the same thread or provide for respective external synchronization |
-| 8      | A `Subscriber` MUST be prepared to receive one or more `onNext` signals after having called `Subscription.cancel()` if there are still requested elements pending [see 3.12]. `Subscription.cancel()` does not guarantee to perform the underlying cleaning operations immediately |
-| 9      | A `Subscriber` MUST be prepared to receive an `onComplete` signal with or without a preceding `Subscription.request(long n)` call |
-| 10     | A `Subscriber` MUST be prepared to receive an `onError` signal with or without a preceding `Subscription.request(long n)` call |
-| 11     | A `Subscriber` MUST make sure that all calls on its `onXXX` methods happen-before [1] the processing of the respective signals. I.e. the Subscriber must take care of properly publishing the signal to its processing logic |
-| 12     | `Subscriber.onSubscribe` MUST NOT be called more than once (based on object equality) |
-| 13     | A failing `onComplete` invocation (e.g. throwing an exception) is a specification violation and MUST signal `onError` with `java.lang.IllegalStateException`. The cause message MUST include a reference to this rule and/or quote the full rule |
-| 14     | A failing `onError` invocation (e.g. throwing an exception) is a violation of the specification. In this case the `Publisher` MUST consider a possible `Subscription` for this `Subscriber` as canceled. The `Publisher` MUST raise this error condition in a fashion that is adequate for the runtime environment (e.g. by throwing an exception, notifying a supervisor, logging, etc.). |
+| ID                        | Rule                                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------ |
+| <a name="2.1">1</a>       | A `Subscriber` MUST signal demand via `Subscription.request(long n)` to receive `onNext` signals |
+| <a name="2.2">2</a>       | If a `Subscriber` suspects that its processing of signals will negatively impact its `Publisher`'s responsivity, it is RECOMMENDED that it asynchronously dispatches its signals |
+| <a name="2.3">3</a>       | `Subscriber.onComplete()` and `Subscriber.onError(Throwable t)` MUST NOT call any methods on the `Subscription` or the `Publisher` |
+| <a name="2.4">4</a>       | `Subscriber.onComplete()` and `Subscriber.onError(Throwable t)` MUST consider the Subscription cancelled after having received the signal |
+| <a name="2.5">5</a>       | A `Subscriber` MUST call `Subscription.cancel()` on the given `Subscription` after an `onSubscribe` signal if it already has an active `Subscription` |
+| <a name="2.6">6</a>       | A `Subscriber` MUST call `Subscription.cancel()` if it is no longer valid to the `Publisher` without the `Publisher` having signaled `onError` or `onComplete` |
+| <a name="2.7">7</a>       | A `Subscriber` MUST ensure that all calls on its `Subscription` take place from the same thread or provide for respective external synchronization |
+| <a name="2.8">8</a>       | A `Subscriber` MUST be prepared to receive one or more `onNext` signals after having called `Subscription.cancel()` if there are still requested elements pending [see 3.12]. `Subscription.cancel()` does not guarantee to perform the underlying cleaning operations immediately |
+| <a name="2.9">9</a>       | A `Subscriber` MUST be prepared to receive an `onComplete` signal with or without a preceding `Subscription.request(long n)` call |
+| <a name="2.10">10</a>     | A `Subscriber` MUST be prepared to receive an `onError` signal with or without a preceding `Subscription.request(long n)` call |
+| <a name="2.11">11</a>     | A `Subscriber` MUST make sure that all calls on its `onXXX` methods happen-before [1] the processing of the respective signals. I.e. the Subscriber must take care of properly publishing the signal to its processing logic |
+| <a name="2.12">12</a>     | `Subscriber.onSubscribe` MUST NOT be called more than once (based on object equality) |
+| <a name="2.13">13</a>     | A failing `onComplete` invocation (e.g. throwing an exception) is a specification violation and MUST signal `onError` with `java.lang.IllegalStateException`. The cause message MUST include a reference to this rule and/or quote the full rule |
+| <a name="2.14">14</a>     | A failing `onError` invocation (e.g. throwing an exception) is a violation of the specification. In this case the `Publisher` MUST consider a possible `Subscription` for this `Subscriber` as canceled. The `Publisher` MUST raise this error condition in a fashion that is adequate for the runtime environment (e.g. by throwing an exception, notifying a supervisor, logging, etc.). |
 
 [1] : See JMM definition of Happen-Before in section 17.4.5. on http://docs.oracle.com/javase/specs/jls/se7/html/jls-17.html
 
@@ -130,25 +130,25 @@ public interface Subscription {
 }
 ````
 
-| ID     | Rule                                                                                                   |
-| ------ | ------------------------------------------------------------------------------------------------------ |
-| 1      | `Subscription.request` or `Subscription.cancel` MUST not be called outside of its `Subscriber` context. A `Subscription` represents the unique relationship between a `Subscriber` and a `Publisher` [see 2.12] |
-| 2      | The `Subscription` MUST allow the `Subscriber` to call `Subscription.request` synchronously from within `onNext` or `onSubscribe` |
-| 3      | `Subscription.request` MUST NOT allow unbounded recursion such as `Subscriber.onNext` -> `Subscription.request` -> `Subscriber.onNext` |
-| 4      | `Subscription.request` SHOULD NOT synchronously perform heavy computations that would impact its caller's responsivity |
-| 5      | `Subscription.cancel` MUST NOT synchronously perform heavy computations, MUST be idempotent and MUST be thread-safe |
-| 6      | After the `Subscription` is cancelled, additional `Subscription.request(long n)` MUST be NOPs |
-| 7      | After the `Subscription` is cancelled, additional `Subscription.cancel()` MUST be NOPs |
-| 8      | While the `Subscription` is not cancelled, `Subscription.request(long n)` MUST register the given number of additional elements to be produced to the respective subscriber |
-| 9      | While the `Subscription` is not cancelled, `Subscription.request(long n)` MUST throw a `java.lang.IllegalArgumentException` if the argument is <= 0. The cause message MUST include a reference to this rule and/or quote the full rule |
-| 10     | While the `Subscription` is not cancelled, `Subscription.request(long n)` MAY synchronously call `onNext` on this (or other) subscriber(s) |
-| 11     | While the `Subscription` is not cancelled, `Subscription.request(long n)` MAY synchronously call `onComplete` or `onError` on this (or other) subscriber(s) |
-| 12     | While the `Subscription` is not cancelled, `Subscription.cancel()` MUST request the `Publisher` to eventually stop signaling its `Subscriber`. The operation is NOT REQUIRED to affect the `Subscription` immediately. |
-| 13     | While the `Subscription` is not cancelled, `Subscription.cancel()` MUST request the `Publisher` to eventually drop any references to the corresponding subscriber. Re-subscribing with the same `Subscriber` object is discouraged [see 2.12], but this specification does not mandate that it is disallowed since that would mean having to store previously canceled subscriptions indefinitely |
-| 14     | While the `Subscription` is not cancelled, invoking `Subscription.cancel` MAY cause the `Publisher`, if stateful, to transition into the `shut-down` state if no other `Subscription` exists at this point [see 1.13].
-| 15     | `Subscription.cancel` MUST NOT throw an `Exception` and MUST signal `onError` to its `Subscriber` |
-| 16     | `Subscription.request` MUST NOT throw an `Exception` and MUST signal `onError` to its `Subscriber` |
-| 17     | A `Subscription` MUST support an unbounded number of calls to request and MUST support a pending request count up to 2^63-1 (`java.lang.Long.MAX_VALUE`). A pending request count of exactly 2^63-1 (`java.lang.Long.MAX_VALUE`) MAY be considered by the `Publisher` as `effectively unbounded`[1]. If more than 2^63-1 are requested in pending then it MUST signal an onError with `java.lang.IllegalStateException` on the given `Subscriber`. The cause message MUST include a reference to this rule and/or quote the full rule. |
+| ID                        | Rule                                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------ |
+| <a name="3.1">1</a>       | `Subscription.request` or `Subscription.cancel` MUST not be called outside of its `Subscriber` context. A `Subscription` represents the unique relationship between a `Subscriber` and a `Publisher` [see 2.12] |
+| <a name="3.2">2</a>       | The `Subscription` MUST allow the `Subscriber` to call `Subscription.request` synchronously from within `onNext` or `onSubscribe` |
+| <a name="3.3">3</a>       | `Subscription.request` MUST NOT allow unbounded recursion such as `Subscriber.onNext` -> `Subscription.request` -> `Subscriber.onNext` |
+| <a name="3.4">4</a>       | `Subscription.request` SHOULD NOT synchronously perform heavy computations that would impact its caller's responsivity |
+| <a name="3.5">5</a>       | `Subscription.cancel` MUST NOT synchronously perform heavy computations, MUST be idempotent and MUST be thread-safe |
+| <a name="3.6">6</a>       | After the `Subscription` is cancelled, additional `Subscription.request(long n)` MUST be NOPs |
+| <a name="3.7">7</a>       | After the `Subscription` is cancelled, additional `Subscription.cancel()` MUST be NOPs |
+| <a name="3.8">8</a>       | While the `Subscription` is not cancelled, `Subscription.request(long n)` MUST register the given number of additional elements to be produced to the respective subscriber |
+| <a name="3.9">9</a>       | While the `Subscription` is not cancelled, `Subscription.request(long n)` MUST throw a `java.lang.IllegalArgumentException` if the argument is <= 0. The cause message MUST include a reference to this rule and/or quote the full rule |
+| <a name="3.10">10</a>     | While the `Subscription` is not cancelled, `Subscription.request(long n)` MAY synchronously call `onNext` on this (or other) subscriber(s) |
+| <a name="3.11">11</a>     | While the `Subscription` is not cancelled, `Subscription.request(long n)` MAY synchronously call `onComplete` or `onError` on this (or other) subscriber(s) |
+| <a name="3.12">12</a>     | While the `Subscription` is not cancelled, `Subscription.cancel()` MUST request the `Publisher` to eventually stop signaling its `Subscriber`. The operation is NOT REQUIRED to affect the `Subscription` immediately. |
+| <a name="3.13">13</a>     | While the `Subscription` is not cancelled, `Subscription.cancel()` MUST request the `Publisher` to eventually drop any references to the corresponding subscriber. Re-subscribing with the same `Subscriber` object is discouraged [see 2.12], but this specification does not mandate that it is disallowed since that would mean having to store previously canceled subscriptions indefinitely |
+| <a name="3.14">14</a>     | While the `Subscription` is not cancelled, invoking `Subscription.cancel` MAY cause the `Publisher`, if stateful, to transition into the `shut-down` state if no other `Subscription` exists at this point [see 1.13].
+| <a name="3.15">15</a>     | `Subscription.cancel` MUST NOT throw an `Exception` and MUST signal `onError` to its `Subscriber` |
+| <a name="3.16">16</a>     | `Subscription.request` MUST NOT throw an `Exception` and MUST signal `onError` to its `Subscriber` |
+| <a name="3.17">17</a>     | A `Subscription` MUST support an unbounded number of calls to request and MUST support a pending request count up to 2^63-1 (`java.lang.Long.MAX_VALUE`). A pending request count of exactly 2^63-1 (`java.lang.Long.MAX_VALUE`) MAY be considered by the `Publisher` as `effectively unbounded`[1]. If more than 2^63-1 are requested in pending then it MUST signal an onError with `java.lang.IllegalStateException` on the given `Subscriber`. The cause message MUST include a reference to this rule and/or quote the full rule. |
 
 [1] : As it is not feasibly reachable with current or forseen hardware within a reasonable amount of time (1 element per nanosecond would take 292 years) to fulfill a demand of 2^63-1.
 
@@ -161,10 +161,10 @@ public interface Processor<T, R> extends Subscriber<T>, Publisher<R> {
 }
 ````
 
-| ID     | Rule                                                                                                   |
-| ------ | ------------------------------------------------------------------------------------------------------ |
-| 1      | A `Processor` represents a processing stage—which is both a `Subscriber` and a `Publisher` and MUST obey the contracts of both [1] |
-| 2      | A `Processor` MAY choose to recover an `onError` signal. If it chooses to do so, it MUST consider the `Subscription` canceled, otherwise it MUST propagate the `onError` signal to its Subscribers immediately |
+| ID                       | Rule                                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------------------------ |
+| <a name="4.1">1</a>      | A `Processor` represents a processing stage—which is both a `Subscriber` and a `Publisher` and MUST obey the contracts of both [1] |
+| <a name="4.2">2</a>      | A `Processor` MAY choose to recover an `onError` signal. If it chooses to do so, it MUST consider the `Subscription` canceled, otherwise it MUST propagate the `onError` signal to its Subscribers immediately |
 
 ### Asynchronous vs Synchronous Processing ###
 

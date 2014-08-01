@@ -9,7 +9,7 @@ import java.util.List;
 
 /**
  * The {@link org.reactivestreams.tck.IdentityProcessorVerification} must also run all tests from
- * {@link org.reactivestreams.tck.PublisherVerification} and {@link org.reactivestreams.tck.SubscriberVerification}.
+ * {@link org.reactivestreams.tck.PublisherVerification} and {@link org.reactivestreams.tck.SubscriberWhiteboxVerification}.
  *
  * Since in Java this can be only achieved by delegating, we need to make sure we delegate to each of the tests,
  * so that if in the future we add more tests to these verifications we're sure to not forget to add the delegating methods.
@@ -33,7 +33,7 @@ public class IdentityProcessorVerificationDelegationTest {
   public void shouldIncludeAllTestsFromSubscriberVerification() throws Exception {
     // given
     List<String> processorTests = getTestNames(IdentityProcessorVerification.class);
-    Class<SubscriberVerification> delegatedToClass = SubscriberVerification.class;
+    Class<SubscriberWhiteboxVerification> delegatedToClass = SubscriberWhiteboxVerification.class;
 
     // when
     List<String> publisherTests = getTestNames(delegatedToClass);
