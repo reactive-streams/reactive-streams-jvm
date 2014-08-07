@@ -125,7 +125,7 @@ public interface Subscriber<T> {
 
 ```java
 public interface Subscription {
-    public void request(int n);
+    public void request(long n);
     public void cancel();
 }
 ````
