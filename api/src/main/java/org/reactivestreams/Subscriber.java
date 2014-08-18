@@ -13,7 +13,7 @@ package org.reactivestreams;
  * <p>
  * Demand can be signaled via {@link Subscription#request(long)} whenever the {@link Subscriber} instance is capable of handling more.
  *
- * @param <T> the Type of element signaled.
+ * @param <T> the type of element signaled.
  */
 public interface Subscriber<T> {
     /**
