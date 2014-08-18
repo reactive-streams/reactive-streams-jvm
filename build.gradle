@@ -1,0 +1,104 @@
+allprojects {
+    apply plugin: 'java'
+    apply plugin: 'maven'
+    apply plugin: 'eclipse'
+    apply plugin: 'idea'
+    apply plugin: 'ivy-publish'
+    
+
+    group = 'org.reactivestreams'
+    version = '1.0.0.M1'
+
+	 
+    gradle.projectsEvaluated {
+        tasks.withType(JavaCompile) {
+            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+            options.encoding = 'UTF-8'           
+        }
+        
+        tasks.withType(Javadoc) {
+            source = sourceSets.main.allJava          
+           
+            configure(options) {  
+                encoding 'UTF-8'
+                docEncoding 'UTF-8'
+                charSet 'UTF-8'
+                linkSource true 
+                noTimestamp true               
+            }
+        }
+    }
+
+    uploadArchives {
+      
+        repositories {
+         
+            mavenDeployer {
+
+                repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2")
+
+                pom.project {
+                    name 'org.reactivestreams'
+                    packaging 'jar'
+                    url 'http://www.reactive-streams.org/'
+                    inceptionYear '2014'
+
+                    scm {
+                        url 'git@github.com:reactive-streams/reactive-streams.git'
+                        connection 'scm:git:git@github.com:reactive-streams/reactive-streams.git'
+                    }
+
+                    licenses {
+                        license {
+                            name 'CC0'
+                            url 'http://creativecommons.org/publicdomain/zero/1.0/'
+                            distribution 'repo'
+                        }
+                    }
+
+                    developers {
+                        developer {
+                            id 'reactive-streams-sig'
+                            name 'Reactive Streams SIG'
+                            url 'http://www.reactive-streams.org/'
+                        }
+                    }
+                }
+            }
+         
+        }
+    }
+    repositories {
+        mavenLocal()
+        mavenCentral()
+    }
+    
+    publishing {
+        repositories {
+            ivy {
+                // change to point to your repo, e.g. http://my.org/repo
+                url "${rootProject.buildDir}/repo"
+            }
+        }
+        publications {
+            ivy(IvyPublication) {
+                from components.java
+                descriptor.withXml {
+                    asNode().info[0].appendNode('description', description)
+                }
+            }
+        }
+    }
+}
+
+subprojects {
+
+    sourceCompatibility = 1.6
+    targetCompatibility = 1.6
+
+    compileJava.options.encoding = 'UTF-8'
+
+    javadoc {        
+        options.encoding = 'UTF-8'
+    }    
+}
