@@ -1,6 +1,6 @@
 package org.reactivestreams.tck;
 
-import junit.framework.Assert;
+import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import java.lang.reflect.Method;
@@ -52,7 +52,7 @@ public class IdentityProcessorVerificationDelegationTest {
           delegatingFrom,
           targetTest, targetClass.getSimpleName(), targetTest);
 
-      Assert.assertTrue(msg, testsInclude(allTests, targetTest));
+      AssertJUnit.assertTrue(msg, testsInclude(allTests, targetTest));
     }
   }
 

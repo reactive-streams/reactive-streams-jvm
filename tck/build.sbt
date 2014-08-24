@@ -12,6 +12,6 @@ crossPaths := false
 
 publishMavenStyle := true
 
-libraryDependencies += "org.testng" % "testng" % "5.14.10"
+libraryDependencies += "org.testng" % "testng" % "6.8.5"
 
 testNGSettings
