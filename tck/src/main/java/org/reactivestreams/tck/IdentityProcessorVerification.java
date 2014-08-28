@@ -289,6 +289,16 @@ public abstract class IdentityProcessorVerification<T> {
   }
 
   @Test
+  public void spec309_requestZeroMustThrowIllegalArgumentException() throws Throwable {
+    publisherVerification.spec309_requestZeroMustThrowIllegalArgumentException();
+  }
+
+  @Test
+  public void spec309_requestNegativeNumberMustThrowIllegalArgumentException() throws Throwable {
+    publisherVerification.spec309_requestNegativeNumberMustThrowIllegalArgumentException();
+  }
+
+  @Test
   public void spec313_cancelMustMakeThePublisherEventuallyDropAllReferencesToTheSubscriber() throws Throwable {
     publisherVerification.spec313_cancelMustMakeThePublisherEventuallyDropAllReferencesToTheSubscriber();
   }

@@ -80,11 +80,12 @@ public class TestEnvironment {
     return null;
   }
 
+  @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
   public <T extends Throwable> void expectThrowingOfWithMessage(Class<T> clazz, String requiredMessagePart, Runnable block) throws Throwable {
     Throwable err = expectThrowingOf(clazz, String.format("Expected %s to be thrown", clazz), block);
     String message = err.getMessage();
     assertTrue(message.contains(requiredMessagePart),
-               String.format("Got expected exception %s but missing message part [%s], was: %s", err, requiredMessagePart, message));
+               String.format("Got expected exception %s but missing message part [%s], was: %s", err.getClass(), requiredMessagePart, message));
   }
 
   public <T> void subscribe(Publisher<T> pub, TestSubscriber<T> sub) throws InterruptedException {
@@ -230,7 +231,9 @@ public class TestEnvironment {
     }
 
     public T nextElement(long timeoutMillis, String errorMsg) throws InterruptedException {
-      return received.next(timeoutMillis, errorMsg);
+      T got = received.next(timeoutMillis, errorMsg);
+      System.out.println("got = " + got);
+      return got;
     }
 
     public Optional<T> nextElementOrEndOfStream() throws InterruptedException {
@@ -334,6 +337,7 @@ public class TestEnvironment {
 
     @Override
     public void onNext(T element) {
+      System.out.println("onNext(" + element + ")");
       if (subscription.isCompleted()) {
         super.onNext(element);
       } else {
@@ -343,6 +347,7 @@ public class TestEnvironment {
 
     @Override
     public void onComplete() {
+      System.out.println("onComplete");
       if (subscription.isCompleted()) {
         super.onComplete();
       } else {
@@ -352,6 +357,7 @@ public class TestEnvironment {
 
     @Override
     public void onSubscribe(Subscription s) {
+      System.out.println("onSubscribe(" + s + ")");
       if (!subscription.isCompleted()) {
         subscription.complete(s);
       } else {
@@ -361,6 +367,7 @@ public class TestEnvironment {
 
     @Override
     public void onError(Throwable cause) {
+      System.out.println("onError(" + cause+")");
       if (subscription.isCompleted()) {
         super.onError(cause);
       } else {
@@ -550,6 +557,10 @@ public class TestEnvironment {
       if (isClosed()) {
         env.flop(closedErrorMsg);
       }
+    }
+
+    public void expectClose(String notClosedErrorMsg) throws InterruptedException {
+      expectClose(env.defaultTimeoutMillis(), notClosedErrorMsg);
     }
 
     public void expectClose(long timeoutMillis, String notClosedErrorMsg) throws InterruptedException {

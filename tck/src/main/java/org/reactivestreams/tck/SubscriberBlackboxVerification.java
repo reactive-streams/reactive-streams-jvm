@@ -173,6 +173,7 @@ public abstract class SubscriberBlackboxVerification<T> {
   public void spec205_blackbox_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal() throws Exception {
     new BlackboxTestStage(env) {{
       // try to subscribe another time, if the subscriber calls `probe.registerOnSubscribe` the test will fail
+      final TestEnvironment.Latch secondSubscriptionCancelled = new TestEnvironment.Latch(env);
       sub().onSubscribe(
           new Subscription() {
             @Override
@@ -182,11 +183,17 @@ public abstract class SubscriberBlackboxVerification<T> {
 
             @Override
             public void cancel() {
-              env.flop(String.format("Subscriber %s illegally called `subscription.cancel()`", sub()));
+              secondSubscriptionCancelled.close();
+            }
+
+            @Override
+            public String toString() {
+              return "SecondSubscription(should get cancelled)";
             }
           });
 
-      env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
+      secondSubscriptionCancelled.expectClose("Expected SecondSubscription given to subscriber to be cancelled, but `Subscription.cancel()` was not called.");
+      env.verifyNoAsyncErrors();
     }};
   }
 

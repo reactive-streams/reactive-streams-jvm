@@ -241,7 +241,7 @@ public abstract class PublisherVerification<T> {
           }
         });
 
-        latch.expectClose(env.defaultTimeoutMillis(), String.format("Error-state Publisher %s did not call `onError` on new Subscriber", pub));
+        latch.expectClose(String.format("Error-state Publisher %s did not call `onError` on new Subscriber", pub));
         Thread.sleep(env.defaultTimeoutMillis()); // wait for the Publisher to potentially call 'onSubscribe' or `onNext` which would trigger an async error
 
         env.verifyNoAsyncErrors();
@@ -278,7 +278,8 @@ public abstract class PublisherVerification<T> {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         ManualSubscriber<T> sub = env.newManualSubscriber(pub);
-        sub.requestNextElement();
+        sub.request(10);
+        sub.nextElement();
         sub.expectCompletion();
 
         sub.request(10);
@@ -366,7 +367,7 @@ public abstract class PublisherVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.13
   @Required @Test
   public void spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingOneByOne() throws Throwable {
-    activePublisherTest(5, new PublisherTestRun<T>() {
+    optionalActivePublisherTest(5, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws InterruptedException {
         ManualSubscriber<T> sub1 = env.newManualSubscriber(pub);
@@ -417,7 +418,7 @@ public abstract class PublisherVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.13
   @Required @Test
   public void spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront() throws Throwable {
-    activePublisherTest(3, new PublisherTestRun<T>() {
+    optionalActivePublisherTest(3, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         ManualSubscriber<T> sub1 = env.newManualSubscriber(pub);
@@ -428,9 +429,11 @@ public abstract class PublisherVerification<T> {
         List<T> received2 = new ArrayList<T>();
         List<T> received3 = new ArrayList<T>();
 
-        sub1.request(3);
-        sub2.request(3);
-        sub3.request(3);
+        // if the publisher must touch it's source to notice it's been drained, the OnComplete won't come until we ask for more than it actually contains...
+        // edgy edge case?
+        sub1.request(4);
+        sub2.request(4);
+        sub3.request(4);
 
         received1.addAll(sub1.nextElements(3));
         received2.addAll(sub2.nextElements(3));
@@ -590,6 +593,38 @@ public abstract class PublisherVerification<T> {
     });
   }
 
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.9
+  @Required @Test
+  public void spec309_requestZeroMustThrowIllegalArgumentException() throws Throwable {
+    activePublisherTest(10, new PublisherTestRun<T>() {
+      @Override public void run(Publisher<T> pub) throws Throwable {
+        final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
+        env.expectThrowingOfWithMessage(IllegalArgumentException.class, "3.9", new Runnable() {
+          @Override public void run() {
+            sub.request(0);
+          }
+        });
+      }
+    });
+  }
+
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.9
+  @Required @Test
+  public void spec309_requestNegativeNumberMustThrowIllegalArgumentException() throws Throwable {
+    activePublisherTest(10, new PublisherTestRun<T>() {
+      @Override
+      public void run(Publisher<T> pub) throws Throwable {
+        final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
+        env.expectThrowingOfWithMessage(IllegalArgumentException.class, "3.9", new Runnable() {
+          @Override
+          public void run() {
+            sub.request(-1);
+          }
+        });
+      }
+    });
+  }
+
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.13
   @Required @Test
   public void spec313_cancelMustMakeThePublisherEventuallyDropAllReferencesToTheSubscriber() throws Throwable {
@@ -619,7 +654,7 @@ public abstract class PublisherVerification<T> {
         Thread.sleep(publisherReferenceGCTimeoutMillis);
         System.gc();
 
-        if (!queue.remove(100).equals(ref)) {
+        if (!ref.equals(queue.remove(100))) {
           env.flop("Publisher " + pub + " did not drop reference to test subscriber after subscription cancellation");
         }
       }

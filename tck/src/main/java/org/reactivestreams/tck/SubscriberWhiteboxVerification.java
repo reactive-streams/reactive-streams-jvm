@@ -3,10 +3,7 @@ package org.reactivestreams.tck;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import org.reactivestreams.tck.TestEnvironment.ManualPublisher;
-import org.reactivestreams.tck.TestEnvironment.ManualSubscriber;
-import org.reactivestreams.tck.TestEnvironment.Promise;
-import org.reactivestreams.tck.TestEnvironment.Receptacle;
+import org.reactivestreams.tck.TestEnvironment.*;
 import org.testng.SkipException;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -204,6 +201,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
   public void spec205_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal() throws Exception {
     new WhiteboxTestStage(env) {{
       // try to subscribe another time, if the subscriber calls `probe.registerOnSubscribe` the test will fail
+      final Latch secondSubscriptionCancelled = new Latch(env);
       sub().onSubscribe(
           new Subscription() {
             @Override
@@ -213,10 +211,16 @@ public abstract class SubscriberWhiteboxVerification<T> {
 
             @Override
             public void cancel() {
-              env.flop(String.format("Subscriber %s illegally called `subscription.cancel()`", sub()));
+              secondSubscriptionCancelled.close();
+            }
+
+            @Override
+            public String toString() {
+              return "SecondSubscription(should get cancelled)";
             }
           });
 
+      secondSubscriptionCancelled.expectClose("Expected 2nd Subscription given to subscriber to be cancelled, but `Subscription.cancel()` was not called.");
       env.verifyNoAsyncErrors();
     }};
   }
@@ -652,11 +656,12 @@ public abstract class SubscriberWhiteboxVerification<T> {
       elements.expectCompletion(timeoutMillis, msg);
     }
 
+    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     public <E extends Throwable> void expectErrorWithMessage(Class<E> expected, String requiredMessagePart) throws InterruptedException {
       E err = expectError(expected);
       String message = err.getMessage();
       assertTrue(message.contains(requiredMessagePart),
-                 String.format("Got expected exception %s but missing message [%s], was: %s", err, expected, requiredMessagePart));
+                 String.format("Got expected exception %s but missing message [%s], was: %s", err.getClass(), expected, requiredMessagePart));
     }
 
     public <E extends Throwable> E expectError(Class<E> expected) throws InterruptedException {
@@ -706,8 +711,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
       puppet = new Promise<SubscriberPuppet>(env);
     }
 
-    @Override
-    public SubscriberPuppet puppet() {
+    private SubscriberPuppet puppet() {
       return puppet.value();
     }
 
@@ -723,7 +727,6 @@ public abstract class SubscriberWhiteboxVerification<T> {
   }
 
   public interface SubscriberPuppeteer {
-    SubscriberPuppet puppet();
 
     /**
      * Must be called by the test subscriber when it has received the `onSubscribe` event.
