@@ -20,6 +20,7 @@ public class TestEnvironment {
   public static final int TEST_BUFFER_SIZE = 16;
 
   private final long defaultTimeoutMillis;
+  private final boolean printlnDebug;
 
   private CopyOnWriteArrayList<Throwable> asyncErrors = new CopyOnWriteArrayList<Throwable>();
 
@@ -30,10 +31,26 @@ public class TestEnvironment {
    * run the tests.
    *
    * @param defaultTimeoutMillis default timeout to be used in all expect* methods
+   * @param printlnDebug         if true, signals such as OnNext / Request / OnComplete etc will be printed to standard output,
+   *                             often helpful to pinpoint simple race conditions etc.
+   */
+  public TestEnvironment(long defaultTimeoutMillis, boolean printlnDebug) {
+    this.defaultTimeoutMillis = defaultTimeoutMillis;
+    this.printlnDebug = printlnDebug;
+  }
+
+  /**
+   * Tests must specify the timeout for expected outcome of asynchronous
+   * interactions. Longer timeout does not invalidate the correctness of
+   * the implementation, but can in some cases result in longer time to
+   * run the tests.
+   *
+   * @param defaultTimeoutMillis default timeout to be used in all expect* methods
    */
   public TestEnvironment(long defaultTimeoutMillis) {
-    this.defaultTimeoutMillis = defaultTimeoutMillis;
+    this(defaultTimeoutMillis, false);
   }
+
 
   // keeping method around
   public long defaultTimeoutMillis() {
@@ -231,9 +248,7 @@ public class TestEnvironment {
     }
 
     public T nextElement(long timeoutMillis, String errorMsg) throws InterruptedException {
-      T got = received.next(timeoutMillis, errorMsg);
-      System.out.println("got = " + got);
-      return got;
+      return received.next(timeoutMillis, errorMsg);
     }
 
     public Optional<T> nextElementOrEndOfStream() throws InterruptedException {
@@ -337,7 +352,7 @@ public class TestEnvironment {
 
     @Override
     public void onNext(T element) {
-      System.out.println("onNext(" + element + ")");
+      debug("onNext(" + element + ")");
       if (subscription.isCompleted()) {
         super.onNext(element);
       } else {
@@ -347,7 +362,7 @@ public class TestEnvironment {
 
     @Override
     public void onComplete() {
-      System.out.println("onComplete");
+      debug("onComplete");
       if (subscription.isCompleted()) {
         super.onComplete();
       } else {
@@ -357,7 +372,7 @@ public class TestEnvironment {
 
     @Override
     public void onSubscribe(Subscription s) {
-      System.out.println("onSubscribe(" + s + ")");
+      debug("onSubscribe(" + s + ")");
       if (!subscription.isCompleted()) {
         subscription.complete(s);
       } else {
@@ -367,12 +382,18 @@ public class TestEnvironment {
 
     @Override
     public void onError(Throwable cause) {
-      System.out.println("onError(" + cause+")");
+      debug("onError(" + cause + ")");
       if (subscription.isCompleted()) {
         super.onError(cause);
       } else {
         env.flop(cause, "Subscriber::onError(" + cause + ") called before Subscriber::onSubscribe");
       }
+    }
+
+    /** If {@code TestEnvironment#printlnDebug} is true, print debug message to std out. */
+    private void debug(String msg) {
+      if(env.printlnDebug)
+        System.out.println(msg);
     }
   }
 
@@ -602,12 +623,16 @@ public class TestEnvironment {
     }
 
 
-    /** Allows using expectCompletion to await for completion of the value and complete it _then_ */
+    /**
+     * Allows using expectCompletion to await for completion of the value and complete it _then_
+     */
     public void complete(T value) {
       abq.add(value);
     }
 
-    /** Completes the promise right away, it is not possible to expectCompletion on a Promise completed this way */
+    /**
+     * Completes the promise right away, it is not possible to expectCompletion on a Promise completed this way
+     */
     public void completeImmediatly(T value) {
       _value = value;
     }
