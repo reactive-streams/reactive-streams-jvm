@@ -7,12 +7,12 @@ The latest preview release is available on Maven Central as
     <dependency>
       <groupId>org.reactivestreams</groupId>
       <artifactId>reactive-streams</artifactId>
-      <version>0.4.0.M1</version>
+      <version>0.4.0.M2</version>
     </dependency>
     <dependency>
       <groupId>org.reactivestreams</groupId>
       <artifactId>reactive-streams-tck</artifactId>
-      <version>0.4.0.M1</version>
+      <version>0.4.0.M2</version>
     </dependency>
 
 ## Goals, Design and Scope ##
