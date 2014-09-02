@@ -244,7 +244,7 @@ public abstract class SubscriberBlackboxVerification<T> {
       public void run(BlackboxTestStage stage) throws Throwable {
         final Publisher<T> pub = new Publisher<T>() {
           @Override
-          public void subscribe(Subscriber<T> s) {
+          public void subscribe(Subscriber<? super T> s) {
             s.onComplete();
           }
         };
@@ -399,7 +399,7 @@ public abstract class SubscriberBlackboxVerification<T> {
       }
     }
 
-    public Subscriber<T> sub() {
+    public Subscriber<? super T> sub() {
       return subscriber.value();
     }
 

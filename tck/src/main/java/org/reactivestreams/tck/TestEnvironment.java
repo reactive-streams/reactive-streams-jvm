@@ -441,7 +441,7 @@ public class TestEnvironment {
     protected final TestEnvironment env;
 
     protected long pendingDemand = 0L;
-    protected Promise<Subscriber<T>> subscriber;
+    protected Promise<Subscriber<? super T>> subscriber;
 
     protected final Receptacle<Long> requests;
 
@@ -451,11 +451,11 @@ public class TestEnvironment {
       this.env = env;
       requests = new Receptacle<Long>(env);
       cancelled = new Latch(env);
-      subscriber = new Promise<Subscriber<T>>(this.env);
+      subscriber = new Promise<Subscriber<? super T>>(this.env);
     }
 
     @Override
-    public void subscribe(Subscriber<T> s) {
+    public void subscribe(Subscriber<? super T> s) {
       if (!subscriber.isCompleted()) {
         subscriber.completeImmediatly(s);
 

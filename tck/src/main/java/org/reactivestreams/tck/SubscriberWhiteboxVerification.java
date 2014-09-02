@@ -526,7 +526,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
       }
     }
 
-    public Subscriber<T> sub() {
+    public Subscriber<? super T> sub() {
       return subscriber.value();
     }
 
@@ -566,7 +566,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
   public static class BlackboxSubscriberProxy<T> extends BlackboxProbe<T> implements Subscriber<T> {
 
     public BlackboxSubscriberProxy(TestEnvironment env, Subscriber<T> subscriber) {
-      super(env, Promise.completed(env, subscriber));
+      super(env, Promise.<Subscriber<? super T>>completed(env, subscriber));
     }
 
     @Override
@@ -595,12 +595,12 @@ public abstract class SubscriberWhiteboxVerification<T> {
 
   public static class BlackboxProbe<T> implements SubscriberProbe<T> {
     protected final TestEnvironment env;
-    protected final Promise<Subscriber<T>> subscriber;
+    protected final Promise<Subscriber<? super T>> subscriber;
 
     protected final Receptacle<T> elements;
     protected final Promise<Throwable> error;
 
-    public BlackboxProbe(TestEnvironment env, Promise<Subscriber<T>> subscriber) {
+    public BlackboxProbe(TestEnvironment env, Promise<Subscriber<? super T>> subscriber) {
       this.env = env;
       this.subscriber = subscriber;
       elements = new Receptacle<T>(env);
@@ -621,6 +621,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
     public void registerOnError(Throwable cause) {
       error.complete(cause);
     }
+
     public T expectNext() throws InterruptedException {
       return elements.next(env.defaultTimeoutMillis(), String.format("Subscriber %s did not call `registerOnNext(_)`", sub()));
     }
@@ -636,7 +637,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
       }
     }
 
-    public Subscriber<T> sub() {
+    public Subscriber<? super T> sub() {
       return subscriber.value();
     }
 
@@ -702,7 +703,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
   public static class WhiteboxSubscriberProbe<T> extends BlackboxProbe<T> implements SubscriberPuppeteer {
     protected Promise<SubscriberPuppet> puppet;
 
-    public WhiteboxSubscriberProbe(TestEnvironment env, Promise<Subscriber<T>> subscriber) {
+    public WhiteboxSubscriberProbe(TestEnvironment env, Promise<Subscriber<? super T>> subscriber) {
       super(env, subscriber);
       puppet = new Promise<SubscriberPuppet>(env);
     }
