@@ -17,7 +17,7 @@ import org.reactivestreams.example.multicast.NeverEndingStockStream.Handler;
 public class StockPricePublisher implements Publisher<Stock> {
 
     @Override
-    public void subscribe(final Subscriber<Stock> s) {
+    public void subscribe(final Subscriber<? super Stock> s) {
         s.onSubscribe(new Subscription() {
 
             AtomicLong capacity = new AtomicLong();
@@ -46,10 +46,10 @@ public class StockPricePublisher implements Publisher<Stock> {
     }
 
     private static final class EventHandler implements Handler {
-        private final Subscriber<Stock> s;
+        private final Subscriber<? super Stock> s;
         private final AtomicLong capacity;
 
-        private EventHandler(Subscriber<Stock> s, AtomicLong capacity) {
+        private EventHandler(Subscriber<? super Stock> s, AtomicLong capacity) {
             this.s = s;
             this.capacity = capacity;
         }

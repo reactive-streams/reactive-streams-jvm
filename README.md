@@ -69,7 +69,7 @@ onError | (onSubscribe onNext* (onError | onComplete)?)
 
 ```java
 public interface Publisher<T> {
-    public void subscribe(Subscriber<T> s);
+    public void subscribe(Subscriber<? super T> s);
 }
 ````
 
