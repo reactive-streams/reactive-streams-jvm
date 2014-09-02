@@ -181,7 +181,14 @@ public class MySubscriberBlackboxVerificationTest extends SubscriberBlackboxVeri
 
 ### Subscriber Whitebox Verification
 
-The Whitebox Verification tests are able to verify most of the Specification, at the additional cost that control over demand generation and cancellation must be handed over to the TCK via the `SubscriberPuppet`. A simple synchronous `Subscriber` implementation would look similar to following example:
+The Whitebox Verification tests are able to verify most of the Specification, at the additional cost that control over demand generation and cancellation must be handed over to the TCK via the `SubscriberPuppet`.
+
+Based on expiriences so far implementing the `SubsctiberPuppet` is non-trivial and can be hard for some implementations.
+We keep the whitebox verification, as it is tremendously useful in the `ProcessorVerification`, where the Puppet is implemented within the TCK and injected to the tests,
+however we do not expect all implementations to make use of the plain `SubscriberWhiteboxVerification`, instead using the `SubscriberBlackboxVerification` instead.
+
+
+A simple synchronous `Subscriber` implementation would look similar to following example:
 
 ```java
 package com.example.streams;

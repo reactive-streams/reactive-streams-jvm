@@ -358,7 +358,7 @@ public class TestEnvironment {
 
     @Override
     public void onNext(T element) {
-      env.debug("onNext(" + element + ")");
+      env.debug(this + "::onNext(" + element + ")");
       if (subscription.isCompleted()) {
         super.onNext(element);
       } else {
@@ -368,7 +368,7 @@ public class TestEnvironment {
 
     @Override
     public void onComplete() {
-      env.debug("onComplete");
+      env.debug(this + "::onComplete()");
       if (subscription.isCompleted()) {
         super.onComplete();
       } else {
@@ -378,7 +378,7 @@ public class TestEnvironment {
 
     @Override
     public void onSubscribe(Subscription s) {
-      env.debug("onSubscribe(" + s + ")");
+      env.debug(this + "::onSubscribe(" + s + ")");
       if (!subscription.isCompleted()) {
         subscription.complete(s);
       } else {
@@ -388,7 +388,7 @@ public class TestEnvironment {
 
     @Override
     public void onError(Throwable cause) {
-      env.debug("onError(" + cause + ")");
+      env.debug(this + "::onError(" + cause + ")");
       if (subscription.isCompleted()) {
         super.onError(cause);
       } else {
@@ -533,7 +533,7 @@ public class TestEnvironment {
     }
 
     public void expectNoRequest(long timeoutMillis) throws InterruptedException {
-      requests.expectNone(timeoutMillis, "Received an unexpected call to: request");
+      requests.expectNone(timeoutMillis, "Received an unexpected call to: request: ");
     }
 
     public void expectCancelling() throws InterruptedException {
