@@ -619,44 +619,6 @@ public abstract class IdentityProcessorVerification<T> {
     }};
   }
 
-  // A Processor
-  //   must unblock the stream if a 'blocking' subscription has been cancelled
-  @Test
-  @SuppressWarnings("unchecked")
-  public void mustUnblockTheStreamIfABlockingSubscriptionHasBeenCancelled() throws InterruptedException {
-    new TestSetup(env, processorBufferSize) {{
-      ManualSubscriber<T> sub1 = newSubscriber();
-      ManualSubscriber<T> sub2 = newSubscriber();
-
-      sub1.request(processorBufferSize + 1);
-      long pending = 0;
-      int sent = 0;
-      final T[] tees = (T[]) new Object[processorBufferSize];
-      while (sent < processorBufferSize) {
-        if (pending == 0) {
-          pending = expectRequest();
-        }
-        tees[sent] = nextT();
-        sendNext(tees[sent]);
-        sent += 1;
-        pending -= 1;
-      }
-
-      expectNoRequest(); // because we only have buffer size processorBufferSize and sub2 hasn't seen the first value yet
-      sub2.cancel(); // must "unblock"
-
-      expectRequest();
-      for (T tee : tees) {
-        expectNextElement(sub1, tee);
-      }
-
-      sendCompletion();
-      sub1.expectCompletion(env.defaultTimeoutMillis());
-
-      env.verifyNoAsyncErrors();
-    }};
-  }
-
   /////////////////////// TEST INFRASTRUCTURE //////////////////////
 
   public abstract class TestSetup extends ManualPublisher<T> {
