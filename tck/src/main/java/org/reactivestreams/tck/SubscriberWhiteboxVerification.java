@@ -327,12 +327,13 @@ public abstract class SubscriberWhiteboxVerification<T> {
   public void spec212_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality() throws Throwable {
     subscriberTestWithoutSetup(new TestStageTestRun() {
       @Override
-      public void run(WhiteboxTestStage stage) throws InterruptedException {
-        stage.pub = stage.createHelperPublisher(Long.MAX_VALUE);
-        stage.tees = env.newManualSubscriber(stage.pub);
-        stage.probe = stage.createWhiteboxSubscriberProbe(env);
-        stage.subscribe(createSubscriber(stage.probe));
-        stage.probe.expectCompletion(env.defaultTimeoutMillis(), String.format("Subscriber %s did not `registerOnSubscribe`", stage.sub()));
+      public void run(WhiteboxTestStage stage) throws Exception {
+        stage.pub = stage.createHelperPublisher(10);
+
+        stage.tees = env.newManualSubscriber(stage.pub); // subscribed right away
+
+        env.subscribe(stage.pub, stage.tees); // should not get subscription again (object equality of subscriber)
+        stage.tees.expectError(IllegalStateException.class);
       }
     });
   }
@@ -382,7 +383,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
         env.expectThrowingOfWithMessage(IllegalArgumentException.class, "3.9", new Runnable() {
           @Override
           public void run() {
-            stage.puppet().triggerRequest(Long.MAX_VALUE);
+            stage.puppet().triggerRequest(0L);
           }
         });
         env.verifyNoAsyncErrors();
@@ -453,8 +454,6 @@ public abstract class SubscriberWhiteboxVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.17
   @Required @Test
   public void spec317_mustSupportAPendingElementCountUpToLongMaxValue() throws Throwable {
-    // TODO please read into this one, not sure about semantics
-
     subscriberTest(new TestStageTestRun() {
       @Override
       public void run(WhiteboxTestStage stage) throws InterruptedException {
@@ -474,8 +473,6 @@ public abstract class SubscriberWhiteboxVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.17
   @Required @Test
   public void spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable {
-    // TODO please read into this one, not sure about semantics
-
     subscriberTest(new TestStageTestRun() {
       @Override
       public void run(WhiteboxTestStage stage) throws InterruptedException {
@@ -624,7 +621,6 @@ public abstract class SubscriberWhiteboxVerification<T> {
     public void registerOnError(Throwable cause) {
       error.complete(cause);
     }
-
     public T expectNext() throws InterruptedException {
       return elements.next(env.defaultTimeoutMillis(), String.format("Subscriber %s did not call `registerOnNext(_)`", sub()));
     }
@@ -661,7 +657,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
       E err = expectError(expected);
       String message = err.getMessage();
       assertTrue(message.contains(requiredMessagePart),
-                 String.format("Got expected exception %s but missing message [%s], was: %s", err.getClass(), expected, requiredMessagePart));
+        String.format("Got expected exception %s but missing message [%s], was: %s", err.getClass(), requiredMessagePart, expected));
     }
 
     public <E extends Throwable> E expectError(Class<E> expected) throws InterruptedException {

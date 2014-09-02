@@ -87,7 +87,7 @@ public class TestEnvironment {
         // ok
         return e;
       } else if (isNonFatal(e)) {
-        flop(errorMsg + " but " + e);
+        flop(errorMsg + " but was: " + e);
       } else {
         throw e;
       }
@@ -99,10 +99,10 @@ public class TestEnvironment {
 
   @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
   public <T extends Throwable> void expectThrowingOfWithMessage(Class<T> clazz, String requiredMessagePart, Runnable block) throws Throwable {
-    Throwable err = expectThrowingOf(clazz, String.format("Expected %s to be thrown", clazz), block);
+    Throwable err = expectThrowingOf(clazz, String.format("Expected [%s] to be thrown", clazz), block);
     String message = err.getMessage();
     assertTrue(message.contains(requiredMessagePart),
-               String.format("Got expected exception %s but missing message part [%s], was: %s", err.getClass(), requiredMessagePart, message));
+               String.format("Got expected exception [%s] but missing message part [%s], was: %s", err.getClass(), requiredMessagePart, message));
   }
 
   public <T> void subscribe(Publisher<T> pub, TestSubscriber<T> sub) throws InterruptedException {
@@ -147,6 +147,12 @@ public class TestEnvironment {
         fail("Async error during test execution: " + e);
       }
     }
+  }
+
+  /** If {@code TestEnvironment#printlnDebug} is true, print debug message to std out. */
+  public void debug(String msg) {
+    if (printlnDebug)
+      System.out.println(msg);
   }
 
   // ---- classes ----
@@ -352,7 +358,7 @@ public class TestEnvironment {
 
     @Override
     public void onNext(T element) {
-      debug("onNext(" + element + ")");
+      env.debug("onNext(" + element + ")");
       if (subscription.isCompleted()) {
         super.onNext(element);
       } else {
@@ -362,7 +368,7 @@ public class TestEnvironment {
 
     @Override
     public void onComplete() {
-      debug("onComplete");
+      env.debug("onComplete");
       if (subscription.isCompleted()) {
         super.onComplete();
       } else {
@@ -372,7 +378,7 @@ public class TestEnvironment {
 
     @Override
     public void onSubscribe(Subscription s) {
-      debug("onSubscribe(" + s + ")");
+      env.debug("onSubscribe(" + s + ")");
       if (!subscription.isCompleted()) {
         subscription.complete(s);
       } else {
@@ -382,18 +388,12 @@ public class TestEnvironment {
 
     @Override
     public void onError(Throwable cause) {
-      debug("onError(" + cause + ")");
+      env.debug("onError(" + cause + ")");
       if (subscription.isCompleted()) {
         super.onError(cause);
       } else {
         env.flop(cause, "Subscriber::onError(" + cause + ") called before Subscriber::onSubscribe");
       }
-    }
-
-    /** If {@code TestEnvironment#printlnDebug} is true, print debug message to std out. */
-    private void debug(String msg) {
-      if(env.printlnDebug)
-        System.out.println(msg);
     }
   }
 

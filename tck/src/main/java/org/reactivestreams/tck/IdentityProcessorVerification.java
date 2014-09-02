@@ -346,7 +346,12 @@ public abstract class IdentityProcessorVerification<T> {
     final Processor<T, T> processor = createIdentityProcessor(processorBufferSize);
     processor.subscribe(
         new Subscriber<T>() {
+          private final Promise<Subscription> subs = new Promise<Subscription>(env);
+
           public void onSubscribe(final Subscription subscription) {
+            env.debug("whiteboxSubscriber::onSubscribe(" + subscription + ")");
+            if (subs.isCompleted()) subscription.cancel(); // the Probe must also pass subscriber verification
+
             probe.registerOnSubscribe(new SubscriberWhiteboxVerification.SubscriberPuppet() {
               public void triggerShutdown() {
                 subscription.cancel();
@@ -363,14 +368,17 @@ public abstract class IdentityProcessorVerification<T> {
           }
 
           public void onNext(T element) {
+            env.debug("whiteboxSubscriber::onNext(" + element + ")");
             probe.registerOnNext(element);
           }
 
           public void onComplete() {
+            env.debug("whiteboxSubscriber::onComplete()");
             probe.registerOnComplete();
           }
 
           public void onError(Throwable cause) {
+            env.debug("whiteboxSubscriber::onError(" + cause + ")");
             probe.registerOnError(cause);
           }
         });
