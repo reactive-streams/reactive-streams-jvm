@@ -348,6 +348,7 @@ public abstract class IdentityProcessorVerification<T> {
         new Subscriber<T>() {
           private final Promise<Subscription> subs = new Promise<Subscription>(env);
 
+          @Override
           public void onSubscribe(final Subscription subscription) {
             env.debug("whiteboxSubscriber::onSubscribe(" + subscription + ")");
             if (subs.isCompleted()) subscription.cancel(); // the Probe must also pass subscriber verification
@@ -357,26 +358,31 @@ public abstract class IdentityProcessorVerification<T> {
                 subscription.cancel();
               }
 
+              @Override
               public void triggerRequest(long elements) {
                 subscription.request(elements);
               }
 
+              @Override
               public void signalCancel() {
                 subscription.cancel();
               }
             });
           }
 
+          @Override
           public void onNext(T element) {
             env.debug("whiteboxSubscriber::onNext(" + element + ")");
             probe.registerOnNext(element);
           }
 
+          @Override
           public void onComplete() {
             env.debug("whiteboxSubscriber::onComplete()");
             probe.registerOnComplete();
           }
 
+          @Override
           public void onError(Throwable cause) {
             env.debug("whiteboxSubscriber::onError(" + cause + ")");
             probe.registerOnError(cause);

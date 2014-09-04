@@ -759,11 +759,15 @@ public abstract class PublisherVerification<T> {
       throw new SkipException(String.format("Unable to run this test, as required elements nr: %d is higher than supported by given producer: %d", elements, maxElementsFromPublisher()));
     }
 
-    Publisher<T> pub = createPublisher(elements);
+    final Publisher<T> pub = createPublisher(elements);
+    final String skipMessage = "Skipped because tested publisher does NOT implement this OPTIONAL requirement.";
+
     try {
       potentiallyPendingTest(pub, body);
     } catch (Exception ex) {
-      notVerified("Skipped because tested publisher does NOT implement this OPTIONAL requirement.");
+      notVerified(skipMessage);
+    } catch (AssertionError ex) {
+      notVerified(skipMessage);
     }
   }
 

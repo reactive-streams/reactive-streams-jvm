@@ -63,7 +63,6 @@ public class TestEnvironment {
       fail(msg);
     } catch (Throwable t) {
       asyncErrors.add(t);
-      throw new RuntimeException(t);
     }
   }
 
@@ -73,7 +72,6 @@ public class TestEnvironment {
       fail(msg);
     } catch (Throwable t) {
       asyncErrors.add(thr);
-      throw new RuntimeException(t);
     }
   }
 

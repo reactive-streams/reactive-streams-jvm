@@ -311,6 +311,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
         Exception ex = new RuntimeException("Test exception");
         stage.sendError(ex);
         stage.probe.expectError(ex);
+
         env.verifyNoAsyncErrors();
       }
     });
@@ -330,10 +331,16 @@ public abstract class SubscriberWhiteboxVerification<T> {
       public void run(WhiteboxTestStage stage) throws Exception {
         stage.pub = stage.createHelperPublisher(1);
 
-        stage.tees = env.newManualSubscriber(stage.pub); // subscribed right away
+        stage.tees = new ManualSubscriberWithSubscriptionSupport<T>(env);
 
-        env.subscribe(stage.pub, stage.tees); // should not get subscription again (object equality of subscriber)
-        stage.tees.expectError(IllegalStateException.class);
+        env.subscribe(stage.pub, stage.tees);
+        stage.tees.expectNone();
+
+        // subscribe the same subscriber again,
+        // this can not use convinience subscribe(pub, sub), because that one checks for noAsyncErrors
+        // instead we expect the error afterwards
+        stage.pub.subscribe(stage.tees);
+        stage.tees.expectError(IllegalStateException.class, "2.12");
       }
     });
   }
@@ -370,6 +377,8 @@ public abstract class SubscriberWhiteboxVerification<T> {
 
         stage.probe.expectNone();
         stage.puppet().triggerRequest(3);
+
+        stage.verifyNoAsyncErrors();
       }
     });
   }
@@ -386,7 +395,8 @@ public abstract class SubscriberWhiteboxVerification<T> {
             stage.puppet().triggerRequest(0L);
           }
         });
-        env.verifyNoAsyncErrors();
+
+        stage.verifyNoAsyncErrors();
       }
     });
   }
@@ -403,7 +413,8 @@ public abstract class SubscriberWhiteboxVerification<T> {
             stage.puppet().triggerRequest(-1);
           }
         });
-        env.verifyNoAsyncErrors();
+
+        stage.verifyNoAsyncErrors();
       }
     });
   }
@@ -428,6 +439,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
       public void run(WhiteboxTestStage stage) throws InterruptedException {
         stage.puppet().signalCancel();
         stage.expectCancelling();
+
         stage.verifyNoAsyncErrors();
       }
     });
