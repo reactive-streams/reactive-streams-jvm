@@ -627,6 +627,14 @@ public abstract class IdentityProcessorVerification<T> {
 
   /////////////////////// TEST INFRASTRUCTURE //////////////////////
 
+  public void notVerified() {
+    publisherVerification.notVerified();
+  }
+
+  public void notVerified(String message) {
+    publisherVerification.notVerified(message);
+  }
+
   public abstract class TestSetup extends ManualPublisher<T> {
     final private ManualSubscriber<T> tees; // gives us access to an infinite stream of T values
     private Set<T> seenTees = new HashSet<T>();

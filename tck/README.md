@@ -324,6 +324,31 @@ The additional and confiruration options are reflect the options available in th
 
 The `IdentityProcessorVerification` also runs additional sanity Verifications, which are not directly mapped to Specification rules, but help to verify that a Processor won't "get stuck" or face similar problems. Please refer to the sources for details on the tests included.
 
+## Ignoring tests
+Since you inherit these tests instead of defining them yourself it's not possible to use the usual `@Ignore` annotations to skip certain tests
+(which may be perfectly reasonable if your implementation has some know constraints on what it cannot implement) we recommend the below pattern
+to skip tests inherited from the TCK's base classes:
+
+```java
+public class SkippingIdentityProcessorTest extends org.reactivestreams.tck.IdentityProcessorVerification<Integer> {
+
+  public SkippingIdentityProcessorTest() {
+    super(new TestEnvironment(500, true), 1000);
+  }
+
+  @Override
+  public Processor<Integer, Integer> createIdentityProcessor(int bufferSize) {
+    return /* ... */;
+  }
+
+  @Override // override the test method, and provide a reason on why you're doing so in the notVerified() message
+  public void spec999_mustDoVeryCrazyThings() throws Throwable {
+    notVerified("Unable to implement test because ...");
+  }
+
+}
+```
+
 ## Upgrade story
 
 **TODO** - What is our story about updating the TCK? How do we make sure that implementations don't accidentally miss some change in the spec, if the TCK is unable to fail verify the new behavior? Comments are very welcome, discussion about this is under-way in [Issue #99 – TCK Upgrade Story](https://github.com/reactive-streams/reactive-streams/issues/99).
