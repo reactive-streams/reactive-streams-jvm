@@ -23,7 +23,6 @@ public class Annotations {
   @Target(ElementType.METHOD)
   @Retention(RetentionPolicy.SOURCE)
   static @interface Stochastic {
-
   }
 
   /**

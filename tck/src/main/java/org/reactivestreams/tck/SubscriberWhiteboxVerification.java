@@ -328,7 +328,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
     subscriberTestWithoutSetup(new TestStageTestRun() {
       @Override
       public void run(WhiteboxTestStage stage) throws Exception {
-        stage.pub = stage.createHelperPublisher(10);
+        stage.pub = stage.createHelperPublisher(1);
 
         stage.tees = env.newManualSubscriber(stage.pub); // subscribed right away
 

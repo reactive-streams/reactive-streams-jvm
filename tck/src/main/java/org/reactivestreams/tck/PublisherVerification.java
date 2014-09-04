@@ -59,6 +59,14 @@ public abstract class PublisherVerification<T> {
   }
 
   /**
+   * Override and return {@code true} in order to skip executing tests marked as {@code Stochastic}.
+   * Such tests MAY sometimes fail even though the impl
+   */
+  public boolean skipStochasticTests() {
+    return false;
+  }
+
+  /**
    * In order to verify rule 3.3 of the reactive streams spec, this number will be used to check if a
    * {@code Subscription} actually solves the "unbounded recursion" problem by not allowing the number of
    * recursive calls to exceed the number returned by this method.
@@ -171,54 +179,75 @@ public abstract class PublisherVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.3
   @Stochastic @Test
   public void spec103_mustSignalOnMethodsSequentially() throws Throwable {
-    testRuns(100, new Function<Integer, Void>() {
+    final int iterations = 100;
+    final int elements = 10;
+
+    stochasticTest(iterations, new Function<Integer, Void>() {
       @Override
-      public Void apply(Integer runNumber) throws Throwable {
-        activePublisherTest(10, new PublisherTestRun<T>() {
+      public Void apply(final Integer runNumber) throws Throwable {
+        activePublisherTest(elements, new PublisherTestRun<T>() {
           @Override
           public void run(Publisher<T> pub) throws Throwable {
-            final Latch latch = new Latch(env);
+            final Latch callLatch = new Latch(env);
+            final Latch completionLatch = new Latch(env);
 
             pub.subscribe(new Subscriber<T>() {
-              Subscription subs;
+              private Subscription subs;
+              private long gotElements = 0;
+              private String state = "init";
 
               @Override
               public void onSubscribe(Subscription s) {
-                latch.assertOpen("Expected latch to be open during onSubscribe call");
-                latch.close();
+                callLatch.assertOpen("Expected latch to be open during onSubscribe call, state seems to be: " + state);
+                callLatch.close();
+
+                state = "onSubscribe";
 
                 subs = s;
                 subs.request(1);
 
-                latch.reOpen();
+                callLatch.reOpen();
               }
 
               @Override
               public void onNext(T ignore) {
-                latch.assertOpen("Expected latch to be open during onNext call");
-                latch.close();
+                callLatch.assertOpen("Expected latch to be open during onNext call, state seems to be: " + state);
+                callLatch.close();
+
+                state = "onNext-" + ignore;
 
                 // ignore value
-                subs.request(1);
+                gotElements += 1;
+                if (gotElements <= elements) // requesting one more than we know are in the stream (some Publishers need this)
+                  subs.request(1);
 
-                latch.reOpen();
+                callLatch.reOpen();
               }
 
               @Override
               public void onError(Throwable t) {
-                latch.assertOpen("Expected latch to be open during onError call");
-                latch.close();
+                callLatch.assertOpen("Expected latch to be open during onError call, state seems to be: " + state);
+                callLatch.close();
+
+                state = "onError";
+
                 // ignore value
-                latch.reOpen();
+                callLatch.reOpen();
               }
 
               @Override
               public void onComplete() {
-                latch.assertOpen("Expected latch to be open during onComplete call");
-                latch.close();
-                latch.reOpen();
+                callLatch.assertOpen("Expected latch to be open during onComplete call, state seems to be: " + state);
+                callLatch.close();
+
+                state = "onComplete";
+
+                callLatch.reOpen();
+                completionLatch.close();
               }
             });
+
+            completionLatch.expectClose(elements * env.defaultTimeoutMillis(), "Expected 10 elements to be drained");
           }
         });
         return null;
@@ -753,7 +782,14 @@ public abstract class PublisherVerification<T> {
     }
   }
 
-  public void testRuns(int n, Function<Integer, Void> body) throws Throwable {
+  /**
+   * Executes a given test body {@code n} times.
+   * All the test runs must pass in order for the stochastic test to pass.
+   */
+  public void stochasticTest(int n, Function<Integer, Void> body) throws Throwable {
+    if (skipStochasticTests())
+      notVerified("Skipping @Stochastic test because `skipStochasticTests()` returned `true`!");
+    
     for (int i = 0; i < n; i++) {
       body.apply(i);
     }
