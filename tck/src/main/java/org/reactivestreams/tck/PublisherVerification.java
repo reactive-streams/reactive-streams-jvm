@@ -489,7 +489,7 @@ public abstract class PublisherVerification<T> {
         ManualSubscriber<T> sub = new ManualSubscriber<T>(env) {
           @Override
           public void onSubscribe(Subscription subs) {
-            this.subscription.complete(subs);
+            this.subscription.completeImmediatly(subs);
 
             subs.request(1);
             subs.request(1);
@@ -505,7 +505,8 @@ public abstract class PublisherVerification<T> {
 
         env.subscribe(pub, sub);
 
-        env.verifyNoAsyncErrors();
+        long delay = env.defaultTimeoutMillis();
+        env.verifyNoAsyncErrors(delay);
       }
     });
   }
@@ -514,7 +515,7 @@ public abstract class PublisherVerification<T> {
   @Required @Test
   @Additional(implement = "boundedDepthOfOnNextAndRequestRecursion")
   public void spec303_mustNotAllowUnboundedRecursion() throws Throwable {
-    long oneMoreThanBoundedLimit = boundedDepthOfOnNextAndRequestRecursion() + 1;
+    final long oneMoreThanBoundedLimit = boundedDepthOfOnNextAndRequestRecursion() + 1;
 
     activePublisherTest(oneMoreThanBoundedLimit, new PublisherTestRun<T>() {
       @Override

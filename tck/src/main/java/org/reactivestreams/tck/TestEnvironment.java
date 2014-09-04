@@ -605,7 +605,7 @@ public class TestEnvironment {
     }
 
     private ArrayBlockingQueue<T> abq = new ArrayBlockingQueue<T>(1);
-    volatile private T _value = null;
+    private volatile T _value = null;
 
     public T value() {
       if (isCompleted()) {
@@ -632,7 +632,8 @@ public class TestEnvironment {
      * Completes the promise right away, it is not possible to expectCompletion on a Promise completed this way
      */
     public void completeImmediatly(T value) {
-      _value = value;
+      complete(value); // complete!
+      _value = value;  // immediatly!
     }
 
     public void expectCompletion(long timeoutMillis, String errorMsg) throws InterruptedException {
