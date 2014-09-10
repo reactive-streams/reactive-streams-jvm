@@ -4,10 +4,12 @@ import org.reactivestreams.Processor;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.reactivestreams.tck.Annotations.Subscribers;
 import org.reactivestreams.tck.TestEnvironment.ManualPublisher;
 import org.reactivestreams.tck.TestEnvironment.ManualSubscriber;
 import org.reactivestreams.tck.TestEnvironment.ManualSubscriberWithSubscriptionSupport;
 import org.reactivestreams.tck.TestEnvironment.Promise;
+import org.reactivestreams.tck.support.Function;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -88,6 +90,11 @@ public abstract class IdentityProcessorVerification<T> {
       public long boundedDepthOfOnNextAndRequestRecursion() {
         return IdentityProcessorVerification.this.boundedDepthOfOnNextAndRequestRecursion();
       }
+
+      @Override
+      public boolean skipStochasticTests() {
+        return IdentityProcessorVerification.this.skipStochasticTests();
+      }
     };
   }
 
@@ -130,15 +137,34 @@ public abstract class IdentityProcessorVerification<T> {
   }
 
   /**
-     * In order to verify rule 3.3 of the reactive streams spec, this number will be used to check if a
-     * {@code Subscription} actually solves the "unbounded recursion" problem by not allowing the number of
-     * recursive calls to exceed the number returned by this method.
-     *
-     * @see <a href="https://github.com/reactive-streams/reactive-streams#3.3">reactive streams spec, rule 3.3</a>
-     * @see PublisherVerification#spec303_mustNotAllowUnboundedRecursion()
-     */
+   * In order to verify rule 3.3 of the reactive streams spec, this number will be used to check if a
+   * {@code Subscription} actually solves the "unbounded recursion" problem by not allowing the number of
+   * recursive calls to exceed the number returned by this method.
+   *
+   * @see <a href="https://github.com/reactive-streams/reactive-streams#3.3">reactive streams spec, rule 3.3</a>
+   * @see PublisherVerification#spec303_mustNotAllowUnboundedRecursion()
+   */
   public long boundedDepthOfOnNextAndRequestRecursion() {
     return 1;
+  }
+
+  /**
+   * Override and return {@code true} in order to skip executing tests marked as {@code Stochastic}.
+   * Such tests MAY sometimes fail even though the impl
+   */
+  public boolean skipStochasticTests() {
+    return false;
+  }
+
+  /**
+   * Describes the tested implementation in terms of how many subscribers they can support.
+   * Some tests require the {@code Publisher} under test to support multiple Subscribers,
+   * yet the spec does not require all publishers to be able to do so, thus – if an implementation
+   * supports only a limited number of subscribers (e.g. only 1 subscriber, also known as "no fanout")
+   * you MUST return that number from this method by overriding it.
+   */
+  public long maxSupportedSubscribers() {
+      return Long.MAX_VALUE;
   }
 
   ////////////////////// TEST ENV CLEANUP /////////////////////////////////////
@@ -310,31 +336,37 @@ public abstract class IdentityProcessorVerification<T> {
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.4
   // for multiple subscribers
-  @Test
-  public void spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError() throws Exception {
-    new TestSetup(env, processorBufferSize) {{
-      final ManualSubscriberWithErrorCollection<T> sub1 = new ManualSubscriberWithErrorCollection<T>(env);
-      env.subscribe(processor, sub1);
+  @Test @Subscribers(2)
+  public void spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError() throws Throwable {
+    optionalMultipleSubscribersTest(2, new Function<Long,TestSetup>() {
+      @Override
+      public TestSetup apply(Long aLong) throws Throwable {
+        return new TestSetup(env, processorBufferSize) {{
+          final ManualSubscriberWithErrorCollection<T> sub1 = new ManualSubscriberWithErrorCollection<T>(env);
+          env.subscribe(processor, sub1);
 
-      final ManualSubscriberWithErrorCollection<T> sub2 = new ManualSubscriberWithErrorCollection<T>(env);
-      env.subscribe(processor, sub2);
+          final ManualSubscriberWithErrorCollection<T> sub2 = new ManualSubscriberWithErrorCollection<T>(env);
+          env.subscribe(processor, sub2);
 
-      sub1.request(1);
-      expectRequest();
-      final T x = sendNextTFromUpstream();
-      expectNextElement(sub1, x);
-      sub1.request(1);
+          sub1.request(1);
+          expectRequest();
+          final T x = sendNextTFromUpstream();
+          expectNextElement(sub1, x);
+          sub1.request(1);
 
-      // sub1 has received one element, and has one demand pending
-      // sub2 has not yet requested anything
+          // sub1 has received one element, and has one demand pending
+          // sub2 has not yet requested anything
 
-      final Exception ex = new RuntimeException("Test exception");
-      sendError(ex);
-      sub1.expectError(ex);
-      sub2.expectError(ex);
+          final Exception ex = new RuntimeException("Test exception");
+          sendError(ex);
+          sub1.expectError(ex);
+          sub2.expectError(ex);
 
-      env.verifyNoAsyncErrors();
-    }};
+          env.verifyNoAsyncErrors();
+        }};
+
+      }
+    });
   }
 
   ////////////////////// SUBSCRIBER RULES VERIFICATION ///////////////////////////
@@ -580,49 +612,54 @@ public abstract class IdentityProcessorVerification<T> {
 
   // A Processor
   //   must trigger `requestFromUpstream` for elements that have been requested 'long ago'
-  @Test
-  public void mustRequestFromUpstreamForElementsThatHaveBeenRequestedLongAgo() throws Exception {
-    new TestSetup(env, processorBufferSize) {{
-      ManualSubscriber<T> sub1 = newSubscriber();
-      sub1.request(20);
+  @Test @Subscribers(2)
+  public void mustRequestFromUpstreamForElementsThatHaveBeenRequestedLongAgo() throws Throwable {
+    optionalMultipleSubscribersTest(2, new Function<Long,TestSetup>() {
+      @Override
+      public TestSetup apply(Long subscribers) throws Throwable {
+        return new TestSetup(env, processorBufferSize) {{
+          ManualSubscriber<T> sub1 = newSubscriber();
+          sub1.request(20);
 
-      long totalRequests = expectRequest();
-      final T x = sendNextTFromUpstream();
-      expectNextElement(sub1, x);
+          long totalRequests = expectRequest();
+          final T x = sendNextTFromUpstream();
+          expectNextElement(sub1, x);
 
-      if (totalRequests == 1) {
-        totalRequests += expectRequest();
+          if (totalRequests == 1) {
+            totalRequests += expectRequest();
+          }
+          final T y = sendNextTFromUpstream();
+          expectNextElement(sub1, y);
+
+          if (totalRequests == 2) {
+            totalRequests += expectRequest();
+          }
+
+          final ManualSubscriber<T> sub2 = newSubscriber();
+
+          // sub1 now has 18 pending
+          // sub2 has 0 pending
+
+          final T z = sendNextTFromUpstream();
+          expectNextElement(sub1, z);
+          sub2.expectNone(); // since sub2 hasn't requested anything yet
+
+          sub2.request(1);
+          expectNextElement(sub2, z);
+
+          if (totalRequests == 3) {
+            expectRequest();
+          }
+
+          // to avoid error messages during test harness shutdown
+          sendCompletion();
+          sub1.expectCompletion(env.defaultTimeoutMillis());
+          sub2.expectCompletion(env.defaultTimeoutMillis());
+
+          env.verifyNoAsyncErrors();
+        }};
       }
-      final T y = sendNextTFromUpstream();
-      expectNextElement(sub1, y);
-
-      if (totalRequests == 2) {
-        totalRequests += expectRequest();
-      }
-
-      ManualSubscriber<T> sub2 = newSubscriber();
-
-      // sub1 now has 18 pending
-      // sub2 has 0 pending
-
-      final T z = sendNextTFromUpstream();
-      expectNextElement(sub1, z);
-      sub2.expectNone(); // since sub2 hasn't requested anything yet
-
-      sub2.request(1);
-      expectNextElement(sub2, z);
-
-      if (totalRequests == 3) {
-        expectRequest();
-      }
-
-      // to avoid error messages during test harness shutdown
-      sendCompletion();
-      sub1.expectCompletion(env.defaultTimeoutMillis());
-      sub2.expectCompletion(env.defaultTimeoutMillis());
-
-      env.verifyNoAsyncErrors();
-    }};
+    });
   }
 
   /////////////////////// TEST INFRASTRUCTURE //////////////////////
@@ -633,6 +670,16 @@ public abstract class IdentityProcessorVerification<T> {
 
   public void notVerified(String message) {
     publisherVerification.notVerified(message);
+  }
+
+  /**
+   * Test for feature that REQUIRES multiple subscribers to be supported by Publisher.
+   */
+  public void optionalMultipleSubscribersTest(long requiredSubscribersSupport, Function<Long, TestSetup> body) throws Throwable {
+    if (requiredSubscribersSupport > maxSupportedSubscribers())
+      notVerified("The Publisher under test only supports " +maxSupportedSubscribers()+ " subscribers, " +
+                      "while this test requires at least " + requiredSubscribersSupport + "to run.");
+    else body.apply(requiredSubscribersSupport);
   }
 
   public abstract class TestSetup extends ManualPublisher<T> {

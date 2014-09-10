@@ -667,7 +667,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
 
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     public <E extends Throwable> void expectErrorWithMessage(Class<E> expected, String requiredMessagePart) throws InterruptedException {
-      E err = expectError(expected);
+      final E err = expectError(expected);
       String message = err.getMessage();
       assertTrue(message.contains(requiredMessagePart),
         String.format("Got expected exception %s but missing message [%s], was: %s", err.getClass(), requiredMessagePart, expected));
@@ -680,7 +680,10 @@ public abstract class SubscriberWhiteboxVerification<T> {
     @SuppressWarnings({"unchecked", "ThrowableResultOfMethodCallIgnored"})
     public <E extends Throwable> E expectError(Class<E> expected, long timeoutMillis) throws InterruptedException {
       error.expectCompletion(timeoutMillis, String.format("Subscriber %s did not call `registerOnError(%s)`", sub(), expected));
-      if (expected.isInstance(error.value())) {
+      if (error.value() == null) {
+        env.flop(String.format("Subscriber %s did not call `registerOnError(%s)`", sub(), expected));
+        return null; // make compiler happy
+      } else if (expected.isInstance(error.value())) {
         return (E) error.value();
       } else {
         env.flop(String.format("Subscriber %s called `registerOnError(%s)` rather than `registerOnError(%s)`", sub(), error.value(), expected));

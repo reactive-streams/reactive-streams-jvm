@@ -34,6 +34,16 @@ public class Annotations {
   }
 
   /**
+   * Used to mark how many subscribers will be used on the publisher under test.
+   * If an implementation declares it does not support enough subscribers as needed by such test, it will be SKIPPed instead of FAILed.
+   */
+  @Target(ElementType.METHOD)
+  @Retention(RetentionPolicy.SOURCE)
+  static @interface Subscribers {
+    long value() default 1;
+  }
+
+  /**
    * Used to mark tests which may be skipped / not implemented by certain implementations.
    * These tests can be skipped by returning null from the given factory method.
    */

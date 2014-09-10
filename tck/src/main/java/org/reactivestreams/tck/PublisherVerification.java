@@ -4,6 +4,7 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.TestEnvironment.*;
+import org.reactivestreams.tck.support.Function;
 import org.reactivestreams.tck.support.Optional;
 import org.testng.SkipException;
 import org.testng.annotations.BeforeMethod;
@@ -806,10 +807,6 @@ public abstract class PublisherVerification<T> {
 
   public void notVerified(String message) {
     throw new SkipException(message);
-  }
-
-  private interface Function<In, Out> {
-    public Out apply(In in) throws Throwable;
   }
 
 }
