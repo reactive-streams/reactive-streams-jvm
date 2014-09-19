@@ -13,7 +13,7 @@ public class StockPriceSubscriber implements Subscriber<Stock> {
     private final int take;
 
     public StockPriceSubscriber(int bufferSize, int delayPerStock, int take) {
-        this.buffer = new ArrayBlockingQueue<>(bufferSize);
+        this.buffer = new ArrayBlockingQueue<Stock>(bufferSize);
         this.delayPerStock = delayPerStock;
         this.take = take;
     }

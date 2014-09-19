@@ -8,7 +8,7 @@ import org.reactivestreams.Subscriber;
 class NumberSubscriberThatHopsThreads implements Subscriber<Integer> {
 
     final int BUFFER_SIZE = 10;
-    private final ArrayBlockingQueue<Integer> buffer = new ArrayBlockingQueue<>(BUFFER_SIZE);
+    private final ArrayBlockingQueue<Integer> buffer = new ArrayBlockingQueue<Integer>(BUFFER_SIZE);
     private volatile boolean terminated = false;
     private final String token;
 
