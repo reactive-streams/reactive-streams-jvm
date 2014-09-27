@@ -427,19 +427,6 @@ public abstract class IdentityProcessorVerification<T> {
   ////////////////////// OTHER RULE VERIFICATION ///////////////////////////
 
   // A Processor
-  //   must cancel its upstream Subscription if its last downstream Subscription has been cancelled
-  @Test
-  public void mustCancelItsUpstreamSubscriptionIfItsLastDownstreamSubscriptionHasBeenCancelled() throws Exception {
-    new TestSetup(env, processorBufferSize) {{
-      final ManualSubscriber<T> sub = newSubscriber();
-      sub.cancel();
-      expectCancelling();
-
-      env.verifyNoAsyncErrors();
-    }};
-  }
-
-  // A Processor
   //   must immediately pass on `onError` events received from its upstream to its downstream
   @Test
   public void mustImmediatelyPassOnOnErrorEventsReceivedFromItsUpstreamToItsDownstream() throws Exception {
