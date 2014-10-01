@@ -335,12 +335,6 @@ public abstract class SubscriberBlackboxVerification<T> {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.12
-  @Required @Test
-  public void spec312_blackbox_cancelMustRequestThePublisherToEventuallyStopSignaling() throws Throwable {
-    notVerified(); // cannot be meaningfully tested as black box, or can it?
-  }
-
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.14
   @NotVerified @Test
   public void spec314_blackbox_cancelMayCauseThePublisherToShutdownIfNoOtherSubscriptionExists() throws Exception {

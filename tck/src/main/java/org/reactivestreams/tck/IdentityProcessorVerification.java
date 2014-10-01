@@ -325,6 +325,11 @@ public abstract class IdentityProcessorVerification<T> {
   }
 
   @Test
+  public void spec312_cancelMustMakeThePublisherToEventuallyStopSignaling() throws Throwable {
+    publisherVerification.spec312_cancelMustMakeThePublisherToEventuallyStopSignaling();
+  }
+
+  @Test
   public void spec313_cancelMustMakeThePublisherEventuallyDropAllReferencesToTheSubscriber() throws Throwable {
     publisherVerification.spec313_cancelMustMakeThePublisherEventuallyDropAllReferencesToTheSubscriber();
   }
@@ -386,9 +391,6 @@ public abstract class IdentityProcessorVerification<T> {
             if (subs.isCompleted()) subscription.cancel(); // the Probe must also pass subscriber verification
 
             probe.registerOnSubscribe(new SubscriberWhiteboxVerification.SubscriberPuppet() {
-              public void triggerShutdown() {
-                subscription.cancel();
-              }
 
               @Override
               public void triggerRequest(long elements) {
@@ -581,11 +583,6 @@ public abstract class IdentityProcessorVerification<T> {
   @Test
   public void spec311_requestMaySynchronouslyCallOnCompleteOrOnError() throws Exception {
     subscriberVerification.spec311_requestMaySynchronouslyCallOnCompleteOrOnError();
-  }
-
-  @Test
-  public void spec312_cancelMustRequestThePublisherToEventuallyStopSignaling() throws Throwable {
-    subscriberVerification.spec312_cancelMustRequestThePublisherToEventuallyStopSignaling();
   }
 
   @Test
