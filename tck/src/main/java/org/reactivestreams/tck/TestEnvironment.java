@@ -150,7 +150,7 @@ public class TestEnvironment {
   /** If {@code TestEnvironment#printlnDebug} is true, print debug message to std out. */
   public void debug(String msg) {
     if (printlnDebug)
-      System.out.println(msg);
+      System.out.println("[TCK-DEBUG] " + msg);
   }
 
   // ---- classes ----
