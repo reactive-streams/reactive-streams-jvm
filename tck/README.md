@@ -371,7 +371,7 @@ class IterablePublisherTest(env: TestEnvironment, publisherShutdownTimeout: Long
     this(new TestEnvironment(500), 1000)
   }
 
-  def createPublisher(elements: Long): Publisher[Int] = ???
+  override def createPublisher(elements: Long): Publisher[Int] = ???
 
   // example error state publisher implementation
   override def createErrorStatePublisher(): Publisher[Int] = 
