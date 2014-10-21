@@ -1,5 +1,11 @@
 package org.reactivestreams;
 
+/**
+ * A {@link Publisher} is a {@link Subscription} factory and generator of elements of type T,
+ * which it can connect (subscribe) {@link Subscriber} to.
+ * It will only publish elements when a subscribed {@link Subscriber} has signalled demand for elements
+ * via the {@link Subscription#request} method.
+ */
 public interface Publisher<T> {
 
     /**
