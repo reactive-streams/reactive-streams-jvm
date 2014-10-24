@@ -128,6 +128,14 @@ public class TestEnvironment {
     asyncErrors.clear();
   }
 
+  public Throwable dropAsyncError() {
+    try {
+      return asyncErrors.remove(0);
+    } catch (IndexOutOfBoundsException ex) {
+      return null;
+    }
+  }
+
   public void verifyNoAsyncErrors(long delay) {
     try {
       Thread.sleep(delay);
@@ -620,7 +628,6 @@ public class TestEnvironment {
       return _value != null;
     }
 
-
     /**
      * Allows using expectCompletion to await for completion of the value and complete it _then_
      */
@@ -761,7 +768,7 @@ public class TestEnvironment {
       }
     }
 
-    void expectNone(long withinMillis, String errorMsgPrefix) throws InterruptedException {
+    public void expectNone(long withinMillis, String errorMsgPrefix) throws InterruptedException {
       Thread.sleep(withinMillis);
       Optional<T> value = abq.poll();
 

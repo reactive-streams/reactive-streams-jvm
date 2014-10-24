@@ -52,6 +52,17 @@ public abstract class SubscriberWhiteboxVerification<T> {
    */
   public abstract Publisher<T> createHelperPublisher(long elements);
 
+  /**
+   * Used to break possibly infinite wait-loops.
+   * Some Rules use the "eventually stop signalling" wording, which requires the test to spin accepting {@code onNext}
+   * signals until no more are signalled. In these tests, this value will be used as upper bound on the number of spin iterations.
+   *
+   * Override this method in case your implementation synchronously signals very large batches before reacting to cancellation (for example).
+   */
+  public long maxOnNextSignalsInTest() {
+    return 100;
+  }
+
   ////////////////////// TEST ENV CLEANUP /////////////////////////////////////
 
   @BeforeMethod
@@ -431,20 +442,6 @@ public abstract class SubscriberWhiteboxVerification<T> {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.12
-  @Required @Test
-  public void spec312_cancelMustRequestThePublisherToEventuallyStopSignaling() throws Throwable {
-    subscriberTest(new TestStageTestRun() {
-      @Override
-      public void run(WhiteboxTestStage stage) throws InterruptedException {
-        stage.puppet().signalCancel();
-        stage.expectCancelling();
-
-        stage.verifyNoAsyncErrors();
-      }
-    });
-  }
-
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.14
   @NotVerified @Test
   public void spec314_cancelMayCauseThePublisherToShutdownIfNoOtherSubscriptionExists() throws Exception {
@@ -518,7 +515,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
 
   public class WhiteboxTestStage extends ManualPublisher<T> {
     public Publisher<T> pub;
-    public ManualSubscriber<T> tees; // gives us access to an infinite stream of T values
+    public ManualSubscriber<T> tees; // gives us access to a stream T values
     public WhiteboxSubscriberProbe<T> probe;
 
     public T lastT = null;
@@ -544,6 +541,10 @@ public abstract class SubscriberWhiteboxVerification<T> {
 
     public SubscriberPuppet puppet() {
       return probe.puppet();
+    }
+
+    public WhiteboxSubscriberProbe<T> probe() {
+      return probe;
     }
 
     public Publisher<T> createHelperPublisher(long elements) {

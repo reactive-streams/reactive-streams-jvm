@@ -19,6 +19,7 @@ import java.util.List;
 
 import static org.reactivestreams.tck.Annotations.*;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -654,6 +655,47 @@ public abstract class PublisherVerification<T> {
         });
       }
     });
+  }
+
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.12
+  @Required @Test
+  public void spec312_cancelMustMakeThePublisherToEventuallyStopSignaling() throws Throwable {
+    final int elementsCount = 20;
+
+    activePublisherTest(elementsCount, new PublisherTestRun<T>() {
+      @Override
+      public void run(Publisher<T> pub) throws Throwable {
+        final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
+
+        sub.request(10);
+        sub.request(5);
+        final int totalDemand = 10 + 5;
+
+        sub.cancel();
+
+        sub.nextElement();
+        int onNextsSignalled = 1;
+
+        boolean stillBeingSignalled;
+        do {
+          // put asyncError if onNext signal received
+          sub.expectNone();
+          Throwable error = env.dropAsyncError();
+
+          if (error == null) {
+            stillBeingSignalled = false;
+          } else {
+            onNextsSignalled += 1;
+            stillBeingSignalled = true;
+          }
+        } while (stillBeingSignalled && onNextsSignalled < totalDemand);
+
+        assertTrue(onNextsSignalled <= totalDemand,
+          String.format("Publisher signalled [%d] elements, which is more than the signalled demand: %d", onNextsSignalled, totalDemand));
+      }
+    });
+
+    env.verifyNoAsyncErrors();
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.13
