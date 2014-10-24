@@ -490,6 +490,8 @@ public abstract class SubscriberWhiteboxVerification<T> {
 
         // cumulative pending > Long.MAX_VALUE
         stage.probe.expectErrorWithMessage(IllegalStateException.class, "3.17");
+
+        env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
       }
     });
   }
@@ -627,12 +629,22 @@ public abstract class SubscriberWhiteboxVerification<T> {
 
     @Override
     public void registerOnComplete() {
-      elements.complete();
+      try {
+        elements.complete();
+      } catch (IllegalStateException ex) {
+        // "Queue full", onComplete was already called
+        env.flop("subscriber::onComplete was called a second time, which is illegal according to Rule 1.7");
+      }
     }
 
     @Override
     public void registerOnError(Throwable cause) {
-      error.complete(cause);
+      try {
+        error.complete(cause);
+      } catch (IllegalStateException ex) {
+        // "Queue full", onError was already called
+        env.flop("subscriber::onError was called a second time, which is illegal according to Rule 1.7");
+      }
     }
 
     public T expectNext() throws InterruptedException {
