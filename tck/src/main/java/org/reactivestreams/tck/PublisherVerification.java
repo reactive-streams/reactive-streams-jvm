@@ -663,13 +663,15 @@ public abstract class PublisherVerification<T> {
     final int elementsCount = 20;
 
     activePublisherTest(elementsCount, new PublisherTestRun<T>() {
-      @Override
+      @Override @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
       public void run(Publisher<T> pub) throws Throwable {
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
 
-        sub.request(10);
-        sub.request(5);
-        final int totalDemand = 10 + 5;
+        int demand1 = 10;
+        int demand2 = 5;
+        sub.request(demand1);
+        sub.request(demand2);
+        final int totalDemand = demand1 + demand2;
 
         sub.cancel();
 
