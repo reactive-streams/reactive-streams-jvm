@@ -287,13 +287,7 @@ public abstract class SubscriberBlackboxVerification<T> {
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.13
   @NotVerified @Test
-  public void spec213_blackbox_failingOnCompleteInvocation() throws Exception {
-    notVerified(); // cannot be meaningfully tested, or can it?
-  }
-
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.14
-  @NotVerified @Test
-  public void spec214_blackbox_failingOnErrorInvocation() throws Exception {
+  public void spec213_blackbox_failingOnSignalInvocation() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 
