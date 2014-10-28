@@ -24,3 +24,5 @@ viktorklang    | Viktor Klang, viktor.klang@gmail.com, Typesafe Inc.
 smaldini       | Stephane Maldini, stephane.maldini@gmail.com, Pivotal Software Inc.
 savulchik      | Stanislav Savulchik, s.savulchik@gmail.com
 ktoso          | Konrad Malawski, konrad.malawski@project13.pl, Typesafe Inc.
+ouertani       | Slim Ouertani, ouertani@gmail.com 
+
