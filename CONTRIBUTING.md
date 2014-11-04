@@ -17,7 +17,14 @@ To ensure consistent development of Reactive Streams towards their goal, a group
 * Twitter Inc., currently represented by Marius Eriksen (@mariusaeriksen)
 * Typesafe Inc., currently represented by Viktor Klang (@viktorklang) and Roland Kuhn (@rkuhn)
 
-The role of this group is detailed in the following, additions to this list are made by pull request as defined below, removals require the consent of the entity to be removed or unanimous consent of all other gatekeepers. Changing a representative of one of the gatekeeper entities can be done by a member of that entity without requiring consent from the other gatekeepers.
+The role of this group is detailed in the following, additions to this list are made by pull request as defined below, removals require the consent of the entity to be removed or unanimous consent of all other Gatekeepers. Changing a representative of one of the gatekeeper entities can be done by a member of that entity without requiring consent from the other Gatekeepers.
+
+Gatekeepers commit to the following:
+
+1. 1-week SLA on :+1: or :-1: Pull Requests
+   * If a Gatekeeper will be unavailabile for a period of time, notify @reactive-streams/contributors and appoint who will vote in his/her place in the mean time
+2. tag @reactive-streams/contributors with a deadline when there needs to be a vote on an Issue,
+    with at least 1 week of notice (see rule 1 above)
 
 ## General Workflow
 
