@@ -493,8 +493,8 @@ public abstract class IdentityProcessorVerification<T> {
   }
 
   @Test
-  public void spec207_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThread() throws Exception {
-    subscriberVerification.spec207_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThread();
+  public void spec207_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThreadOrTakeCareOfSynchronization() throws Exception {
+    subscriberVerification.spec207_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThreadOrTakeCareOfSynchronization();
   }
 
   @Test
@@ -661,7 +661,7 @@ public abstract class IdentityProcessorVerification<T> {
    */
   public void optionalMultipleSubscribersTest(long requiredSubscribersSupport, Function<Long, TestSetup> body) throws Throwable {
     if (requiredSubscribersSupport > maxSupportedSubscribers())
-      notVerified("The Publisher under test only supports " +maxSupportedSubscribers()+ " subscribers, " +
+      notVerified("The Publisher under test only supports " + maxSupportedSubscribers() + " subscribers, " +
                       "while this test requires at least " + requiredSubscribersSupport + "to run.");
     else body.apply(requiredSubscribersSupport);
   }

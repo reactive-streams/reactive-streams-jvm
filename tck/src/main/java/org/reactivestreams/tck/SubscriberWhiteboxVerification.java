@@ -124,82 +124,82 @@ public abstract class SubscriberWhiteboxVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.3
-    @Required @Test
-    public void spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete() throws Throwable {
-      subscriberTestWithoutSetup(new TestStageTestRun() {
-        @Override
-        public void run(WhiteboxTestStage stage) throws Throwable {
-          final Subscription subs = new Subscription() {
-            @Override
-            public void request(long n) {
-              Throwable thr = new Throwable();
-              for (StackTraceElement stackTraceElement : thr.getStackTrace()) {
-                if (stackTraceElement.getMethodName().equals("onComplete")) {
-                  env.flop("Subscription::request MUST NOT be called from onComplete!");
-                }
+  @Required @Test
+  public void spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete() throws Throwable {
+    subscriberTestWithoutSetup(new TestStageTestRun() {
+      @Override
+      public void run(WhiteboxTestStage stage) throws Throwable {
+        final Subscription subs = new Subscription() {
+          @Override
+          public void request(long n) {
+            Throwable thr = new Throwable();
+            for (StackTraceElement stackTraceElement : thr.getStackTrace()) {
+              if (stackTraceElement.getMethodName().equals("onComplete")) {
+                env.flop("Subscription::request MUST NOT be called from onComplete!");
               }
             }
+          }
 
-            @Override
-            public void cancel() {
-              Throwable thr = new Throwable();
-              for (StackTraceElement stackTraceElement : thr.getStackTrace()) {
-                if (stackTraceElement.getMethodName().equals("onComplete")) {
-                  env.flop("Subscriber::onComplete MUST NOT call Subscription::cancel");
-                }
+          @Override
+          public void cancel() {
+            Throwable thr = new Throwable();
+            for (StackTraceElement stackTraceElement : thr.getStackTrace()) {
+              if (stackTraceElement.getMethodName().equals("onComplete")) {
+                env.flop("Subscriber::onComplete MUST NOT call Subscription::cancel");
               }
             }
-          };
+          }
+        };
 
-          stage.probe = stage.createWhiteboxSubscriberProbe(env);
-          final Subscriber<T> sub = createSubscriber(stage.probe);
+        stage.probe = stage.createWhiteboxSubscriberProbe(env);
+        final Subscriber<T> sub = createSubscriber(stage.probe);
 
-          sub.onSubscribe(subs);
-          sub.onComplete();
+        sub.onSubscribe(subs);
+        sub.onComplete();
 
-          env.verifyNoAsyncErrors();
-        }
-      });
-    }
+        env.verifyNoAsyncErrors();
+      }
+    });
+  }
 
-    // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.3
-    @Required @Test
-    public void spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError() throws Throwable {
-      subscriberTestWithoutSetup(new TestStageTestRun() {
-        @Override
-        public void run(WhiteboxTestStage stage) throws Throwable {
-          final Subscription subs = new Subscription() {
-            @Override
-            public void request(long n) {
-              Throwable thr = new Throwable();
-              for (StackTraceElement stackTraceElement : thr.getStackTrace()) {
-                if (stackTraceElement.getMethodName().equals("onError")) {
-                  env.flop("Subscriber::onError MUST NOT call Subscription::request!");
-                }
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.3
+  @Required @Test
+  public void spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError() throws Throwable {
+    subscriberTestWithoutSetup(new TestStageTestRun() {
+      @Override
+      public void run(WhiteboxTestStage stage) throws Throwable {
+        final Subscription subs = new Subscription() {
+          @Override
+          public void request(long n) {
+            Throwable thr = new Throwable();
+            for (StackTraceElement stackTraceElement : thr.getStackTrace()) {
+              if (stackTraceElement.getMethodName().equals("onError")) {
+                env.flop("Subscriber::onError MUST NOT call Subscription::request!");
               }
             }
+          }
 
-            @Override
-            public void cancel() {
-              Throwable thr = new Throwable();
-              for (StackTraceElement stackTraceElement : thr.getStackTrace()) {
-                if (stackTraceElement.getMethodName().equals("onError")) {
-                  env.flop("Subscriber::onError MUST NOT call Subscription::cancel");
-                }
+          @Override
+          public void cancel() {
+            Throwable thr = new Throwable();
+            for (StackTraceElement stackTraceElement : thr.getStackTrace()) {
+              if (stackTraceElement.getMethodName().equals("onError")) {
+                env.flop("Subscriber::onError MUST NOT call Subscription::cancel");
               }
             }
-          };
+          }
+        };
 
-          stage.probe = stage.createWhiteboxSubscriberProbe(env);
-          final Subscriber<T> sub = createSubscriber(stage.probe);
+        stage.probe = stage.createWhiteboxSubscriberProbe(env);
+        final Subscriber<T> sub = createSubscriber(stage.probe);
 
-          sub.onSubscribe(subs);
-          sub.onComplete();
+        sub.onSubscribe(subs);
+        sub.onComplete();
 
-          env.verifyNoAsyncErrors();
-        }
-      });
-    }
+        env.verifyNoAsyncErrors();
+      }
+    });
+  }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.4
   @NotVerified @Test
@@ -244,7 +244,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.7
   @NotVerified @Test
-  public void spec207_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThread() throws Exception {
+  public void spec207_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThreadOrTakeCareOfSynchronization() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
     // the same thread part of the clause can be verified but that is not very useful, or is it?
   }
@@ -257,6 +257,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
       public void run(WhiteboxTestStage stage) throws InterruptedException {
         stage.puppet().triggerRequest(1);
         stage.puppet().signalCancel();
+        stage.signalNext();
 
         stage.puppet().triggerRequest(1);
         stage.puppet().triggerRequest(1);
@@ -338,7 +339,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
   @Required @Test
   public void spec212_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality() throws Throwable {
     subscriberTestWithoutSetup(new TestStageTestRun() {
-      @Override
+      @Override @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
       public void run(WhiteboxTestStage stage) throws Exception {
         stage.pub = stage.createHelperPublisher(1);
 

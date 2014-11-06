@@ -404,7 +404,7 @@ public class TestEnvironment {
   }
 
   public static class TestSubscriber<T> implements Subscriber<T> {
-    volatile Promise<Subscription> subscription;
+    final Promise<Subscription> subscription;
 
     protected final TestEnvironment env;
 
@@ -436,7 +436,6 @@ public class TestEnvironment {
     public void cancel() {
       if (subscription.isCompleted()) {
         subscription.value().cancel();
-        subscription = new Promise<Subscription>(env);
       } else {
         env.flop("Cannot cancel a subscription before having received it");
       }

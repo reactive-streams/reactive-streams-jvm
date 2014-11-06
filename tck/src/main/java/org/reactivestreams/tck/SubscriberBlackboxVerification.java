@@ -146,7 +146,7 @@ public abstract class SubscriberBlackboxVerification<T> {
             final Throwable thr = new Throwable();
             for (StackTraceElement stackElem : thr.getStackTrace()) {
               if (stackElem.getMethodName().equals("onError")) {
-                env.flop(String.format("Subscriber::onError MUST NOT call Subscription::cancel (Caller: %s::%s line %d)",
+                env.flop(String.format("Subscriber::onError MUST NOT call Subscription::cancel! (Caller: %s::%s line %d)",
                                        stackElem.getClassName(), stackElem.getMethodName(), stackElem.getLineNumber()));
               }
             }
@@ -178,7 +178,7 @@ public abstract class SubscriberBlackboxVerification<T> {
           new Subscription() {
             @Override
             public void request(long elements) {
-              env.flop(String.format("Subscriber %s illegally called `subscription.request(%s)`", sub(), elements));
+              env.flop(String.format("Subscriber %s illegally called `subscription.request(%s)`!", sub(), elements));
             }
 
             @Override
@@ -205,7 +205,7 @@ public abstract class SubscriberBlackboxVerification<T> {
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.7
   @NotVerified @Test
-  public void spec207_blackbox_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThread() throws Exception {
+  public void spec207_blackbox_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThreadOrTakeCareOfSynchronization() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
     // the same thread part of the clause can be verified but that is not very useful, or is it?
   }
