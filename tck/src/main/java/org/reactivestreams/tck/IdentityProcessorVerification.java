@@ -533,13 +533,8 @@ public abstract class IdentityProcessorVerification<T> {
   }
 
   @Test
-  public void spec213_failingOnCompleteInvocation() throws Exception {
-    subscriberVerification.spec213_failingOnCompleteInvocation();
-  }
-
-  @Test
-  public void spec214_failingOnErrorInvocation() throws Exception {
-    subscriberVerification.spec214_failingOnErrorInvocation();
+  public void spec213_failingOnSignalInvocation() throws Exception {
+    subscriberVerification.spec213_failingOnSignalInvocation();
   }
 
   @Test
