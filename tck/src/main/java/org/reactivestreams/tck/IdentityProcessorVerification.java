@@ -548,16 +548,6 @@ public abstract class IdentityProcessorVerification<T> {
   }
 
   @Test
-  public void spec309_callingRequestZeroMustThrow() throws Throwable {
-    subscriberVerification.spec309_callingRequestZeroMustThrow();
-  }
-
-  @Test
-  public void spec309_callingRequestWithNegativeNumberMustThrow() throws Throwable {
-    subscriberVerification.spec309_callingRequestWithNegativeNumberMustThrow();
-  }
-
-  @Test
   public void spec310_requestMaySynchronouslyCallOnNextOnSubscriber() throws Exception {
     subscriberVerification.spec310_requestMaySynchronouslyCallOnNextOnSubscriber();
   }
