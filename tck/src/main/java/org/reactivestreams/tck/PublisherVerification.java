@@ -776,6 +776,36 @@ public abstract class PublisherVerification<T> {
     });
   }
 
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.17
+  @Required @Test
+  public void spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable {
+    final long MAX_SPINS = 10;
+
+    activePublisherTest(Integer.MAX_VALUE, new PublisherTestRun<T>() {
+      @Override public void run(Publisher<T> pub) throws Throwable {
+        final ManualSubscriber<T> sub = env.newBlackholeSubscriber(pub);
+
+        sub.request(Long.MAX_VALUE - 1);
+
+        long i = 0;
+        boolean overflowSignalled = false;
+        while (!overflowSignalled && i < MAX_SPINS) {
+          sub.request(Long.MAX_VALUE - 1);
+
+          try {
+            env.assertAsyncErrorWithMessage(IllegalStateException.class, "3.17");
+            overflowSignalled = true;
+          } catch (Throwable thr) {
+            // continue spinning and adding more demand in order to overflow the pendingDemand
+          }
+
+          i++;
+        }
+        env.verifyNoAsyncErrors();
+      }
+    });
+  }
+
   ///////////////////// ADDITIONAL "COROLLARY" TESTS ////////////////////////
 
   ///////////////////// TEST INFRASTRUCTURE /////////////////////////////////

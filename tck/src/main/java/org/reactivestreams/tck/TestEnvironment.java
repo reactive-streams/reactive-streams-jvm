@@ -13,6 +13,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import static org.reactivestreams.tck.support.NonFatal.isNonFatal;
+import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -103,6 +104,17 @@ public class TestEnvironment {
                String.format("Got expected exception [%s] but missing message part [%s], was: %s", err.getClass(), requiredMessagePart, message));
   }
 
+  public <T extends Throwable> void assertAsyncErrorWithMessage(Class<T> clazz, String requiredMessagePart) throws Throwable {
+    Throwable err = dropAsyncError();
+    assertNotNull(err, "Expected " + clazz.getCanonicalName() + " exception but got null!");
+    assertTrue(clazz.isInstance(err), "Expected " + clazz.getCanonicalName() + " exception but got " + err.getClass().getCanonicalName() + "!");
+
+    String message = err.getMessage();
+    assertTrue(message.contains(requiredMessagePart),
+               String.format("Got expected exception [%s] but missing message part [%s], was: %s", err.getClass(), requiredMessagePart, message));
+
+  }
+
   public <T> void subscribe(Publisher<T> pub, TestSubscriber<T> sub) throws InterruptedException {
     subscribe(pub, sub, defaultTimeoutMillis);
   }
@@ -113,6 +125,11 @@ public class TestEnvironment {
     verifyNoAsyncErrors();
   }
 
+  public <T> ManualSubscriber<T> newBlackholeSubscriber(Publisher<T> pub) throws InterruptedException {
+    ManualSubscriberWithSubscriptionSupport<T> sub = new BlackholeSubscriberWithSubscriptionSupport<T>(this);
+    subscribe(pub, sub, defaultTimeoutMillis());
+    return sub;
+  }
 
   public <T> ManualSubscriber<T> newManualSubscriber(Publisher<T> pub) throws InterruptedException {
     return newManualSubscriber(pub, defaultTimeoutMillis());
@@ -330,6 +347,10 @@ public class TestEnvironment {
       return expectError(expected, env.defaultTimeoutMillis(), "Expected onError");
     }
 
+    public <E extends Throwable> E expectError(Class<E> expected, long timeoutMillis) throws Exception {
+      return expectError(expected, timeoutMillis, "Expected onError");
+    }
+
     public <E extends Throwable> E expectError(Class<E> expected, String errorMsg) throws Exception {
       return expectError(expected, env.defaultTimeoutMillis(), errorMsg);
     }
@@ -400,6 +421,39 @@ public class TestEnvironment {
       } else {
         env.flop(cause, "Subscriber::onError(" + cause + ") called before Subscriber::onSubscribe");
       }
+    }
+  }
+
+  /**
+   * Similar to {@link org.reactivestreams.tck.TestEnvironment.ManualSubscriberWithSubscriptionSupport}
+   * but does not accumulate values signalled via <code>onNext</code>, thus it can not be used to assert
+   * values signalled to this subscriber. Instead it may be used to quickly drain a given publisher.
+   */
+  public static class BlackholeSubscriberWithSubscriptionSupport<T>
+    extends ManualSubscriberWithSubscriptionSupport<T> {
+
+    public BlackholeSubscriberWithSubscriptionSupport(TestEnvironment env) {
+      super(env);
+    }
+
+    @Override
+    public void onNext(T element) {
+      env.debug(this + "::onNext(" + element + ")");
+            if (subscription.isCompleted()) {
+              // blackhole it...
+            } else {
+              env.flop("Subscriber::onNext(" + element + ") called before Subscriber::onSubscribe");
+            }
+    }
+
+    @Override
+    public T nextElement(long timeoutMillis, String errorMsg) throws InterruptedException {
+      throw new RuntimeException("Can not expect elements from BlackholeSubscriber, use ManualSubscriber instead!");
+    }
+
+    @Override
+    public List<T> nextElements(long elements, long timeoutMillis, String errorMsg) throws InterruptedException {
+      throw new RuntimeException("Can not expect elements from BlackholeSubscriber, use ManualSubscriber instead!");
     }
   }
 

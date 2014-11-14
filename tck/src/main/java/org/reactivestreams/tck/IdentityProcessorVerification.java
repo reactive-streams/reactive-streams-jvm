@@ -335,8 +335,18 @@ public abstract class IdentityProcessorVerification<T> {
   }
 
   @Test
+  public void spec317_mustSupportAPendingElementCountUpToLongMaxValue() throws Throwable {
+    publisherVerification.spec317_mustSupportAPendingElementCountUpToLongMaxValue();
+  }
+
+  @Test
   public void spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue() throws Throwable {
     publisherVerification.spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue();
+  }
+
+  @Test
+  public void spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable {
+    publisherVerification.spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue();
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.4
@@ -450,11 +460,6 @@ public abstract class IdentityProcessorVerification<T> {
   @Test
   public void exerciseWhiteboxHappyPath() throws Throwable {
     subscriberVerification.exerciseWhiteboxHappyPath();
-  }
-
-  @Test
-  public void spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable {
-    subscriberVerification.spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue();
   }
 
   @Test
@@ -580,11 +585,6 @@ public abstract class IdentityProcessorVerification<T> {
   @Test
   public void spec316_requestMustNotThrowExceptionAndMustOnErrorTheSubscriber() throws Exception {
     subscriberVerification.spec316_requestMustNotThrowExceptionAndMustOnErrorTheSubscriber();
-  }
-
-  @Test
-  public void spec317_mustSupportAPendingElementCountUpToLongMaxValue() throws Throwable {
-    subscriberVerification.spec317_mustSupportAPendingElementCountUpToLongMaxValue();
   }
 
   /////////////////////// ADDITIONAL "COROLLARY" TESTS //////////////////////
