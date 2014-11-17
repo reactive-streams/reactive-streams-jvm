@@ -14,6 +14,8 @@ lazy val api = project
 
 lazy val tck = project.dependsOn(api)
 
+lazy val examples = project.dependsOn(api)
+
 publishArtifact := false // for this aggregate project
 
 EclipseKeys.projectFlavor in ThisBuild := EclipseProjectFlavor.Java
