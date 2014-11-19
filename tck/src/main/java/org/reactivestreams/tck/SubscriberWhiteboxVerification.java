@@ -749,7 +749,8 @@ public abstract class SubscriberWhiteboxVerification<T> {
   public interface SubscriberPuppeteer {
 
     /**
-     * Must be called by the test subscriber when it has received the `onSubscribe` event.
+     * Must be called by the test subscriber when it has successfully registered a subscription
+     * inside the `onSubscribe` method.
      */
     void registerOnSubscribe(SubscriberPuppet puppet);
   }
