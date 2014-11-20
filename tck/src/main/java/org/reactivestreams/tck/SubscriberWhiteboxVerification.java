@@ -419,43 +419,6 @@ public abstract class SubscriberWhiteboxVerification<T> {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.17
-  @Required @Test
-  public void spec317_mustSupportAPendingElementCountUpToLongMaxValue() throws Throwable {
-    subscriberTest(new TestStageTestRun() {
-      @Override
-      public void run(WhiteboxTestStage stage) throws InterruptedException {
-        stage.puppet().triggerRequest(Long.MAX_VALUE);
-
-        stage.probe.expectNext(stage.signalNext());
-
-        // to avoid error messages during test harness shutdown
-        stage.sendCompletion();
-        stage.probe.expectCompletion();
-
-        stage.verifyNoAsyncErrors();
-      }
-    });
-  }
-
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.17
-  @Required @Test
-  public void spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable {
-    subscriberTest(new TestStageTestRun() {
-      @Override
-      public void run(WhiteboxTestStage stage) throws InterruptedException {
-        stage.puppet().triggerRequest(Long.MAX_VALUE - 1);
-        stage.puppet().triggerRequest(Long.MAX_VALUE - 1);
-
-        // cumulative pending > Long.MAX_VALUE
-        stage.probe.expectErrorWithMessage(IllegalStateException.class, "3.17");
-
-        env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
-      }
-    });
-  }
-
-
   /////////////////////// ADDITIONAL "COROLLARY" TESTS ////////////////////////
 
   /////////////////////// TEST INFRASTRUCTURE /////////////////////////////////
