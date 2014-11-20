@@ -305,18 +305,6 @@ public abstract class SubscriberBlackboxVerification<T> {
     notVerified(); // cannot be meaningfully tested as black box, or can it?
   }
 
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.9
-  @Required @Test
-  public void spec309_blackbox_callingRequestZeroMustThrow() throws Throwable {
-    notVerified(); // cannot be meaningfully tested as black box, or can it?
-  }
-
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.9
-  @Required @Test
-  public void spec309_blackbox_callingRequestWithNegativeNumberMustThrow() throws Throwable {
-    notVerified(); // cannot be meaningfully tested as black box, or can it?
-  }
-
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.10
   @NotVerified @Test
   public void spec310_blackbox_requestMaySynchronouslyCallOnNextOnSubscriber() throws Exception {

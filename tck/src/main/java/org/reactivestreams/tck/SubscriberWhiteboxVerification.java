@@ -389,42 +389,6 @@ public abstract class SubscriberWhiteboxVerification<T> {
     });
   }
 
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.9
-  @Required @Test
-  public void spec309_callingRequestZeroMustThrow() throws Throwable {
-    subscriberTest(new TestStageTestRun() {
-      @Override
-      public void run(final WhiteboxTestStage stage) throws Throwable {
-        env.expectThrowingOfWithMessage(IllegalArgumentException.class, "3.9", new Runnable() {
-          @Override
-          public void run() {
-            stage.puppet().triggerRequest(0L);
-          }
-        });
-
-        stage.verifyNoAsyncErrors();
-      }
-    });
-  }
-
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.9
-  @Required @Test
-  public void spec309_callingRequestWithNegativeNumberMustThrow() throws Throwable {
-    subscriberTest(new TestStageTestRun() {
-      @Override
-      public void run(final WhiteboxTestStage stage) throws Throwable {
-        env.expectThrowingOfWithMessage(IllegalArgumentException.class, "3.9", new Runnable() {
-          @Override
-          public void run() {
-            stage.puppet().triggerRequest(-1);
-          }
-        });
-
-        stage.verifyNoAsyncErrors();
-      }
-    });
-  }
-
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.10
   @NotVerified @Test
   public void spec310_requestMaySynchronouslyCallOnNextOnSubscriber() throws Exception {
