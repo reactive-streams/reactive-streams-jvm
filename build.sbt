@@ -1,6 +1,6 @@
 organization in ThisBuild := "org.reactivestreams"
 
-version in ThisBuild := "0.4.0"
+version in ThisBuild := "1.0.0.M1"
 
 scalaVersion in ThisBuild := "2.10.3"
 
