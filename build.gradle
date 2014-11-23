@@ -1,104 +1,105 @@
-allprojects {
-    apply plugin: 'java'
-    apply plugin: 'maven'
-    apply plugin: 'eclipse'
-    apply plugin: 'idea'
-    apply plugin: 'ivy-publish'
-    
-
-    group = 'org.reactivestreams'
-    version = '1.0.0.M1'
-
-	 
-    gradle.projectsEvaluated {
-        tasks.withType(JavaCompile) {
-            options.compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
-            options.encoding = 'UTF-8'           
-        }
-        
-        tasks.withType(Javadoc) {
-            source = sourceSets.main.allJava          
-           
-            configure(options) {  
-                encoding 'UTF-8'
-                docEncoding 'UTF-8'
-                charSet 'UTF-8'
-                linkSource true 
-                noTimestamp true               
-            }
-        }
-    }
-
-    uploadArchives {
-      
-        repositories {
-         
-            mavenDeployer {
-
-                repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2")
-
-                pom.project {
-                    name 'org.reactivestreams'
-                    packaging 'jar'
-                    url 'http://www.reactive-streams.org/'
-                    inceptionYear '2014'
-
-                    scm {
-                        url 'git@github.com:reactive-streams/reactive-streams.git'
-                        connection 'scm:git:git@github.com:reactive-streams/reactive-streams.git'
-                    }
-
-                    licenses {
-                        license {
-                            name 'CC0'
-                            url 'http://creativecommons.org/publicdomain/zero/1.0/'
-                            distribution 'repo'
-                        }
-                    }
-
-                    developers {
-                        developer {
-                            id 'reactive-streams-sig'
-                            name 'Reactive Streams SIG'
-                            url 'http://www.reactive-streams.org/'
-                        }
-                    }
-                }
-            }
-         
-        }
-    }
-    repositories {
-        mavenLocal()
-        mavenCentral()
-    }
-    
-    publishing {
-        repositories {
-            ivy {
-                // change to point to your repo, e.g. http://my.org/repo
-                url "${rootProject.buildDir}/repo"
-            }
-        }
-        publications {
-            ivy(IvyPublication) {
-                from components.java
-                descriptor.withXml {
-                    asNode().info[0].appendNode('description', description)
-                }
-            }
-        }
-    }
-}
-
 subprojects {
+    apply plugin: "java"
+    apply plugin: "osgi"
+
+    group = "org.reactivestreams"
+    version = "1.0.0.M1"
 
     sourceCompatibility = 1.6
     targetCompatibility = 1.6
 
-    compileJava.options.encoding = 'UTF-8'
+    tasks.withType(JavaCompile) {
+        configure(options) {
+            compilerArgs << "-Xlint:unchecked" << "-Xlint:deprecation"
+            encoding = "UTF-8"
+        }
+    }
 
-    javadoc {        
-        options.encoding = 'UTF-8'
-    }    
+    tasks.withType(Javadoc) {
+        configure(options) {
+            encoding "UTF-8"
+            docEncoding "UTF-8"
+            charSet "UTF-8"
+            linkSource true
+            noTimestamp true
+        }
+    }
+
+    repositories {
+        mavenCentral()
+    }
+
+    jar {
+        manifest {
+            instruction "Bundle-Vendor", "Reactive Streams SIG"
+            instruction "Bundle-Description", "Reactive Streams API"
+            instruction "Bundle-DocURL", "http://reactive-streams.org"
+        }
+    }
+
+    if (name in ["reactive-streams", "reactive-streams-tck"]) {
+        apply plugin: "maven"
+        apply plugin: "signing"
+
+        signing {
+            sign configurations.archives
+            required { gradle.taskGraph.hasTask(uploadArchives) }
+        }
+        task sourcesJar(type: Jar) {
+            classifier "sources"
+            from sourceSets.main.allSource
+        }
+
+        task javadocJar(type: Jar) {
+            classifier "javadoc"
+            from javadoc
+        }
+
+        artifacts {
+            archives sourcesJar, javadocJar
+        }
+
+        uploadArchives {
+            repositories {
+                mavenDeployer {
+                    repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2")
+                }
+            }
+        }
+
+        tasks.withType(Upload) {
+            repositories.withType(MavenResolver) {
+                it.beforeDeployment { signing.signPom(it) }
+                it.pom.whenConfigured { pom ->
+                    pom.project {
+                        url "http://www.reactive-streams.org/"
+                        inceptionYear "2014"
+
+                        scm {
+                            url "git@github.com:reactive-streams/reactive-streams.git"
+                            connection "scm:git:git@github.com:reactive-streams/reactive-streams.git"
+                        }
+
+                        licenses {
+                            license {
+                                name "CC0"
+                                url "http://creativecommons.org/publicdomain/zero/1.0/"
+                                distribution "repo"
+                            }
+                        }
+
+                        developers {
+                            developer {
+                                id "reactive-streams-sig"
+                                name "Reactive Streams SIG"
+                                url "http://www.reactive-streams.org/"
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    } else {
+        uploadArchives.enabled = false
+    }
 }
