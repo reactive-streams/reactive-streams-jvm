@@ -70,7 +70,7 @@ public class TestEnvironment {
   // keeps passed in throwable as asyncError instead of creating a new AssertionError
   public void flop(Throwable thr, String msg) {
     try {
-      fail(msg);
+      fail(msg, thr);
     } catch (Throwable t) {
       asyncErrors.add(thr);
     }
@@ -167,7 +167,7 @@ public class TestEnvironment {
       if (e instanceof AssertionError) {
         throw (AssertionError) e;
       } else {
-        fail("Async error during test execution: " + e);
+        fail("Async error during test execution: " + e.getMessage(), e);
       }
     }
   }
