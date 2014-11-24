@@ -76,8 +76,13 @@ allprojects {
     publishing {
         repositories {
             ivy {
-                // change to point to your repo, e.g. http://my.org/repo
-                url "${rootProject.buildDir}/repo"
+                url "${System.properties['user.home']}/.ivy2/local"
+
+                // format as nested ivy structure, the way SBT likes it
+                layout 'pattern', {
+                    ivy '[organisation]/[module]/[revision]/ivys/ivy.xml'
+                    artifact '[organisation]/[module]/[revision]/[type]s/[module](-[classifier]).[ext]'
+                }
             }
         }
         publications {
