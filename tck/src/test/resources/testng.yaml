@@ -5,3 +5,4 @@ tests:
   - name: TCK
     classes:
       - org.reactivestreams.tck.IdentityProcessorVerificationDelegationTest
+      - org.reactivestreams.tck.TestEnvironmentTest
