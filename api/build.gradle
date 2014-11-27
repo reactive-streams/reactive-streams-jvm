@@ -1,1 +1,13 @@
+apply plugin: 'osgi'
+
 description = 'reactive-streams-api'
+
+jar {
+    manifest {
+        name = 'reactive-streams-api'
+        instruction 'Export-Package', 'org.reactivestreams'
+        instruction 'Bundle-Vendor', 'Reactive Streams SIG'
+        instruction 'Bundle-Description', 'Reactive Streams API'
+        instruction 'Bundle-DocURL', 'http://reactive-streams.org'
+    }
+}
