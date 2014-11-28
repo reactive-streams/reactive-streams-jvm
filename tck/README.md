@@ -17,7 +17,7 @@ The TCK is split up into 4 files JUnit 4 test classes which should be extended b
 * `SubscriberWhiteboxVerification`
 * `IdentityProcessorVerification`
 
-The next sections include examples on how these can be used and describe the various confiruration options.
+The next sections include examples on how these can be used and describe the various configuration options.
 
 The TCK is provided as binary artifact on [Maven Central](http://search.maven.org/#search|ga|1|reactive-streams-tck):
 
@@ -34,10 +34,10 @@ Please refer to the [Reactive Streams Specification](https://github.com/reactive
 
 ### Types of tests
 
-Since the TCK is aimed at Reactive Stream implementers, looking into the sources of the TCK is well expected, 
+Since the TCK is aimed at Reactive Stream implementers, looking into the sources of the TCK is well expected,
 and should help during a libraries implementation cycle.
 
-In order to make mapping between test cases and Specification rules easier, each test case covering a specific 
+In order to make mapping between test cases and Specification rules easier, each test case covering a specific
 Specification rule abides the following naming convention: `spec###_DESC` where:
 
 * `###` is the Rule number (`1.xx` Rules are about Publishers, `2.xx` Rules are about Subscribers etc.)
@@ -47,7 +47,7 @@ Specification rule abides the following naming convention: `spec###_DESC` where:
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.1
   @Required @Test
   public void spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements() throws Throwable {
-    // ... 
+    // ...
   }
 ```
 
@@ -64,11 +64,11 @@ The annotations on the test methods are used in order to signify the character o
 @Additional @Test
 ```
 
-... means that this test case is optional, it covers a *MAY* or *SHOULD* Rule of the Specification. This annotation is also used if more confiruration is needed in order to run it, e.g. `@Additional(implement = "createErrorStatePublisher") @Test` signals the implementer that in order to include this test case in his test runs, (s)he must implement the `Publisher<T> createErrorStatePublisher()` method.
+... means that this test case is optional, it covers a *MAY* or *SHOULD* Rule of the Specification. This annotation is also used if more configuration is needed in order to run it, e.g. `@Additional(implement = "createErrorStatePublisher") @Test` signals the implementer that in order to include this test case in his test runs, (s)he must implement the `Publisher<T> createErrorStatePublisher()` method.
 
 ```java
 @Stochastic @Test
-``` 
+```
 
 ... means that the Rule is either racy, and/or inherently hard to verify without heavy modification of the tested implementation. Usually this means that this test case can yield false positives ("be green") even if for some case, the given implementation may violate the tested behaviour.
 
@@ -115,11 +115,11 @@ public class RangePublisherTest extends PublisherVerification<Integer> {
     return new Publisher<Integer>() {
       @Override
       public void subscribe(Subscriber<Integer> s) {
-        s.onError(new RuntimeException("Can't subscribe subcriber: " + s + ", because of reasons."));
+        s.onError(new RuntimeException("Can't subscribe subscriber: " + s + ", because of reasons."));
       }
     };
   }
-  
+
   // ADDITIONAL CONFIGURATION
 
   @Override
@@ -134,14 +134,15 @@ public class RangePublisherTest extends PublisherVerification<Integer> {
 }
 ```
 
-Notable confiruration options include:
+Notable configuration options include:
 
-* `maxElementsFromPublisher` – which should only be overriden in case the Publisher under test is not able to provide arbitrary length streams, e.g. it's wrapping a `Future<T>` and thus can only publish up to 1 element. In such case you should return `1` from this method. It will cause all tests which require more elements in order to validate a certain Rule to be skipped,
-* `boundedDepthOfOnNextAndRequestRecursion` – which should only be overriden in case or synchronous Publishers. This number will be used to validate if the Publisher (Rule 3.3).
+* `maxElementsFromPublisher` – which should only be overridden in case the Publisher under test is not able to provide arbitrary length streams, e.g. it's wrapping a `Future<T>` and thus can only publish up to 1 element. In such case you should return `1` from this method. It will cause all tests which require more elements in order to validate a certain Rule to be skipped,
+* `boundedDepthOfOnNextAndRequestRecursion` – which should only be overridden in case of synchronous Publishers. This number will be used to validate if a
+`Subscription` actually solves the "unbounded recursion" problem (Rule 3.3).
 
 ## Subscriber Verification
 
-Subscriber rules Verification is split up into two files (styles) of tests. 
+Subscriber rules Verification is split up into two files (styles) of tests.
 
 The Blackbox Verification tests do not require the implementation under test to be modified at all, yet they are *not* able to verify most rules. In Whitebox Verification, more control over `request()` calls etc. is required in order to validate rules more precisely.
 
@@ -161,7 +162,7 @@ import org.reactivestreams.tck.TestEnvironment;
 public class MySubscriberBlackboxVerificationTest extends SubscriberBlackboxVerification<Integer> {
 
   public static final long DEFAULT_TIMEOUT_MILLIS = 300L;
-  
+
   public MySubscriberBlackboxVerificationTest() {
     super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS));
   }
@@ -183,10 +184,9 @@ public class MySubscriberBlackboxVerificationTest extends SubscriberBlackboxVeri
 
 The Whitebox Verification tests are able to verify most of the Specification, at the additional cost that control over demand generation and cancellation must be handed over to the TCK via the `SubscriberPuppet`.
 
-Based on expiriences so far implementing the `SubsctiberPuppet` is non-trivial and can be hard for some implementations.
-We keep the whitebox verification, as it is tremendously useful in the `ProcessorVerification`, where the Puppet is implemented within the TCK and injected to the tests,
-however we do not expect all implementations to make use of the plain `SubscriberWhiteboxVerification`, instead using the `SubscriberBlackboxVerification` instead.
-
+Based on experiences so far implementing the `SubscriberPuppet` is non-trivial and can be hard for some implementations.
+We keep the whitebox verification, as it is tremendously useful in the `ProcessorVerification`, where the Puppet is implemented within the TCK and injected to the tests.
+We do not expect all implementations to make use of the plain `SubscriberWhiteboxVerification`, using the `SubscriberBlackboxVerification` instead.
 
 A simple synchronous `Subscriber` implementation would look similar to following example:
 
@@ -209,16 +209,16 @@ public class MySubscriberWhiteboxVerificationTest extends SubscriberWhiteboxVeri
 
   @Override
   public Subscriber<Integer> createSubscriber(final WhiteboxSubscriberProbe<Integer> probe) {
-    
+
     // return YOUR subscriber under-test, with additional WhiteboxSubscriberProbe instrumentation
     return new Subscriber<Integer>() {
-      
+
       @Override
       public void onSubscribe(final Subscription s) {
         // in addition to normal Subscriber work that you're testing,
         // register a SubscriberPuppet, to give the TCK control over demand generation and cancelling
         probe.registerOnSubscribe(new SubscriberPuppet() {
-      
+
           @Override
           public void triggerRequest(long n) {
             s.request(n);
@@ -320,17 +320,21 @@ public class MyIdentityProcessorVerificationTest extends IdentityProcessorVerifi
 }
 ```
 
-The additional and confiruration options are reflect the options available in the Subscriber and Publisher Verifications.
+The additional configuration options reflect the options available in the Subscriber and Publisher Verifications.
 
-The `IdentityProcessorVerification` also runs additional sanity Verifications, which are not directly mapped to Specification rules, but help to verify that a Processor won't "get stuck" or face similar problems. Please refer to the sources for details on the tests included.
+The `IdentityProcessorVerification` also runs additional sanity verifications, which are not directly mapped to Specification rules, but help to verify that a Processor won't "get stuck" or face similar problems. Please refer to the sources for details on the tests included.
 
 ## Ignoring tests
 Since you inherit these tests instead of defining them yourself it's not possible to use the usual `@Ignore` annotations to skip certain tests
-(which may be perfectly reasonable if your implementation has some know constraints on what it cannot implement) we recommend the below pattern
+(which may be perfectly reasonable if your implementation has some know constraints on what it cannot implement). We recommend the below pattern
 to skip tests inherited from the TCK's base classes:
 
 ```java
-public class SkippingIdentityProcessorTest extends org.reactivestreams.tck.IdentityProcessorVerification<Integer> {
+package com.example.streams;
+
+import org.reactivestreams.tck.IdentityProcessorVerification;
+
+public class SkippingIdentityProcessorTest extends IdentityProcessorVerification<Integer> {
 
   public SkippingIdentityProcessorTest() {
     super(new TestEnvironment(500, true), 1000);
@@ -355,7 +359,7 @@ public class SkippingIdentityProcessorTest extends org.reactivestreams.tck.Ident
 
 ## Using the TCK from other languages
 
-The TCK was designed such that it should be possible to consume it using different languages. 
+The TCK was designed such that it should be possible to consume it using different languages.
 The section below shows how to use the TCK using different languages (contributions of examples for more languages are very welcome):
 
 ### Scala
@@ -374,7 +378,7 @@ class IterablePublisherTest(env: TestEnvironment, publisherShutdownTimeout: Long
   def createPublisher(elements: Long): Publisher[Int] = ???
 
   // example error state publisher implementation
-  override def createErrorStatePublisher(): Publisher[Int] = 
+  override def createErrorStatePublisher(): Publisher[Int] =
     new Publisher[Int] {
       override def subscribe(s: Subscriber[Int]): Unit = {
         s.onError(new Exception("Unable to serve subscribers right now!"))
@@ -386,6 +390,6 @@ class IterablePublisherTest(env: TestEnvironment, publisherShutdownTimeout: Long
 
 ### Groovy, JRuby, Kotlin, others...
 
-Contributions to this document are very welcome! 
+Contributions to this document are very welcome!
 
 If you're implementing reactive streams using the TCK in some language, please feel free to share an example on how to best use it from your language of choice.
