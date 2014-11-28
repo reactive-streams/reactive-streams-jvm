@@ -1,6 +1,20 @@
+apply plugin: 'osgi'
+
 description = 'reactive-streams-tck'
+
 dependencies {
     compile group: 'org.testng', name: 'testng', version:'5.14.10'
     compile project(':reactive-streams-api')
 }
+
+jar {
+    manifest {
+        name = 'reactive-streams-tck'
+        instruction 'Export-Package', 'org.reactivestreams.tck', 'org.reactivestreams.tck.*'
+        instruction 'Bundle-Vendor', 'Reactive Streams SIG'
+        instruction 'Bundle-Description', 'Reactive Streams TCK'
+        instruction 'Bundle-DocURL', 'http://reactive-streams.org'
+    }
+}
+
 test.useTestNG()
