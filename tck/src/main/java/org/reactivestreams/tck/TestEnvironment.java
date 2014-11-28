@@ -12,7 +12,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.reactivestreams.tck.support.NonFatal.isNonFatal;
 import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -77,31 +76,25 @@ public class TestEnvironment {
   }
 
 
-  public <T extends Throwable> Throwable expectThrowingOf(Class<T> clazz, String errorMsg, Runnable block) throws Throwable {
+  public <T extends Throwable> void expectThrowingOfWithMessage(Class<T> clazz, String requiredMessagePart, Runnable block) throws Throwable {
+    String errorMsg = String.format("Expected [%s] to be thrown", clazz);
+
     try {
       block.run();
-      flop(errorMsg);
+      throw new AssertionError("Expected " + clazz.getCanonicalName() + ", yet no exception was thrown!");
     } catch (Throwable e) {
       if (clazz.isInstance(e)) {
         // ok
-        return e;
-      } else if (isNonFatal(e)) {
-        flop(errorMsg + " but was: " + e);
+        String message = e.getMessage();
+        assertTrue(message.contains(requiredMessagePart),
+                   String.format("Got expected exception [%s] but missing message part [%s], was: %s", e.getClass(), requiredMessagePart, message));
       } else {
-        throw e;
+        String msg = errorMsg + " but was: " + e;
+        flop(e, msg);
+        throw new AssertionError(msg); // would love to include the `e` cause, but that constructor is Java 7+
       }
     }
 
-    // make compiler happy
-    return null;
-  }
-
-  @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-  public <T extends Throwable> void expectThrowingOfWithMessage(Class<T> clazz, String requiredMessagePart, Runnable block) throws Throwable {
-    Throwable err = expectThrowingOf(clazz, String.format("Expected [%s] to be thrown", clazz), block);
-    String message = err.getMessage();
-    assertTrue(message.contains(requiredMessagePart),
-               String.format("Got expected exception [%s] but missing message part [%s], was: %s", err.getClass(), requiredMessagePart, message));
   }
 
   public <T extends Throwable> void assertAsyncErrorWithMessage(Class<T> clazz, String requiredMessagePart) throws Throwable {
