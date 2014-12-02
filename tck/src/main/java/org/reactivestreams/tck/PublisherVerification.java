@@ -522,7 +522,7 @@ public abstract class PublisherVerification<T> {
     activePublisherTest(oneMoreThanBoundedLimit, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
-        final ThreadLocal<Long> stackDepthCounter = new ThreadLocal<Long>(){
+        final ThreadLocal<Long> stackDepthCounter = new ThreadLocal<Long>() {
           @Override
           protected Long initialValue() {
             return 0L;
@@ -693,7 +693,7 @@ public abstract class PublisherVerification<T> {
         } while (stillBeingSignalled && onNextsSignalled < totalDemand);
 
         assertTrue(onNextsSignalled <= totalDemand,
-          String.format("Publisher signalled [%d] elements, which is more than the signalled demand: %d", onNextsSignalled, totalDemand));
+                   String.format("Publisher signalled [%d] elements, which is more than the signalled demand: %d", onNextsSignalled, totalDemand));
       }
     });
 
@@ -780,6 +780,7 @@ public abstract class PublisherVerification<T> {
   @Required @Test
   public void spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable {
     final long MAX_SPINS = 10;
+    final long SPIN_ASSERT_DELAY = env.defaultTimeoutMillis() / MAX_SPINS;
 
     activePublisherTest(Integer.MAX_VALUE, new PublisherTestRun<T>() {
       @Override public void run(Publisher<T> pub) throws Throwable {
@@ -792,16 +793,26 @@ public abstract class PublisherVerification<T> {
         while (!overflowSignalled && i < MAX_SPINS) {
           sub.request(Long.MAX_VALUE - 1);
 
-          try {
-            env.assertAsyncErrorWithMessage(IllegalStateException.class, "3.17");
+          Thread.sleep(SPIN_ASSERT_DELAY);
+          Throwable asyncError = env.dropAsyncError();
+
+          //noinspection StatementWithEmptyBody
+          if (asyncError == null) {
+            // did not get onError yet, keep spinning
+          } else {
+            // verify it's the kind of onError we are expecting here
+            env.assertAsyncErrorWithMessage(asyncError, IllegalStateException.class, "3.17");
             overflowSignalled = true;
-          } catch (Throwable thr) {
-            // continue spinning and adding more demand in order to overflow the pendingDemand
           }
 
           i++;
         }
-        env.verifyNoAsyncErrors();
+
+        env.debug(String.format("Signalled overflow after %d-th spin (of max: %d), with %dms delays: %s (`true` is expected)", i + 1, MAX_SPINS, SPIN_ASSERT_DELAY, overflowSignalled));
+        assertTrue(overflowSignalled, String.format("Expected overflow to be signalled after %d spins (max: %d), with delays: %d", i + 1, MAX_SPINS, SPIN_ASSERT_DELAY));
+
+        // onError must be signalled only once, even with in-flight other request() messages that would trigger overflow again
+        env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
       }
     });
   }
@@ -867,9 +878,10 @@ public abstract class PublisherVerification<T> {
    * All the test runs must pass in order for the stochastic test to pass.
    */
   public void stochasticTest(int n, Function<Integer, Void> body) throws Throwable {
-    if (skipStochasticTests())
+    if (skipStochasticTests()) {
       notVerified("Skipping @Stochastic test because `skipStochasticTests()` returned `true`!");
-    
+    }
+
     for (int i = 0; i < n; i++) {
       body.apply(i);
     }
