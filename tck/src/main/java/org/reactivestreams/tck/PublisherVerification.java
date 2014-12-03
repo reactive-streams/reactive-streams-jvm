@@ -801,7 +801,7 @@ public abstract class PublisherVerification<T> {
             // did not get onError yet, keep spinning
           } else {
             // verify it's the kind of onError we are expecting here
-            env.assertAsyncErrorWithMessage(asyncError, IllegalStateException.class, "3.17");
+            env.assertErrorWithMessage(asyncError, IllegalStateException.class, "3.17");
             overflowSignalled = true;
           }
 
