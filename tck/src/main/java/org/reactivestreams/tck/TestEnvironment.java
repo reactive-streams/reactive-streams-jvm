@@ -97,7 +97,11 @@ public class TestEnvironment {
 
   }
 
-  public <T extends Throwable> void assertAsyncErrorWithMessage(Throwable err, Class<T> clazz, String requiredMessagePart) throws Throwable {
+  public <T extends Throwable> void assertAsyncErrorWithMessage(Class<T> clazz, String requiredMessagePart) throws Throwable {
+    assertErrorWithMessage(dropAsyncError(), clazz, requiredMessagePart);
+  }
+
+  public <T extends Throwable> void assertErrorWithMessage(Throwable err, Class<T> clazz, String requiredMessagePart) throws Throwable {
     assertNotNull(err, "Expected " + clazz.getCanonicalName() + " exception but got null!");
     assertTrue(clazz.isInstance(err), "Expected " + clazz.getCanonicalName() + " exception but got " + err.getClass().getCanonicalName() + "!");
 
