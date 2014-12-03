@@ -16,6 +16,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import static org.reactivestreams.tck.Annotations.*;
 import static org.testng.Assert.assertEquals;
@@ -627,32 +628,26 @@ public abstract class PublisherVerification<T> {
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.9
   @Required @Test
-  public void spec309_requestZeroMustThrowIllegalArgumentException() throws Throwable {
+  public void spec309_requestZeroMustSignalIllegalArgumentException() throws Throwable {
     activePublisherTest(10, new PublisherTestRun<T>() {
       @Override public void run(Publisher<T> pub) throws Throwable {
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
-        env.expectThrowingOfWithMessage(IllegalArgumentException.class, "3.9", new Runnable() {
-          @Override public void run() {
-            sub.request(0);
-          }
-        });
+        sub.request(0);
+        sub.expectErrorWithMessage(IllegalStateException.class, "3.9"); // we do require implementations to mention the rule number at the very least
       }
     });
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.9
   @Required @Test
-  public void spec309_requestNegativeNumberMustThrowIllegalArgumentException() throws Throwable {
+  public void spec309_requestNegativeNumberMustSignalIllegalArgumentException() throws Throwable {
     activePublisherTest(10, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
-        env.expectThrowingOfWithMessage(IllegalArgumentException.class, "3.9", new Runnable() {
-          @Override
-          public void run() {
-            sub.request(-1);
-          }
-        });
+        final Random r = new Random();
+        sub.request(-r.nextInt(Integer.MAX_VALUE));
+        sub.expectErrorWithMessage(IllegalStateException.class, "3.9"); // we do require implementations to mention the rule number at the very least
       }
     });
   }

@@ -315,13 +315,13 @@ public abstract class IdentityProcessorVerification<T> {
   }
 
   @Test
-  public void spec309_requestZeroMustThrowIllegalArgumentException() throws Throwable {
-    publisherVerification.spec309_requestZeroMustThrowIllegalArgumentException();
+  public void spec309_requestZeroMustSignalIllegalArgumentException() throws Throwable {
+    publisherVerification.spec309_requestZeroMustSignalIllegalArgumentException();
   }
 
   @Test
-  public void spec309_requestNegativeNumberMustThrowIllegalArgumentException() throws Throwable {
-    publisherVerification.spec309_requestNegativeNumberMustThrowIllegalArgumentException();
+  public void spec309_requestNegativeNumberMustSignalIllegalArgumentException() throws Throwable {
+    publisherVerification.spec309_requestNegativeNumberMustSignalIllegalArgumentException();
   }
 
   @Test
