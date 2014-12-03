@@ -1,3 +1,11 @@
 language: java
-script: sbt test
-
+script:
+- ./gradlew check
+cache:
+  directories:
+  - $HOME/.gradle
+jdk:
+- openjdk6
+env:
+  global:
+  - TERM=dumb
