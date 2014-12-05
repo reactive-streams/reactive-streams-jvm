@@ -3,7 +3,7 @@ subprojects {
     apply plugin: "osgi"
 
     group = "org.reactivestreams"
-    version = "1.0.0.M1"
+    version = "1.0.0.M2"
 
     sourceCompatibility = 1.6
     targetCompatibility = 1.6
@@ -62,7 +62,9 @@ subprojects {
         uploadArchives {
             repositories {
                 mavenDeployer {
-                    repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2")
+                    repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2"){
+                        authentication(userName: mavenUser, password: mavenPassword)
+                    }
                 }
             }
         }
@@ -73,6 +75,8 @@ subprojects {
                 it.pom.whenConfigured { pom ->
                     pom.project {
                         url "http://www.reactive-streams.org/"
+                        name "reactive-streams"
+                        description "A Protocol for Asynchronous Non-Blocking Data Sequence"
                         inceptionYear "2014"
 
                         scm {

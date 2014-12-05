@@ -25,3 +25,4 @@ test-output
 test-results
 test-tmp
 *.class
+gradle.properties
