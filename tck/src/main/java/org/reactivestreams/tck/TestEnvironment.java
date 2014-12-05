@@ -695,7 +695,7 @@ public class TestEnvironment {
 
       if (value == null) {
         env.flop(String.format("%s within %d ms", errorMsg, timeoutMillis));
-	return Optional.<T>empty();
+        return Optional.<T>empty();
       }
 
       return value;
