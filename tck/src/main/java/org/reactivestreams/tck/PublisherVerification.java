@@ -633,7 +633,7 @@ public abstract class PublisherVerification<T> {
       @Override public void run(Publisher<T> pub) throws Throwable {
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
         sub.request(0);
-        sub.expectErrorWithMessage(IllegalStateException.class, "3.9"); // we do require implementations to mention the rule number at the very least
+        sub.expectErrorWithMessage(IllegalArgumentException.class, "3.9"); // we do require implementations to mention the rule number at the very least
       }
     });
   }
@@ -647,7 +647,7 @@ public abstract class PublisherVerification<T> {
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
         final Random r = new Random();
         sub.request(-r.nextInt(Integer.MAX_VALUE));
-        sub.expectErrorWithMessage(IllegalStateException.class, "3.9"); // we do require implementations to mention the rule number at the very least
+        sub.expectErrorWithMessage(IllegalArgumentException.class, "3.9"); // we do require implementations to mention the rule number at the very least
       }
     });
   }
