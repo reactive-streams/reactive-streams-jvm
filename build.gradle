@@ -63,7 +63,7 @@ subprojects {
             repositories {
                 mavenDeployer {
                     repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2"){
-                        authentication(userName: mavenUser, password: mavenPassword)
+                        authentication(userName: "changeme", password: "changeme")
                     }
                 }
             }
