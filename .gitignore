@@ -13,3 +13,16 @@ target/
 .history
 .idea
 .idea_modules
+.gradle
+.settings
+bin
+build
+out
+*.iml
+*.ipr
+*.iws
+test-output
+test-results
+test-tmp
+*.class
+gradle.properties

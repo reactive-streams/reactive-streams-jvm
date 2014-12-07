@@ -16,9 +16,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
+import java.util.Random;
 
 import static org.reactivestreams.tck.Annotations.*;
 import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -521,7 +523,7 @@ public abstract class PublisherVerification<T> {
     activePublisherTest(oneMoreThanBoundedLimit, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
-        final ThreadLocal<Long> stackDepthCounter = new ThreadLocal<Long>(){
+        final ThreadLocal<Long> stackDepthCounter = new ThreadLocal<Long>() {
           @Override
           protected Long initialValue() {
             return 0L;
@@ -626,34 +628,71 @@ public abstract class PublisherVerification<T> {
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.9
   @Required @Test
-  public void spec309_requestZeroMustThrowIllegalArgumentException() throws Throwable {
+  public void spec309_requestZeroMustSignalIllegalArgumentException() throws Throwable {
     activePublisherTest(10, new PublisherTestRun<T>() {
       @Override public void run(Publisher<T> pub) throws Throwable {
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
-        env.expectThrowingOfWithMessage(IllegalArgumentException.class, "3.9", new Runnable() {
-          @Override public void run() {
-            sub.request(0);
-          }
-        });
+        sub.request(0);
+        sub.expectErrorWithMessage(IllegalArgumentException.class, "3.9"); // we do require implementations to mention the rule number at the very least
       }
     });
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.9
   @Required @Test
-  public void spec309_requestNegativeNumberMustThrowIllegalArgumentException() throws Throwable {
+  public void spec309_requestNegativeNumberMustSignalIllegalArgumentException() throws Throwable {
     activePublisherTest(10, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
-        env.expectThrowingOfWithMessage(IllegalArgumentException.class, "3.9", new Runnable() {
-          @Override
-          public void run() {
-            sub.request(-1);
-          }
-        });
+        final Random r = new Random();
+        sub.request(-r.nextInt(Integer.MAX_VALUE));
+        sub.expectErrorWithMessage(IllegalArgumentException.class, "3.9"); // we do require implementations to mention the rule number at the very least
       }
     });
+  }
+
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.12
+  @Required @Test
+  public void spec312_cancelMustMakeThePublisherToEventuallyStopSignaling() throws Throwable {
+    final int elementsCount = 20;
+
+    activePublisherTest(elementsCount, new PublisherTestRun<T>() {
+      @Override @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+      public void run(Publisher<T> pub) throws Throwable {
+        final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
+
+        int demand1 = 10;
+        int demand2 = 5;
+        sub.request(demand1);
+        sub.request(demand2);
+        final int totalDemand = demand1 + demand2;
+
+        sub.cancel();
+
+        sub.nextElement();
+        int onNextsSignalled = 1;
+
+        boolean stillBeingSignalled;
+        do {
+          // put asyncError if onNext signal received
+          sub.expectNone();
+          Throwable error = env.dropAsyncError();
+
+          if (error == null) {
+            stillBeingSignalled = false;
+          } else {
+            onNextsSignalled += 1;
+            stillBeingSignalled = true;
+          }
+        } while (stillBeingSignalled && onNextsSignalled < totalDemand);
+
+        assertTrue(onNextsSignalled <= totalDemand,
+                   String.format("Publisher signalled [%d] elements, which is more than the signalled demand: %d", onNextsSignalled, totalDemand));
+      }
+    });
+
+    env.verifyNoAsyncErrors();
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.13
@@ -732,6 +771,47 @@ public abstract class PublisherVerification<T> {
     });
   }
 
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.17
+  @Required @Test
+  public void spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable {
+    final long MAX_SPINS = 10;
+    final long SPIN_ASSERT_DELAY = env.defaultTimeoutMillis() / MAX_SPINS;
+
+    activePublisherTest(Integer.MAX_VALUE, new PublisherTestRun<T>() {
+      @Override public void run(Publisher<T> pub) throws Throwable {
+        final ManualSubscriber<T> sub = env.newBlackholeSubscriber(pub);
+
+        sub.request(Long.MAX_VALUE - 1);
+
+        long i = 0;
+        boolean overflowSignalled = false;
+        while (!overflowSignalled && i < MAX_SPINS) {
+          sub.request(Long.MAX_VALUE - 1);
+
+          Thread.sleep(SPIN_ASSERT_DELAY);
+          Throwable asyncError = env.dropAsyncError();
+
+          //noinspection StatementWithEmptyBody
+          if (asyncError == null) {
+            // did not get onError yet, keep spinning
+          } else {
+            // verify it's the kind of onError we are expecting here
+            env.assertErrorWithMessage(asyncError, IllegalStateException.class, "3.17");
+            overflowSignalled = true;
+          }
+
+          i++;
+        }
+
+        env.debug(String.format("Signalled overflow after %d-th spin (of max: %d), with %dms delays: %s (`true` is expected)", i + 1, MAX_SPINS, SPIN_ASSERT_DELAY, overflowSignalled));
+        assertTrue(overflowSignalled, String.format("Expected overflow to be signalled after %d spins (max: %d), with delays: %d", i + 1, MAX_SPINS, SPIN_ASSERT_DELAY));
+
+        // onError must be signalled only once, even with in-flight other request() messages that would trigger overflow again
+        env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
+      }
+    });
+  }
+
   ///////////////////// ADDITIONAL "COROLLARY" TESTS ////////////////////////
 
   ///////////////////// TEST INFRASTRUCTURE /////////////////////////////////
@@ -793,9 +873,10 @@ public abstract class PublisherVerification<T> {
    * All the test runs must pass in order for the stochastic test to pass.
    */
   public void stochasticTest(int n, Function<Integer, Void> body) throws Throwable {
-    if (skipStochasticTests())
+    if (skipStochasticTests()) {
       notVerified("Skipping @Stochastic test because `skipStochasticTests()` returned `true`!");
-    
+    }
+
     for (int i = 0; i < n; i++) {
       body.apply(i);
     }

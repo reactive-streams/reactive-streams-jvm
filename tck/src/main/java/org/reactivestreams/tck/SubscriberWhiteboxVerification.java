@@ -52,6 +52,17 @@ public abstract class SubscriberWhiteboxVerification<T> {
    */
   public abstract Publisher<T> createHelperPublisher(long elements);
 
+  /**
+   * Used to break possibly infinite wait-loops.
+   * Some Rules use the "eventually stop signalling" wording, which requires the test to spin accepting {@code onNext}
+   * signals until no more are signalled. In these tests, this value will be used as upper bound on the number of spin iterations.
+   *
+   * Override this method in case your implementation synchronously signals very large batches before reacting to cancellation (for example).
+   */
+  public long maxOnNextSignalsInTest() {
+    return 100;
+  }
+
   ////////////////////// TEST ENV CLEANUP /////////////////////////////////////
 
   @BeforeMethod
@@ -113,82 +124,82 @@ public abstract class SubscriberWhiteboxVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.3
-    @Required @Test
-    public void spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete() throws Throwable {
-      subscriberTestWithoutSetup(new TestStageTestRun() {
-        @Override
-        public void run(WhiteboxTestStage stage) throws Throwable {
-          final Subscription subs = new Subscription() {
-            @Override
-            public void request(long n) {
-              Throwable thr = new Throwable();
-              for (StackTraceElement stackTraceElement : thr.getStackTrace()) {
-                if (stackTraceElement.getMethodName().equals("onComplete")) {
-                  env.flop("Subscription::request MUST NOT be called from onComplete!");
-                }
+  @Required @Test
+  public void spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete() throws Throwable {
+    subscriberTestWithoutSetup(new TestStageTestRun() {
+      @Override
+      public void run(WhiteboxTestStage stage) throws Throwable {
+        final Subscription subs = new Subscription() {
+          @Override
+          public void request(long n) {
+            Throwable thr = new Throwable();
+            for (StackTraceElement stackTraceElement : thr.getStackTrace()) {
+              if (stackTraceElement.getMethodName().equals("onComplete")) {
+                env.flop("Subscription::request MUST NOT be called from onComplete!");
               }
             }
+          }
 
-            @Override
-            public void cancel() {
-              Throwable thr = new Throwable();
-              for (StackTraceElement stackTraceElement : thr.getStackTrace()) {
-                if (stackTraceElement.getMethodName().equals("onComplete")) {
-                  env.flop("Subscriber::onComplete MUST NOT call Subscription::cancel");
-                }
+          @Override
+          public void cancel() {
+            Throwable thr = new Throwable();
+            for (StackTraceElement stackTraceElement : thr.getStackTrace()) {
+              if (stackTraceElement.getMethodName().equals("onComplete")) {
+                env.flop("Subscriber::onComplete MUST NOT call Subscription::cancel");
               }
             }
-          };
+          }
+        };
 
-          stage.probe = stage.createWhiteboxSubscriberProbe(env);
-          final Subscriber<T> sub = createSubscriber(stage.probe);
+        stage.probe = stage.createWhiteboxSubscriberProbe(env);
+        final Subscriber<T> sub = createSubscriber(stage.probe);
 
-          sub.onSubscribe(subs);
-          sub.onComplete();
+        sub.onSubscribe(subs);
+        sub.onComplete();
 
-          env.verifyNoAsyncErrors();
-        }
-      });
-    }
+        env.verifyNoAsyncErrors();
+      }
+    });
+  }
 
-    // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.3
-    @Required @Test
-    public void spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError() throws Throwable {
-      subscriberTestWithoutSetup(new TestStageTestRun() {
-        @Override
-        public void run(WhiteboxTestStage stage) throws Throwable {
-          final Subscription subs = new Subscription() {
-            @Override
-            public void request(long n) {
-              Throwable thr = new Throwable();
-              for (StackTraceElement stackTraceElement : thr.getStackTrace()) {
-                if (stackTraceElement.getMethodName().equals("onError")) {
-                  env.flop("Subscriber::onError MUST NOT call Subscription::request!");
-                }
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.3
+  @Required @Test
+  public void spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError() throws Throwable {
+    subscriberTestWithoutSetup(new TestStageTestRun() {
+      @Override
+      public void run(WhiteboxTestStage stage) throws Throwable {
+        final Subscription subs = new Subscription() {
+          @Override
+          public void request(long n) {
+            Throwable thr = new Throwable();
+            for (StackTraceElement stackTraceElement : thr.getStackTrace()) {
+              if (stackTraceElement.getMethodName().equals("onError")) {
+                env.flop("Subscriber::onError MUST NOT call Subscription::request!");
               }
             }
+          }
 
-            @Override
-            public void cancel() {
-              Throwable thr = new Throwable();
-              for (StackTraceElement stackTraceElement : thr.getStackTrace()) {
-                if (stackTraceElement.getMethodName().equals("onError")) {
-                  env.flop("Subscriber::onError MUST NOT call Subscription::cancel");
-                }
+          @Override
+          public void cancel() {
+            Throwable thr = new Throwable();
+            for (StackTraceElement stackTraceElement : thr.getStackTrace()) {
+              if (stackTraceElement.getMethodName().equals("onError")) {
+                env.flop("Subscriber::onError MUST NOT call Subscription::cancel");
               }
             }
-          };
+          }
+        };
 
-          stage.probe = stage.createWhiteboxSubscriberProbe(env);
-          final Subscriber<T> sub = createSubscriber(stage.probe);
+        stage.probe = stage.createWhiteboxSubscriberProbe(env);
+        final Subscriber<T> sub = createSubscriber(stage.probe);
 
-          sub.onSubscribe(subs);
-          sub.onComplete();
+        sub.onSubscribe(subs);
+        sub.onComplete();
 
-          env.verifyNoAsyncErrors();
-        }
-      });
-    }
+        env.verifyNoAsyncErrors();
+      }
+    });
+  }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.4
   @NotVerified @Test
@@ -233,7 +244,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.7
   @NotVerified @Test
-  public void spec207_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThread() throws Exception {
+  public void spec207_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThreadOrTakeCareOfSynchronization() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
     // the same thread part of the clause can be verified but that is not very useful, or is it?
   }
@@ -246,6 +257,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
       public void run(WhiteboxTestStage stage) throws InterruptedException {
         stage.puppet().triggerRequest(1);
         stage.puppet().signalCancel();
+        stage.signalNext();
 
         stage.puppet().triggerRequest(1);
         stage.puppet().triggerRequest(1);
@@ -327,7 +339,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
   @Required @Test
   public void spec212_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality() throws Throwable {
     subscriberTestWithoutSetup(new TestStageTestRun() {
-      @Override
+      @Override @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
       public void run(WhiteboxTestStage stage) throws Exception {
         stage.pub = stage.createHelperPublisher(1);
 
@@ -347,13 +359,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.13
   @NotVerified @Test
-  public void spec213_failingOnCompleteInvocation() throws Exception {
-    notVerified(); // cannot be meaningfully tested, or can it?
-  }
-
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.14
-  @NotVerified @Test
-  public void spec214_failingOnErrorInvocation() throws Exception {
+  public void spec213_failingOnSignalInvocation() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 
@@ -383,42 +389,6 @@ public abstract class SubscriberWhiteboxVerification<T> {
     });
   }
 
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.9
-  @Required @Test
-  public void spec309_callingRequestZeroMustThrow() throws Throwable {
-    subscriberTest(new TestStageTestRun() {
-      @Override
-      public void run(final WhiteboxTestStage stage) throws Throwable {
-        env.expectThrowingOfWithMessage(IllegalArgumentException.class, "3.9", new Runnable() {
-          @Override
-          public void run() {
-            stage.puppet().triggerRequest(0L);
-          }
-        });
-
-        stage.verifyNoAsyncErrors();
-      }
-    });
-  }
-
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.9
-  @Required @Test
-  public void spec309_callingRequestWithNegativeNumberMustThrow() throws Throwable {
-    subscriberTest(new TestStageTestRun() {
-      @Override
-      public void run(final WhiteboxTestStage stage) throws Throwable {
-        env.expectThrowingOfWithMessage(IllegalArgumentException.class, "3.9", new Runnable() {
-          @Override
-          public void run() {
-            stage.puppet().triggerRequest(-1);
-          }
-        });
-
-        stage.verifyNoAsyncErrors();
-      }
-    });
-  }
-
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.10
   @NotVerified @Test
   public void spec310_requestMaySynchronouslyCallOnNextOnSubscriber() throws Exception {
@@ -429,20 +399,6 @@ public abstract class SubscriberWhiteboxVerification<T> {
   @NotVerified @Test
   public void spec311_requestMaySynchronouslyCallOnCompleteOrOnError() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
-  }
-
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.12
-  @Required @Test
-  public void spec312_cancelMustRequestThePublisherToEventuallyStopSignaling() throws Throwable {
-    subscriberTest(new TestStageTestRun() {
-      @Override
-      public void run(WhiteboxTestStage stage) throws InterruptedException {
-        stage.puppet().signalCancel();
-        stage.expectCancelling();
-
-        stage.verifyNoAsyncErrors();
-      }
-    });
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.14
@@ -462,41 +418,6 @@ public abstract class SubscriberWhiteboxVerification<T> {
   public void spec316_requestMustNotThrowExceptionAndMustOnErrorTheSubscriber() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
-
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.17
-  @Required @Test
-  public void spec317_mustSupportAPendingElementCountUpToLongMaxValue() throws Throwable {
-    subscriberTest(new TestStageTestRun() {
-      @Override
-      public void run(WhiteboxTestStage stage) throws InterruptedException {
-        stage.puppet().triggerRequest(Long.MAX_VALUE);
-
-        stage.probe.expectNext(stage.signalNext());
-
-        // to avoid error messages during test harness shutdown
-        stage.sendCompletion();
-        stage.probe.expectCompletion();
-
-        stage.verifyNoAsyncErrors();
-      }
-    });
-  }
-
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.17
-  @Required @Test
-  public void spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable {
-    subscriberTest(new TestStageTestRun() {
-      @Override
-      public void run(WhiteboxTestStage stage) throws InterruptedException {
-        stage.puppet().triggerRequest(Long.MAX_VALUE - 1);
-        stage.puppet().triggerRequest(Long.MAX_VALUE - 1);
-
-        // cumulative pending > Long.MAX_VALUE
-        stage.probe.expectErrorWithMessage(IllegalStateException.class, "3.17");
-      }
-    });
-  }
-
 
   /////////////////////// ADDITIONAL "COROLLARY" TESTS ////////////////////////
 
@@ -518,7 +439,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
 
   public class WhiteboxTestStage extends ManualPublisher<T> {
     public Publisher<T> pub;
-    public ManualSubscriber<T> tees; // gives us access to an infinite stream of T values
+    public ManualSubscriber<T> tees; // gives us access to a stream T values
     public WhiteboxSubscriberProbe<T> probe;
 
     public T lastT = null;
@@ -544,6 +465,10 @@ public abstract class SubscriberWhiteboxVerification<T> {
 
     public SubscriberPuppet puppet() {
       return probe.puppet();
+    }
+
+    public WhiteboxSubscriberProbe<T> probe() {
+      return probe;
     }
 
     public Publisher<T> createHelperPublisher(long elements) {
@@ -626,12 +551,22 @@ public abstract class SubscriberWhiteboxVerification<T> {
 
     @Override
     public void registerOnComplete() {
-      elements.complete();
+      try {
+        elements.complete();
+      } catch (IllegalStateException ex) {
+        // "Queue full", onComplete was already called
+        env.flop("subscriber::onComplete was called a second time, which is illegal according to Rule 1.7");
+      }
     }
 
     @Override
     public void registerOnError(Throwable cause) {
-      error.complete(cause);
+      try {
+        error.complete(cause);
+      } catch (IllegalStateException ex) {
+        // "Queue full", onError was already called
+        env.flop("subscriber::onError was called a second time, which is illegal according to Rule 1.7");
+      }
     }
 
     public T expectNext() throws InterruptedException {
@@ -741,7 +676,8 @@ public abstract class SubscriberWhiteboxVerification<T> {
   public interface SubscriberPuppeteer {
 
     /**
-     * Must be called by the test subscriber when it has received the `onSubscribe` event.
+     * Must be called by the test subscriber when it has successfully registered a subscription
+     * inside the `onSubscribe` method.
      */
     void registerOnSubscribe(SubscriberPuppet puppet);
   }

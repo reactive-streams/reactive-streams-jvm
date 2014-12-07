@@ -146,7 +146,7 @@ public abstract class SubscriberBlackboxVerification<T> {
             final Throwable thr = new Throwable();
             for (StackTraceElement stackElem : thr.getStackTrace()) {
               if (stackElem.getMethodName().equals("onError")) {
-                env.flop(String.format("Subscriber::onError MUST NOT call Subscription::cancel (Caller: %s::%s line %d)",
+                env.flop(String.format("Subscriber::onError MUST NOT call Subscription::cancel! (Caller: %s::%s line %d)",
                                        stackElem.getClassName(), stackElem.getMethodName(), stackElem.getLineNumber()));
               }
             }
@@ -178,7 +178,7 @@ public abstract class SubscriberBlackboxVerification<T> {
           new Subscription() {
             @Override
             public void request(long elements) {
-              env.flop(String.format("Subscriber %s illegally called `subscription.request(%s)`", sub(), elements));
+              env.flop(String.format("Subscriber %s illegally called `subscription.request(%s)`!", sub(), elements));
             }
 
             @Override
@@ -205,7 +205,7 @@ public abstract class SubscriberBlackboxVerification<T> {
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.7
   @NotVerified @Test
-  public void spec207_blackbox_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThread() throws Exception {
+  public void spec207_blackbox_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThreadOrTakeCareOfSynchronization() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
     // the same thread part of the clause can be verified but that is not very useful, or is it?
   }
@@ -287,13 +287,7 @@ public abstract class SubscriberBlackboxVerification<T> {
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.13
   @NotVerified @Test
-  public void spec213_blackbox_failingOnCompleteInvocation() throws Exception {
-    notVerified(); // cannot be meaningfully tested, or can it?
-  }
-
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.14
-  @NotVerified @Test
-  public void spec214_blackbox_failingOnErrorInvocation() throws Exception {
+  public void spec213_blackbox_failingOnSignalInvocation() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 
@@ -311,18 +305,6 @@ public abstract class SubscriberBlackboxVerification<T> {
     notVerified(); // cannot be meaningfully tested as black box, or can it?
   }
 
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.9
-  @Required @Test
-  public void spec309_blackbox_callingRequestZeroMustThrow() throws Throwable {
-    notVerified(); // cannot be meaningfully tested as black box, or can it?
-  }
-
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.9
-  @Required @Test
-  public void spec309_blackbox_callingRequestWithNegativeNumberMustThrow() throws Throwable {
-    notVerified(); // cannot be meaningfully tested as black box, or can it?
-  }
-
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.10
   @NotVerified @Test
   public void spec310_blackbox_requestMaySynchronouslyCallOnNextOnSubscriber() throws Exception {
@@ -333,12 +315,6 @@ public abstract class SubscriberBlackboxVerification<T> {
   @NotVerified @Test
   public void spec311_blackbox_requestMaySynchronouslyCallOnCompleteOrOnError() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
-  }
-
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.12
-  @Required @Test
-  public void spec312_blackbox_cancelMustRequestThePublisherToEventuallyStopSignaling() throws Throwable {
-    notVerified(); // cannot be meaningfully tested as black box, or can it?
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.14

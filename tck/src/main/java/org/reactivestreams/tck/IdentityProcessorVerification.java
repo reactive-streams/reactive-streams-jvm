@@ -315,13 +315,18 @@ public abstract class IdentityProcessorVerification<T> {
   }
 
   @Test
-  public void spec309_requestZeroMustThrowIllegalArgumentException() throws Throwable {
-    publisherVerification.spec309_requestZeroMustThrowIllegalArgumentException();
+  public void spec309_requestZeroMustSignalIllegalArgumentException() throws Throwable {
+    publisherVerification.spec309_requestZeroMustSignalIllegalArgumentException();
   }
 
   @Test
-  public void spec309_requestNegativeNumberMustThrowIllegalArgumentException() throws Throwable {
-    publisherVerification.spec309_requestNegativeNumberMustThrowIllegalArgumentException();
+  public void spec309_requestNegativeNumberMustSignalIllegalArgumentException() throws Throwable {
+    publisherVerification.spec309_requestNegativeNumberMustSignalIllegalArgumentException();
+  }
+
+  @Test
+  public void spec312_cancelMustMakeThePublisherToEventuallyStopSignaling() throws Throwable {
+    publisherVerification.spec312_cancelMustMakeThePublisherToEventuallyStopSignaling();
   }
 
   @Test
@@ -330,8 +335,18 @@ public abstract class IdentityProcessorVerification<T> {
   }
 
   @Test
+  public void spec317_mustSupportAPendingElementCountUpToLongMaxValue() throws Throwable {
+    publisherVerification.spec317_mustSupportAPendingElementCountUpToLongMaxValue();
+  }
+
+  @Test
   public void spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue() throws Throwable {
     publisherVerification.spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue();
+  }
+
+  @Test
+  public void spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable {
+    publisherVerification.spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue();
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.4
@@ -386,9 +401,6 @@ public abstract class IdentityProcessorVerification<T> {
             if (subs.isCompleted()) subscription.cancel(); // the Probe must also pass subscriber verification
 
             probe.registerOnSubscribe(new SubscriberWhiteboxVerification.SubscriberPuppet() {
-              public void triggerShutdown() {
-                subscription.cancel();
-              }
 
               @Override
               public void triggerRequest(long elements) {
@@ -427,19 +439,6 @@ public abstract class IdentityProcessorVerification<T> {
   ////////////////////// OTHER RULE VERIFICATION ///////////////////////////
 
   // A Processor
-  //   must cancel its upstream Subscription if its last downstream Subscription has been cancelled
-  @Test
-  public void mustCancelItsUpstreamSubscriptionIfItsLastDownstreamSubscriptionHasBeenCancelled() throws Exception {
-    new TestSetup(env, processorBufferSize) {{
-      final ManualSubscriber<T> sub = newSubscriber();
-      sub.cancel();
-      expectCancelling();
-
-      env.verifyNoAsyncErrors();
-    }};
-  }
-
-  // A Processor
   //   must immediately pass on `onError` events received from its upstream to its downstream
   @Test
   public void mustImmediatelyPassOnOnErrorEventsReceivedFromItsUpstreamToItsDownstream() throws Exception {
@@ -461,11 +460,6 @@ public abstract class IdentityProcessorVerification<T> {
   @Test
   public void exerciseWhiteboxHappyPath() throws Throwable {
     subscriberVerification.exerciseWhiteboxHappyPath();
-  }
-
-  @Test
-  public void spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable {
-    subscriberVerification.spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue();
   }
 
   @Test
@@ -504,8 +498,8 @@ public abstract class IdentityProcessorVerification<T> {
   }
 
   @Test
-  public void spec207_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThread() throws Exception {
-    subscriberVerification.spec207_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThread();
+  public void spec207_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThreadOrTakeCareOfSynchronization() throws Exception {
+    subscriberVerification.spec207_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThreadOrTakeCareOfSynchronization();
   }
 
   @Test
@@ -544,13 +538,8 @@ public abstract class IdentityProcessorVerification<T> {
   }
 
   @Test
-  public void spec213_failingOnCompleteInvocation() throws Exception {
-    subscriberVerification.spec213_failingOnCompleteInvocation();
-  }
-
-  @Test
-  public void spec214_failingOnErrorInvocation() throws Exception {
-    subscriberVerification.spec214_failingOnErrorInvocation();
+  public void spec213_failingOnSignalInvocation() throws Exception {
+    subscriberVerification.spec213_failingOnSignalInvocation();
   }
 
   @Test
@@ -564,16 +553,6 @@ public abstract class IdentityProcessorVerification<T> {
   }
 
   @Test
-  public void spec309_callingRequestZeroMustThrow() throws Throwable {
-    subscriberVerification.spec309_callingRequestZeroMustThrow();
-  }
-
-  @Test
-  public void spec309_callingRequestWithNegativeNumberMustThrow() throws Throwable {
-    subscriberVerification.spec309_callingRequestWithNegativeNumberMustThrow();
-  }
-
-  @Test
   public void spec310_requestMaySynchronouslyCallOnNextOnSubscriber() throws Exception {
     subscriberVerification.spec310_requestMaySynchronouslyCallOnNextOnSubscriber();
   }
@@ -581,11 +560,6 @@ public abstract class IdentityProcessorVerification<T> {
   @Test
   public void spec311_requestMaySynchronouslyCallOnCompleteOrOnError() throws Exception {
     subscriberVerification.spec311_requestMaySynchronouslyCallOnCompleteOrOnError();
-  }
-
-  @Test
-  public void spec312_cancelMustRequestThePublisherToEventuallyStopSignaling() throws Throwable {
-    subscriberVerification.spec312_cancelMustRequestThePublisherToEventuallyStopSignaling();
   }
 
   @Test
@@ -601,11 +575,6 @@ public abstract class IdentityProcessorVerification<T> {
   @Test
   public void spec316_requestMustNotThrowExceptionAndMustOnErrorTheSubscriber() throws Exception {
     subscriberVerification.spec316_requestMustNotThrowExceptionAndMustOnErrorTheSubscriber();
-  }
-
-  @Test
-  public void spec317_mustSupportAPendingElementCountUpToLongMaxValue() throws Throwable {
-    subscriberVerification.spec317_mustSupportAPendingElementCountUpToLongMaxValue();
   }
 
   /////////////////////// ADDITIONAL "COROLLARY" TESTS //////////////////////
@@ -677,7 +646,7 @@ public abstract class IdentityProcessorVerification<T> {
    */
   public void optionalMultipleSubscribersTest(long requiredSubscribersSupport, Function<Long, TestSetup> body) throws Throwable {
     if (requiredSubscribersSupport > maxSupportedSubscribers())
-      notVerified("The Publisher under test only supports " +maxSupportedSubscribers()+ " subscribers, " +
+      notVerified("The Publisher under test only supports " + maxSupportedSubscribers() + " subscribers, " +
                       "while this test requires at least " + requiredSubscribersSupport + "to run.");
     else body.apply(requiredSubscribersSupport);
   }

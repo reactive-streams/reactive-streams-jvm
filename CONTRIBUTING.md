@@ -17,7 +17,14 @@ To ensure consistent development of Reactive Streams towards their goal, a group
 * Twitter Inc., currently represented by Marius Eriksen (@mariusaeriksen)
 * Typesafe Inc., currently represented by Viktor Klang (@viktorklang) and Roland Kuhn (@rkuhn)
 
-The role of this group is detailed in the following, additions to this list are made by pull request as defined below, removals require the consent of the entity to be removed or unanimous consent of all other gatekeepers. Changing a representative of one of the gatekeeper entities can be done by a member of that entity without requiring consent from the other gatekeepers.
+The role of this group is detailed in the following, additions to this list are made by pull request as defined below, removals require the consent of the entity to be removed or unanimous consent of all other Gatekeepers. Changing a representative of one of the gatekeeper entities can be done by a member of that entity without requiring consent from the other Gatekeepers.
+
+Gatekeepers commit to the following:
+
+1. 1-week SLA on :+1: or :-1: Pull Requests
+   * If a Gatekeeper will be unavailable for a period of time, notify @reactive-streams/contributors and appoint who will vote in his/her place in the mean time
+2. tag @reactive-streams/contributors with a deadline when there needs to be a vote on an Issue,
+    with at least 1 week of notice (see rule 1 above)
 
 ## General Workflow
 
@@ -47,7 +54,7 @@ Follow these guidelines when creating public commits and writing commit messages
 1. If your work spans multiple local commits (for example; if you do safe point commits while working in a feature branch or work in a branch for long time doing merges/rebases etc.) then please do not commit it all but rewrite the history by squashing the commits into a single big commit which you write a good commit message for (like discussed in the following sections). For more info read this article: [Git Workflow](http://sandofsky.com/blog/git-workflow.html). Every commit should be able to be used in isolation, cherry picked etc.
 
 2. First line should be a descriptive sentence what the commit is doing. It should be possible to fully understand what the commit does—but not necessarily how it does it—by just reading this single line. We follow the “imperative present tense” style for commit messages ([more info here](http://tbaggery.com/2008/04/19/a-note-about-git-commit-messages.html)).
-   
+
    It is **not ok** to only list the ticket number, type "minor fix" or similar. In order to help with automatic filtering of the commit history (generating ChangeLogs, writing the migration guide, code archaeology) we use the following encoding:
 
 3. Following the single line description should be a blank line followed by an enumerated list with the details of the commit. For very simple commits this may be empty.

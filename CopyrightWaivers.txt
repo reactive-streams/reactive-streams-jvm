@@ -24,4 +24,7 @@ viktorklang    | Viktor Klang, viktor.klang@gmail.com, Typesafe Inc.
 smaldini       | Stephane Maldini, stephane.maldini@gmail.com, Pivotal Software Inc.
 savulchik      | Stanislav Savulchik, s.savulchik@gmail.com
 ktoso          | Konrad Malawski, konrad.malawski@project13.pl, Typesafe Inc.
+ouertani       | Slim Ouertani, ouertani@gmail.com
+2m             | Martynas Mickevičius, mmartynas@gmail.com, Typesafe Inc.
+ldaley         | Luke Daley, luke.daley@gradleware.com, Gradleware Inc.
 colinrgodsey   | Colin Godsey, crgodsey@gmail.com, MediaMath Inc.

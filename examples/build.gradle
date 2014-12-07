@@ -1,0 +1,4 @@
+description = 'reactive-streams-examples'
+dependencies {
+    compile project(':reactive-streams')
+}
