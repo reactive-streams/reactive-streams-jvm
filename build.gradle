@@ -62,8 +62,26 @@ subprojects {
         uploadArchives {
             repositories {
                 mavenDeployer {
-                    repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2"){
-                        authentication(userName: "changeme", password: "changeme")
+                    gradle.taskGraph.whenReady { taskGraph ->
+                        if (taskGraph.hasTask(uploadArchives)) {
+                            def userProp = "sonatypeOssUsername"
+                            def passwordProp = "sonatypeOssPassword"
+                            def user = project.properties[userProp]
+                            def password = project.properties[passwordProp]
+
+                            if (user == null || password == null) {
+                                throw new InvalidUserDataException(
+                                        "Cannot perform $uploadArchives.path due to missing credentials.\n" +
+                                        "Run with command line args `-P$userProp=«username» -P$passwordProp=«password»` or add these properties to $gradle.gradleUserHomeDir/gradle.properties.\n")
+                            }
+
+                            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
+                                authentication(userName: user, password: password)
+                            }
+                            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
+                                authentication(userName: user, password: password)
+                            }
+                        }
                     }
                 }
             }
