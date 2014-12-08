@@ -17,6 +17,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.reactivestreams.tck.Annotations.*;
 import static org.testng.Assert.assertEquals;
@@ -52,13 +53,16 @@ public abstract class PublisherVerification<T> {
   public abstract Publisher<T> createErrorStatePublisher();
 
   /**
-   * Override and return lower value if your Publisher is only able to produce a finite number of elements.
+   * Override and return lower value if your Publisher is only able to produce a known number of elements.
    * For example, if it is designed to return at-most-one element, return {@code 1} from this method.
+   *
+   * Defaults to {@code Long.MAX_VALUE - 1}, meaning that the Publisher can be produce a huge but NOT an unbounded number of elements.
+   *
+   * To mark your Publisher will *never* signal an {@code onComplete} override this method and return {@code Long.MAX_VALUE},
+   * which will result in *skipping all tests which require an onComplete to be triggered* (!).
    */
   public long maxElementsFromPublisher() {
-    // general idea is to skip tests that we are unable to run on a given publisher (if it can signal less than we need for a test)
-    // see: https://github.com/reactive-streams/reactive-streams/issues/87 for details
-    return Long.MAX_VALUE;
+    return Long.MAX_VALUE - 1;
   }
 
   /**
@@ -101,7 +105,7 @@ public abstract class PublisherVerification<T> {
       }
 
       Optional<T> requestNextElementOrEndOfStream(Publisher<T> pub, ManualSubscriber<T> sub) throws InterruptedException {
-        return sub.requestNextElementOrEndOfStream("Timeout while waiting for next element from Publisher" + pub);
+        return sub.requestNextElementOrEndOfStream(String.format("Timeout while waiting for next element from Publisher %s", pub));
       }
 
     });
@@ -120,7 +124,7 @@ public abstract class PublisherVerification<T> {
       }
 
       Optional<T> requestNextElementOrEndOfStream(Publisher<T> pub, ManualSubscriber<T> sub) throws InterruptedException {
-        return sub.requestNextElementOrEndOfStream("Timeout while waiting for next element from Publisher" + pub);
+        return sub.requestNextElementOrEndOfStream(String.format("Timeout while waiting for next element from Publisher %s", pub));
       }
 
     });
@@ -148,16 +152,16 @@ public abstract class PublisherVerification<T> {
 
         ManualSubscriber<T> sub = env.newManualSubscriber(pub);
 
-        sub.expectNone("Publisher " + pub + " produced value before the first `request`: ");
+        sub.expectNone(String.format("Publisher %s produced value before the first `request`: ", pub));
         sub.request(1);
-        sub.nextElement("Publisher " + pub + " produced no element after first `request`");
-        sub.expectNone("Publisher " + pub + " produced unrequested: ");
+        sub.nextElement(String.format("Publisher %s produced no element after first `request`", pub));
+        sub.expectNone(String.format("Publisher %s produced unrequested: ", pub));
 
         sub.request(1);
         sub.request(2);
-        sub.nextElements(3, env.defaultTimeoutMillis(), "Publisher " + pub + " produced less than 3 elements after two respective `request` calls");
+        sub.nextElements(3, env.defaultTimeoutMillis(), String.format("Publisher %s produced less than 3 elements after two respective `request` calls", pub));
 
-        sub.expectNone("Publisher " + pub + "produced unrequested ");
+        sub.expectNone(String.format("Publisher %sproduced unrequested ", pub));
       }
     });
   }
@@ -191,61 +195,89 @@ public abstract class PublisherVerification<T> {
         activePublisherTest(elements, new PublisherTestRun<T>() {
           @Override
           public void run(Publisher<T> pub) throws Throwable {
-            final Latch callLatch = new Latch(env);
             final Latch completionLatch = new Latch(env);
 
             pub.subscribe(new Subscriber<T>() {
               private Subscription subs;
               private long gotElements = 0;
-              private String state = "init";
+
+              private ConcurrentAccessBarrier concurrentAccessBarrier = new ConcurrentAccessBarrier();
+
+              /**
+               * Concept wise very similar to a {@link org.reactivestreams.tck.TestEnvironment.Latch}, serves to protect
+               * a critical section from concurrent access, with the added benefit of Thread tracking and same-thread-access awareness.
+               *
+               * Since a <i>Synchronous</i> Publisher may choose to synchronously (using the same {@link Thread}) call
+               * {@code onNext} directly from either {@code subscribe} or {@code request} a plain Latch is not enough
+               * to verify concurrent access safety - one needs to track if the caller is not still using the calling thread
+               * to enter subsequent critical sections ("nesting" them effectively).
+               */
+              final class ConcurrentAccessBarrier {
+                private AtomicReference<Thread> currentlySignallingThread = new AtomicReference<Thread>(null);
+                private volatile String previousSignal = null;
+
+                public void enterSignal(String signalName) {
+                  if((!currentlySignallingThread.compareAndSet(null, Thread.currentThread())) && !isSynchronousSignal()) {
+                    env.flop(String.format(
+                      "Illegal concurrent access detected (entering critical section)! " +
+                        "%s emited %s signal, before %s finished its %s signal.",
+                        Thread.currentThread(), signalName, currentlySignallingThread.get(), previousSignal));
+                  }
+                  this.previousSignal = signalName;
+                }
+
+                public void leaveSignal(String signalName) {
+                  currentlySignallingThread.set(null);
+                  this.previousSignal = signalName;
+                }
+
+                private boolean isSynchronousSignal() {
+                  return (previousSignal != null) && Thread.currentThread().equals(currentlySignallingThread.get());
+                }
+
+              }
 
               @Override
               public void onSubscribe(Subscription s) {
-                callLatch.assertOpen("Expected latch to be open during onSubscribe call, state seems to be: " + state);
-                callLatch.close();
-
-                state = "onSubscribe";
+                final String signal = "onSubscribe()";
+                concurrentAccessBarrier.enterSignal(signal);
 
                 subs = s;
                 subs.request(1);
 
-                callLatch.reOpen();
+                concurrentAccessBarrier.leaveSignal(signal);
               }
 
               @Override
               public void onNext(T ignore) {
-                callLatch.assertOpen("Expected latch to be open during onNext call, state seems to be: " + state);
-                callLatch.close();
+                final String signal = String.format("onNext(%s)", ignore);
+                concurrentAccessBarrier.enterSignal(signal);
 
-                state = "onNext-" + ignore;
-
-                // ignore value
                 gotElements += 1;
                 if (gotElements <= elements) // requesting one more than we know are in the stream (some Publishers need this)
                   subs.request(1);
 
-                callLatch.reOpen();
+                concurrentAccessBarrier.leaveSignal(signal);
               }
 
               @Override
               public void onError(Throwable t) {
-                callLatch.assertOpen("Expected latch to be open during onError call, state seems to be: " + state);
-                callLatch.close();
-
-                state = "onError";
+                final String signal = String.format("onError(%s)", t.getMessage());
+                concurrentAccessBarrier.enterSignal(signal);
 
                 // ignore value
-                callLatch.reOpen();
+
+                concurrentAccessBarrier.leaveSignal(signal);
               }
 
               @Override
               public void onComplete() {
-                callLatch.assertOpen("Expected latch to be open during onComplete call, state seems to be: " + state);
-                callLatch.close();
+                final String signal = "onComplete()";
+                concurrentAccessBarrier.enterSignal(signal);
 
-                state = "onComplete";
+                // entering for completeness
 
-                callLatch.reOpen();
+                concurrentAccessBarrier.leaveSignal(signal);
                 completionLatch.close();
               }
             });
@@ -261,24 +293,29 @@ public abstract class PublisherVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.4
   @Additional(implement = "createErrorStatePublisher") @Test
   public void spec104_mustSignalOnErrorWhenFails() throws Throwable {
-    errorPublisherTest(new PublisherTestRun<T>() {
-      @Override
-      public void run(final Publisher<T> pub) throws InterruptedException {
-        final Latch latch = new Latch(env);
-        pub.subscribe(new TestEnvironment.TestSubscriber<T>(env) {
-          @Override
-          public void onError(Throwable cause) {
-            latch.assertOpen(String.format("Error-state Publisher %s called `onError` twice on new Subscriber", pub));
-            latch.close();
-          }
-        });
+    try {
+      errorPublisherTest(new PublisherTestRun<T>() {
+        @Override
+        public void run(final Publisher<T> pub) throws InterruptedException {
+          final Latch latch = new Latch(env);
+          pub.subscribe(new TestEnvironment.TestSubscriber<T>(env) {
+            @Override
+            public void onError(Throwable cause) {
+              latch.assertOpen(String.format("Error-state Publisher %s called `onError` twice on new Subscriber", pub));
+              latch.close();
+            }
+          });
 
-        latch.expectClose(String.format("Error-state Publisher %s did not call `onError` on new Subscriber", pub));
-        Thread.sleep(env.defaultTimeoutMillis()); // wait for the Publisher to potentially call 'onSubscribe' or `onNext` which would trigger an async error
+          latch.expectClose(String.format("Error-state Publisher %s did not call `onError` on new Subscriber", pub));
 
-        env.verifyNoAsyncErrors();
-      }
-    });
+          env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
+        }
+      });
+    } catch (Throwable ex) {
+      // we also want to catch AssertionErrors and anything the publisher may have thrown inside subscribe
+      // which was wrong of him - he should have signalled on error using onError
+      throw new RuntimeException(String.format("Publisher threw exception (%s) instead of signalling error via onError!", ex.getMessage()), ex);
+    }
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.5
@@ -323,9 +360,6 @@ public abstract class PublisherVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.7
   @NotVerified @Test
   public void spec107_mustNotEmitFurtherSignalsOnceOnErrorHasBeenSignalled() throws Throwable {
-    // todo we would need a publisher to subscribe properly, and then error - needs new createSubscribeThenError
-    // method to be implemented by user I think.
-
     notVerified(); // can we meaningfully test this, without more control over the publisher?
   }
 
@@ -407,26 +441,26 @@ public abstract class PublisherVerification<T> {
         ManualSubscriber<T> sub3 = env.newManualSubscriber(pub);
 
         sub1.request(1);
-        T x1 = sub1.nextElement("Publisher " + pub + " did not produce the requested 1 element on 1st subscriber");
+        T x1 = sub1.nextElement(String.format("Publisher %s did not produce the requested 1 element on 1st subscriber", pub));
         sub2.request(2);
-        List<T> y1 = sub2.nextElements(2, "Publisher " + pub + " did not produce the requested 2 elements on 2nd subscriber");
+        List<T> y1 = sub2.nextElements(2, String.format("Publisher %s did not produce the requested 2 elements on 2nd subscriber", pub));
         sub1.request(1);
-        T x2 = sub1.nextElement("Publisher " + pub + " did not produce the requested 1 element on 1st subscriber");
+        T x2 = sub1.nextElement(String.format("Publisher %s did not produce the requested 1 element on 1st subscriber", pub));
         sub3.request(3);
-        List<T> z1 = sub3.nextElements(3, "Publisher " + pub + " did not produce the requested 3 elements on 3rd subscriber");
+        List<T> z1 = sub3.nextElements(3, String.format("Publisher %s did not produce the requested 3 elements on 3rd subscriber", pub));
         sub3.request(1);
-        T z2 = sub3.nextElement("Publisher " + pub + " did not produce the requested 1 element on 3rd subscriber");
+        T z2 = sub3.nextElement(String.format("Publisher %s did not produce the requested 1 element on 3rd subscriber", pub));
         sub3.request(1);
-        T z3 = sub3.nextElement("Publisher " + pub + " did not produce the requested 1 element on 3rd subscriber");
-        sub3.requestEndOfStream("Publisher " + pub + " did not complete the stream as expected on 3rd subscriber");
+        T z3 = sub3.nextElement(String.format("Publisher %s did not produce the requested 1 element on 3rd subscriber", pub));
+        sub3.requestEndOfStream(String.format("Publisher %s did not complete the stream as expected on 3rd subscriber", pub));
         sub2.request(3);
-        List<T> y2 = sub2.nextElements(3, "Publisher " + pub + " did not produce the requested 3 elements on 2nd subscriber");
-        sub2.requestEndOfStream("Publisher " + pub + " did not complete the stream as expected on 2nd subscriber");
+        List<T> y2 = sub2.nextElements(3, String.format("Publisher %s did not produce the requested 3 elements on 2nd subscriber", pub));
+        sub2.requestEndOfStream(String.format("Publisher %s did not complete the stream as expected on 2nd subscriber", pub));
         sub1.request(2);
-        List<T> x3 = sub1.nextElements(2, "Publisher " + pub + " did not produce the requested 2 elements on 1st subscriber");
+        List<T> x3 = sub1.nextElements(2, String.format("Publisher %s did not produce the requested 2 elements on 1st subscriber", pub));
         sub1.request(1);
-        T x4 = sub1.nextElement("Publisher " + pub + " did not produce the requested 1 element on 1st subscriber");
-        sub1.requestEndOfStream("Publisher " + pub + " did not complete the stream as expected on 1st subscriber");
+        T x4 = sub1.nextElement(String.format("Publisher %s did not produce the requested 1 element on 1st subscriber", pub));
+        sub1.requestEndOfStream(String.format("Publisher %s did not complete the stream as expected on 1st subscriber", pub));
 
         @SuppressWarnings("unchecked")
         List<T> r = new ArrayList<T>(Arrays.asList(x1, x2));
@@ -441,8 +475,8 @@ public abstract class PublisherVerification<T> {
         check2.add(z2);
         check2.add(z3);
 
-        assertEquals(r, check1, "Publisher " + pub + " did not produce the same element sequence for subscribers 1 and 2");
-        assertEquals(r, check2, "Publisher " + pub + " did not produce the same element sequence for subscribers 1 and 3");
+        assertEquals(r, check1, String.format("Publisher %s did not produce the same element sequence for subscribers 1 and 2", pub));
+        assertEquals(r, check2, String.format("Publisher %s did not produce the same element sequence for subscribers 1 and 3", pub));
       }
     });
   }
@@ -540,6 +574,9 @@ public abstract class PublisherVerification<T> {
             if (callsUntilNow > boundedDepthOfOnNextAndRequestRecursion()) {
               env.flop(String.format("Got %d onNext calls within thread: %s, yet expected recursive bound was %d",
                                      callsUntilNow, Thread.currentThread(), boundedDepthOfOnNextAndRequestRecursion()));
+
+              // stop the recursive call chain
+              return;
             }
 
             // request more right away, the Publisher must break the recursion
@@ -655,22 +692,39 @@ public abstract class PublisherVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.12
   @Required @Test
   public void spec312_cancelMustMakeThePublisherToEventuallyStopSignaling() throws Throwable {
-    final int elementsCount = 20;
+    // the publisher is able to signal more elements than the subscriber will be requesting in total
+    final int publisherElements = 20;
 
-    activePublisherTest(elementsCount, new PublisherTestRun<T>() {
+    final int demand1 = 10;
+    final int demand2 = 5;
+    final int totalDemand = demand1 + demand2;
+
+    activePublisherTest(publisherElements, new PublisherTestRun<T>() {
       @Override @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
       public void run(Publisher<T> pub) throws Throwable {
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
 
-        int demand1 = 10;
-        int demand2 = 5;
         sub.request(demand1);
         sub.request(demand2);
-        final int totalDemand = demand1 + demand2;
 
+        /*
+          NOTE: The order of the nextElement/cancel calls below is very important (!)
+
+          If this ordering was reversed, given an asynchronous publisher,
+          the following scenario would be *legal* and would break this test:
+
+          > AsyncPublisher receives request(10) - it does not emit data right away, it's asynchronous
+          > AsyncPublisher receives request(5) - demand is now 15
+          ! AsyncPublisher didn't emit any onNext yet (!)
+          > AsyncPublisher receives cancel() - handles it right away, by "stopping itself" for example
+          ! cancel was handled hefore the AsyncPublisher ever got the chance to emit data
+          ! the subscriber ends up never receiving even one element - the test is stuck (and fails, even on valid Publisher)
+
+          Which is why we must first expect an element, and then cancel, once the producing is "running".
+         */
+        sub.nextElement();
         sub.cancel();
 
-        sub.nextElement();
         int onNextsSignalled = 1;
 
         boolean stillBeingSignalled;
@@ -685,10 +739,13 @@ public abstract class PublisherVerification<T> {
             onNextsSignalled += 1;
             stillBeingSignalled = true;
           }
-        } while (stillBeingSignalled && onNextsSignalled < totalDemand);
 
-        assertTrue(onNextsSignalled <= totalDemand,
-                   String.format("Publisher signalled [%d] elements, which is more than the signalled demand: %d", onNextsSignalled, totalDemand));
+          // if the Publisher tries to emit more elements than was requested (and/or ignores cancellation) this will throw
+          assertTrue(onNextsSignalled <= totalDemand,
+                     String.format("Publisher signalled [%d] elements, which is more than the signalled demand: %d",
+                                   onNextsSignalled, totalDemand));
+
+        } while (stillBeingSignalled);
       }
     });
 
@@ -725,8 +782,10 @@ public abstract class PublisherVerification<T> {
         System.gc();
 
         if (!ref.equals(queue.remove(100))) {
-          env.flop("Publisher " + pub + " did not drop reference to test subscriber after subscription cancellation");
+          env.flop(String.format("Publisher %s did not drop reference to test subscriber after subscription cancellation", pub));
         }
+
+        env.verifyNoAsyncErrors();
       }
     });
   }
@@ -774,37 +833,33 @@ public abstract class PublisherVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.17
   @Required @Test
   public void spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable {
-    final long MAX_SPINS = 10;
-    final long SPIN_ASSERT_DELAY = env.defaultTimeoutMillis() / MAX_SPINS;
-
     activePublisherTest(Integer.MAX_VALUE, new PublisherTestRun<T>() {
       @Override public void run(Publisher<T> pub) throws Throwable {
-        final ManualSubscriber<T> sub = env.newBlackholeSubscriber(pub);
+        ManualSubscriberWithSubscriptionSupport<T> sub = new BlackholeSubscriberWithSubscriptionSupport<T>(env) {
+           // arbitrarily set limit on nuber of request calls signalled, we expect overflow after already 2 calls,
+           // so 10 is relatively high and safe even if arbitrarily chosen
+          int callsCounter = 10;
 
-        sub.request(Long.MAX_VALUE - 1);
-
-        long i = 0;
-        boolean overflowSignalled = false;
-        while (!overflowSignalled && i < MAX_SPINS) {
-          sub.request(Long.MAX_VALUE - 1);
-
-          Thread.sleep(SPIN_ASSERT_DELAY);
-          Throwable asyncError = env.dropAsyncError();
-
-          //noinspection StatementWithEmptyBody
-          if (asyncError == null) {
-            // did not get onError yet, keep spinning
-          } else {
-            // verify it's the kind of onError we are expecting here
-            env.assertErrorWithMessage(asyncError, IllegalStateException.class, "3.17");
-            overflowSignalled = true;
+          @Override
+          public void onNext(T element) {
+            env.debug(String.format("%s::onNext(%s)", this, element));
+            if (subscription.isCompleted()) {
+              if (callsCounter > 0) {
+                subscription.value().request(Long.MAX_VALUE - 1);
+                callsCounter--;
+              }
+            } else {
+              env.flop(String.format("Subscriber::onNext(%s) called before Subscriber::onSubscribe", element));
+            }
           }
+        };
+        env.subscribe(pub, sub, env.defaultTimeoutMillis());
 
-          i++;
-        }
+        // eventually triggers `onNext`, which will then trigger up to `callsCounter` times `request(Long.MAX_VALUE - 1)`
+        // we're pretty sure to overflow from those
+        sub.request(1);
 
-        env.debug(String.format("Signalled overflow after %d-th spin (of max: %d), with %dms delays: %s (`true` is expected)", i + 1, MAX_SPINS, SPIN_ASSERT_DELAY, overflowSignalled));
-        assertTrue(overflowSignalled, String.format("Expected overflow to be signalled after %d spins (max: %d), with delays: %d", i + 1, MAX_SPINS, SPIN_ASSERT_DELAY));
+        sub.expectErrorWithMessage(IllegalStateException.class, "3.17");
 
         // onError must be signalled only once, even with in-flight other request() messages that would trigger overflow again
         env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
@@ -825,7 +880,9 @@ public abstract class PublisherVerification<T> {
    */
   public void activePublisherTest(long elements, PublisherTestRun<T> body) throws Throwable {
     if (elements > maxElementsFromPublisher()) {
-      throw new SkipException(String.format("Unable to run this test, as required elements nr: %d is higher than supported by given producer: %d", elements, maxElementsFromPublisher()));
+      throw new SkipException(
+        String.format("Unable to run this test, as required elements nr: %d is higher than supported by given producer: %d",
+                      elements, maxElementsFromPublisher()));
     }
 
     Publisher<T> pub = createPublisher(elements);
@@ -838,7 +895,9 @@ public abstract class PublisherVerification<T> {
    */
   public void optionalActivePublisherTest(long elements, PublisherTestRun<T> body) throws Throwable {
     if (elements > maxElementsFromPublisher()) {
-      throw new SkipException(String.format("Unable to run this test, as required elements nr: %d is higher than supported by given producer: %d", elements, maxElementsFromPublisher()));
+      throw new SkipException(
+        String.format("Unable to run this test, as required elements nr: %d is higher than supported by given producer: %d",
+                      elements, maxElementsFromPublisher()));
     }
 
     final Publisher<T> pub = createPublisher(elements);
@@ -849,7 +908,7 @@ public abstract class PublisherVerification<T> {
     } catch (Exception ex) {
       notVerified(skipMessage);
     } catch (AssertionError ex) {
-      notVerified(skipMessage);
+      notVerified(String.format("%s Reason for skipping was: %s", skipMessage, ex.getMessage()));
     }
   }
 

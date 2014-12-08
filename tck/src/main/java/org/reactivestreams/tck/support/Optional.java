@@ -58,7 +58,7 @@ public abstract class Optional<T> {
 
     @Override
     public String toString() {
-      return "Some(" + value + ")";
+      return String.format("Some(%s)", value);
     }
   }
 
