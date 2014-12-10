@@ -288,6 +288,11 @@ public abstract class IdentityProcessorVerification<T> {
   }
 
   @Test
+  public void spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfrontAndCompleteAsExpected() throws Throwable {
+    publisherVerification.spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfrontAndCompleteAsExpected();
+  }
+
+  @Test
   public void spec302_mustAllowSynchronousRequestCallsFromOnNextAndOnSubscribe() throws Throwable {
     publisherVerification.spec302_mustAllowSynchronousRequestCallsFromOnNextAndOnSubscribe();
   }

@@ -3,7 +3,10 @@ package org.reactivestreams.tck;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import org.reactivestreams.tck.TestEnvironment.*;
+import org.reactivestreams.tck.TestEnvironment.BlackholeSubscriberWithSubscriptionSupport;
+import org.reactivestreams.tck.TestEnvironment.Latch;
+import org.reactivestreams.tck.TestEnvironment.ManualSubscriber;
+import org.reactivestreams.tck.TestEnvironment.ManualSubscriberWithSubscriptionSupport;
 import org.reactivestreams.tck.support.Function;
 import org.reactivestreams.tck.support.Optional;
 import org.testng.SkipException;
@@ -21,7 +24,6 @@ import java.util.concurrent.atomic.AtomicReference;
 
 import static org.reactivestreams.tck.Annotations.*;
 import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertFalse;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -51,6 +53,7 @@ public abstract class PublisherVerification<T> {
    * or {@code null} in order to skip them.
    */
   public abstract Publisher<T> createErrorStatePublisher();
+
 
   /**
    * Override and return lower value if your Publisher is only able to produce a known number of elements.
@@ -96,7 +99,7 @@ public abstract class PublisherVerification<T> {
 
   @Required @Test
   public void createPublisher1MustProduceAStreamOfExactly1Element() throws Throwable {
-    activePublisherTest(1, new PublisherTestRun<T>() {
+    activePublisherTest(1, true, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws InterruptedException {
         ManualSubscriber<T> sub = env.newManualSubscriber(pub);
@@ -113,7 +116,7 @@ public abstract class PublisherVerification<T> {
 
   @Required @Test
   public void createPublisher3MustProduceAStreamOfExactly3Elements() throws Throwable {
-    activePublisherTest(3, new PublisherTestRun<T>() {
+    activePublisherTest(3, true, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws InterruptedException {
         ManualSubscriber<T> sub = env.newManualSubscriber(pub);
@@ -132,7 +135,7 @@ public abstract class PublisherVerification<T> {
 
   @Required @Test
   public void validate_maxElementsFromPublisher() throws Exception {
-    assertTrue(maxElementsFromPublisher() >= 0, "maxElementsFromPublisher MUST return a number >= 0");
+    assertTrue(maxElementsFromPublisher() > 0, "maxElementsFromPublisher MUST return a number > 0");
   }
 
   @Required @Test
@@ -146,7 +149,7 @@ public abstract class PublisherVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.1
   @Required @Test
   public void spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements() throws Throwable {
-    activePublisherTest(5, new PublisherTestRun<T>() {
+    activePublisherTest(5, false, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws InterruptedException {
 
@@ -172,7 +175,7 @@ public abstract class PublisherVerification<T> {
     final int elements = 3;
     final int requested = 10;
 
-    activePublisherTest(elements, new PublisherTestRun<T>() {
+    activePublisherTest(elements, true, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
@@ -192,7 +195,7 @@ public abstract class PublisherVerification<T> {
     stochasticTest(iterations, new Function<Integer, Void>() {
       @Override
       public Void apply(final Integer runNumber) throws Throwable {
-        activePublisherTest(elements, new PublisherTestRun<T>() {
+        activePublisherTest(elements, true, new PublisherTestRun<T>() {
           @Override
           public void run(Publisher<T> pub) throws Throwable {
             final Latch completionLatch = new Latch(env);
@@ -321,7 +324,7 @@ public abstract class PublisherVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.5
   @Required @Test
   public void spec105_mustSignalOnCompleteWhenFiniteStreamTerminates() throws Throwable {
-    activePublisherTest(3, new PublisherTestRun<T>() {
+    activePublisherTest(3, true, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         ManualSubscriber<T> sub = env.newManualSubscriber(pub);
@@ -343,7 +346,7 @@ public abstract class PublisherVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.7
   @Required @Test
   public void spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled() throws Throwable {
-    activePublisherTest(1, new PublisherTestRun<T>() {
+    activePublisherTest(1, true, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         ManualSubscriber<T> sub = env.newManualSubscriber(pub);
@@ -378,7 +381,7 @@ public abstract class PublisherVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.10
   @Additional @Test
   public void spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice() throws Throwable {
-    optionalActivePublisherTest(3, new PublisherTestRun<T>() {
+    optionalActivePublisherTest(3, false, new PublisherTestRun<T>() {
       @Override
       public void run(final Publisher<T> pub) throws Throwable {
         ManualSubscriber<T> sub = env.newManualSubscriber(pub);
@@ -392,7 +395,7 @@ public abstract class PublisherVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.11
   @Additional @Test
   public void spec111_maySupportMultiSubscribe() throws Throwable {
-    optionalActivePublisherTest(1, new PublisherTestRun<T>() {
+    optionalActivePublisherTest(1, false, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         ManualSubscriber<T> sub1 = env.newManualSubscriber(pub);
@@ -433,7 +436,7 @@ public abstract class PublisherVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.13
   @Required @Test
   public void spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingOneByOne() throws Throwable {
-    optionalActivePublisherTest(5, new PublisherTestRun<T>() {
+    optionalActivePublisherTest(5, true, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws InterruptedException {
         ManualSubscriber<T> sub1 = env.newManualSubscriber(pub);
@@ -484,7 +487,40 @@ public abstract class PublisherVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.13
   @Required @Test
   public void spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront() throws Throwable {
-    optionalActivePublisherTest(3, new PublisherTestRun<T>() {
+    optionalActivePublisherTest(3, false, new PublisherTestRun<T>() {
+      @Override
+      public void run(Publisher<T> pub) throws Throwable {
+        ManualSubscriber<T> sub1 = env.newManualSubscriber(pub);
+        ManualSubscriber<T> sub2 = env.newManualSubscriber(pub);
+        ManualSubscriber<T> sub3 = env.newManualSubscriber(pub);
+
+        List<T> received1 = new ArrayList<T>();
+        List<T> received2 = new ArrayList<T>();
+        List<T> received3 = new ArrayList<T>();
+
+        // if the publisher must touch it's source to notice it's been drained, the OnComplete won't come until we ask for more than it actually contains...
+        // edgy edge case?
+        sub1.request(4);
+        sub2.request(4);
+        sub3.request(4);
+
+        received1.addAll(sub1.nextElements(3));
+        received2.addAll(sub2.nextElements(3));
+        received3.addAll(sub3.nextElements(3));
+
+        // NOTE: can't check completion, the Publisher may not be able to signal it
+        //       a similar test *with* completion checking is implemented
+
+        assertEquals(received1, received2, String.format("Expected elements to be signaled in the same sequence to 1st and 2nd subscribers"));
+        assertEquals(received2, received3, String.format("Expected elements to be signaled in the same sequence to 2nd and 3rd subscribers"));
+      }
+    });
+  }
+
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.13
+  @Required @Test
+  public void spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfrontAndCompleteAsExpected() throws Throwable {
+    optionalActivePublisherTest(3, true, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         ManualSubscriber<T> sub1 = env.newManualSubscriber(pub);
@@ -520,7 +556,7 @@ public abstract class PublisherVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.2
   @Required @Test
   public void spec302_mustAllowSynchronousRequestCallsFromOnNextAndOnSubscribe() throws Throwable {
-    activePublisherTest(6, new PublisherTestRun<T>() {
+    activePublisherTest(6, false, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         ManualSubscriber<T> sub = new ManualSubscriber<T>(env) {
@@ -554,7 +590,7 @@ public abstract class PublisherVerification<T> {
   public void spec303_mustNotAllowUnboundedRecursion() throws Throwable {
     final long oneMoreThanBoundedLimit = boundedDepthOfOnNextAndRequestRecursion() + 1;
 
-    activePublisherTest(oneMoreThanBoundedLimit, new PublisherTestRun<T>() {
+    activePublisherTest(oneMoreThanBoundedLimit, false, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         final ThreadLocal<Long> stackDepthCounter = new ThreadLocal<Long>() {
@@ -611,7 +647,7 @@ public abstract class PublisherVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.6
   @Required @Test
   public void spec306_afterSubscriptionIsCancelledRequestMustBeNops() throws Throwable {
-    activePublisherTest(3, new PublisherTestRun<T>() {
+    activePublisherTest(3, false, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
 
@@ -645,7 +681,7 @@ public abstract class PublisherVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.7
   @Required @Test
   public void spec307_afterSubscriptionIsCancelledAdditionalCancelationsMustBeNops() throws Throwable {
-    activePublisherTest(1, new PublisherTestRun<T>() {
+    activePublisherTest(1, false, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
@@ -666,7 +702,7 @@ public abstract class PublisherVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.9
   @Required @Test
   public void spec309_requestZeroMustSignalIllegalArgumentException() throws Throwable {
-    activePublisherTest(10, new PublisherTestRun<T>() {
+    activePublisherTest(10, false, new PublisherTestRun<T>() {
       @Override public void run(Publisher<T> pub) throws Throwable {
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
         sub.request(0);
@@ -678,7 +714,7 @@ public abstract class PublisherVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.9
   @Required @Test
   public void spec309_requestNegativeNumberMustSignalIllegalArgumentException() throws Throwable {
-    activePublisherTest(10, new PublisherTestRun<T>() {
+    activePublisherTest(10, false, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
@@ -699,7 +735,7 @@ public abstract class PublisherVerification<T> {
     final int demand2 = 5;
     final int totalDemand = demand1 + demand2;
 
-    activePublisherTest(publisherElements, new PublisherTestRun<T>() {
+    activePublisherTest(publisherElements, false, new PublisherTestRun<T>() {
       @Override @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
       public void run(Publisher<T> pub) throws Throwable {
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
@@ -771,7 +807,7 @@ public abstract class PublisherVerification<T> {
       }
     };
 
-    activePublisherTest(3, new PublisherTestRun<T>() {
+    activePublisherTest(3, false, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         final WeakReference<ManualSubscriber<T>> ref = run.apply(pub);
@@ -795,7 +831,7 @@ public abstract class PublisherVerification<T> {
   public void spec317_mustSupportAPendingElementCountUpToLongMaxValue() throws Throwable {
     final int totalElements = 3;
 
-    activePublisherTest(totalElements, new PublisherTestRun<T>() {
+    activePublisherTest(totalElements, true, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         ManualSubscriber<T> sub = env.newManualSubscriber(pub);
@@ -814,7 +850,7 @@ public abstract class PublisherVerification<T> {
   public void spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue() throws Throwable {
     final int totalElements = 3;
 
-    activePublisherTest(totalElements, new PublisherTestRun<T>() {
+    activePublisherTest(totalElements, true, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         ManualSubscriber<T> sub = env.newManualSubscriber(pub);
@@ -833,7 +869,7 @@ public abstract class PublisherVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.17
   @Required @Test
   public void spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable {
-    activePublisherTest(Integer.MAX_VALUE, new PublisherTestRun<T>() {
+    activePublisherTest(Integer.MAX_VALUE, false, new PublisherTestRun<T>() {
       @Override public void run(Publisher<T> pub) throws Throwable {
         ManualSubscriberWithSubscriptionSupport<T> sub = new BlackholeSubscriberWithSubscriptionSupport<T>(env) {
            // arbitrarily set limit on nuber of request calls signalled, we expect overflow after already 2 calls,
@@ -877,38 +913,50 @@ public abstract class PublisherVerification<T> {
 
   /**
    * Test for feature that SHOULD/MUST be implemented, using a live publisher.
+   *
+   * @param elements the number of elements the Publisher under test  must be able to emit to run this test
+   * @param completionSignalRequired true if an {@code onComplete} signal is required by this test to run.
+   *                                 If the tested Publisher is unable to signal completion, tests requireing onComplete signals will be skipped.
+   *                                 To signal if your Publisher is able to signal completion see {@link PublisherVerification#maxElementsFromPublisher()}.
    */
-  public void activePublisherTest(long elements, PublisherTestRun<T> body) throws Throwable {
+  public void activePublisherTest(long elements, boolean completionSignalRequired, PublisherTestRun<T> body) throws Throwable {
     if (elements > maxElementsFromPublisher()) {
-      throw new SkipException(
-        String.format("Unable to run this test, as required elements nr: %d is higher than supported by given producer: %d",
-                      elements, maxElementsFromPublisher()));
+      throw new SkipException(String.format("Unable to run this test, as required elements nr: %d is higher than supported by given producer: %d", elements, maxElementsFromPublisher()));
+    } else if (completionSignalRequired && maxElementsFromPublisher() == Long.MAX_VALUE) {
+      throw new SkipException("Unable to run this test, as it requires an onComplete signal, " +
+                                "which this Publisher is unable to provide (as signalled by returning Long.MAX_VALUE from `maxElementsFromPublisher()`)");
+    } else {
+      Publisher<T> pub = createPublisher(elements);
+      body.run(pub);
+      env.verifyNoAsyncErrors();
     }
-
-    Publisher<T> pub = createPublisher(elements);
-    body.run(pub);
-    env.verifyNoAsyncErrors();
   }
 
   /**
    * Test for feature that MAY be implemented. This test will be marked as SKIPPED if it fails.
+   *
+   * @param elements the number of elements the Publisher under test  must be able to emit to run this test
+   * @param completionSignalRequired true if an {@code onComplete} signal is required by this test to run.
+   *                                 If the tested Publisher is unable to signal completion, tests requireing onComplete signals will be skipped.
+   *                                 To signal if your Publisher is able to signal completion see {@link PublisherVerification#maxElementsFromPublisher()}.
    */
-  public void optionalActivePublisherTest(long elements, PublisherTestRun<T> body) throws Throwable {
+  public void optionalActivePublisherTest(long elements, boolean completionSignalRequired, PublisherTestRun<T> body) throws Throwable {
     if (elements > maxElementsFromPublisher()) {
-      throw new SkipException(
-        String.format("Unable to run this test, as required elements nr: %d is higher than supported by given producer: %d",
-                      elements, maxElementsFromPublisher()));
-    }
+    } else if (completionSignalRequired && maxElementsFromPublisher() == Long.MAX_VALUE) {
+      throw new SkipException("Unable to run this test, as it requires an onComplete signal, " +
+                                "which this Publisher is unable to provide (as signalled by returning Long.MAX_VALUE from `maxElementsFromPublisher()`)");
+    } else {
 
-    final Publisher<T> pub = createPublisher(elements);
-    final String skipMessage = "Skipped because tested publisher does NOT implement this OPTIONAL requirement.";
+      final Publisher<T> pub = createPublisher(elements);
+      final String skipMessage = "Skipped because tested publisher does NOT implement this OPTIONAL requirement.";
 
-    try {
-      potentiallyPendingTest(pub, body);
-    } catch (Exception ex) {
-      notVerified(skipMessage);
-    } catch (AssertionError ex) {
-      notVerified(String.format("%s Reason for skipping was: %s", skipMessage, ex.getMessage()));
+      try {
+        potentiallyPendingTest(pub, body);
+      } catch (Exception ex) {
+        notVerified(skipMessage);
+      } catch (AssertionError ex) {
+        notVerified(skipMessage + " Reason for skipping was: " + ex.getMessage());
+      }
     }
   }
 
@@ -943,6 +991,16 @@ public abstract class PublisherVerification<T> {
 
   public void notVerified() {
     throw new SkipException("Not verified by this TCK.");
+  }
+
+  /**
+   * Return this value from {@link PublisherVerification#maxElementsFromPublisher()} to mark that the given {@link org.reactivestreams.Publisher},
+   * is not able to signal completion. For example it is strictly a time-bound or unbounded source of data.
+   *
+   * <b>Returning this value from {@link PublisherVerification#maxElementsFromPublisher()} will result in skipping all TCK tests which require onComplete signals!</b>
+   */
+  public long publisherUnableToSignalOnComplete() {
+    return Long.MAX_VALUE;
   }
 
   public void notVerified(String message) {
