@@ -3,6 +3,7 @@ package org.reactivestreams.tck.support;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.testng.SkipException;
 
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicLong;
@@ -42,6 +43,31 @@ public class TCKVerificationSupport {
     throw new RuntimeException(String.format("Expected TCK to fail with '... %s ...', " +
                                                "yet no exception was thrown and test would pass unexpectedly!",
                                              msgPart));
+  }
+
+  /**
+   * Runs given code block and expects it fail with an {@code org.testng.SkipException}
+   *
+   * @param run encapsulates test case which we expect to be skipped
+   * @param msgPart the exception failing the test (inside the run parameter) must contain this message part in one of it's causes
+   */
+  public void requireTestSkip(ThrowingRunnable run, String msgPart) {
+    try {
+      run.run();
+    } catch (SkipException skip) {
+        if (skip.getMessage().contains(msgPart)) {
+          return;
+        } else {
+          throw new RuntimeException(
+            String.format("Expected TCK to skip this test with '... %s ...', yet it skipped with (%s) instead!",
+                          msgPart, skip.getMessage()), skip);
+        }
+    } catch (Throwable throwable) {
+        throw new RuntimeException(
+          String.format("Expected TCK to skip this test, yet it threw %s(%s) instead!",
+                        throwable.getClass().getName(), throwable.getMessage()), throwable);
+    }
+    throw new RuntimeException("Expected TCK to SKIP this test, instead if PASSed!");
   }
 
   /**

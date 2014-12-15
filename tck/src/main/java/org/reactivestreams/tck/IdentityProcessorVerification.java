@@ -387,7 +387,6 @@ public abstract class IdentityProcessorVerification<T> {
 
           env.verifyNoAsyncErrors();
         }};
-
       }
     });
   }
@@ -719,7 +718,7 @@ public abstract class IdentityProcessorVerification<T> {
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     public void expectError(Throwable cause, long timeoutMillis) throws InterruptedException {
       error.expectCompletion(timeoutMillis, "Did not receive expected error on downstream");
-      if (!error.value().equals(cause)) {
+      if (!cause.equals(error.value())) {
         env.flop(String.format("Expected error %s but got %s", cause, error.value()));
       }
     }
