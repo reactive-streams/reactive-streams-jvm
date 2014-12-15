@@ -82,6 +82,38 @@ The annotations on the test methods are used in order to signify the character o
 
 All test assertions are isolated within the required `TestEnvironment`, so it is safe to run the TCK tests in parallel.
 
+### Testing Publishers with restricted capabilities
+
+Some `Publisher`s will not be able to pass through all TCK tests due to some internal or fundamental decissions in their design.
+For example, a `FuturePublisher` can be implemented such that it can only ever `onNext` **exactly once** - this means that it is not possible
+to run all TCK tests against it, since the tests sometimes require multiple elements to be emitted.
+
+In order to allow such restricted capabilities to be tested against the spec's rules, the TCK provides the `maxElementsFromPublisher()` method
+as means of communicating to the TCK the limited capabilities of the Publisher. For example, if a publisher can only ever emit up to `2` elements,
+tests in the TCK which require more than 2 elements to verify a rule can be skipped.
+
+In order to inform the TCK your Publisher is only able to signal up to `2` elements, override the `maxElementsFromPublisher` method like this:
+
+```java
+@Override public long maxElementsFromPublisher() {
+  return 2;
+}
+```
+
+The TCK also supports Publishers which are not able to signal completion. For example you might have a Publisher being backed by a timer.
+Such Publisher does not have a natural way to "complete" after some number of ticks. It would be possible to implement a Processor which would
+"take n elements from the TickPublisher and then signal completion to the downstream", but this adds a layer of indirection between the TCK and the
+Publisher we initially wanted to test. We suggest testing such unbouded Publishers either way - using a "TakeNElementsProcessor" or by informing the TCK
+that the publisher is not able to signal completion. The TCK will then skip all tests which require `onComplete` signals to be emitted.
+
+In order to inform the TCK that your Publiher is not able to signal completion, override the `maxElementsFromPublisher` method like this:
+
+```java
+@Override public long maxElementsFromPublisher() {
+  return publisherUnableToSignalOnComplete(); // == Long.MAX_VALUE == unbounded
+}
+```
+
 ## Publisher Verification
 
 `PublisherVerification` tests verify Publisher as well as some Subscription Rules of the Specification.
