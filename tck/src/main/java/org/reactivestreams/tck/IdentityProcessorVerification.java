@@ -127,13 +127,16 @@ public abstract class IdentityProcessorVerification<T> {
   public abstract Publisher<T> createErrorStatePublisher();
 
   /**
-   * Override and return lower value if your Publisher is only able to produce a finite number of elements.
+   * Override and return lower value if your Publisher is only able to produce a known number of elements.
    * For example, if it is designed to return at-most-one element, return {@code 1} from this method.
    *
-   * Defaults to {@code Long.MAX_VALUE}, meaning that the Publisher can be produce up to infinite streams.
+   * Defaults to {@code Long.MAX_VALUE - 1}, meaning that the Publisher can be produce a huge but NOT an unbounded number of elements.
+   *
+   * To mark your Publisher will *never* signal an {@code onComplete} override this method and return {@code Long.MAX_VALUE},
+   * which will result in *skipping all tests which require an onComplete to be triggered* (!).
    */
   public long maxElementsFromPublisher() {
-    return Long.MAX_VALUE;
+    return Long.MAX_VALUE - 1;
   }
 
   /**
@@ -397,7 +400,7 @@ public abstract class IdentityProcessorVerification<T> {
 
           @Override
           public void onSubscribe(final Subscription subscription) {
-            env.debug("whiteboxSubscriber::onSubscribe(" + subscription + ")");
+            env.debug(String.format("whiteboxSubscriber::onSubscribe(%s)", subscription));
             if (subs.isCompleted()) subscription.cancel(); // the Probe must also pass subscriber verification
 
             probe.registerOnSubscribe(new SubscriberWhiteboxVerification.SubscriberPuppet() {
@@ -416,7 +419,7 @@ public abstract class IdentityProcessorVerification<T> {
 
           @Override
           public void onNext(T element) {
-            env.debug("whiteboxSubscriber::onNext(" + element + ")");
+            env.debug(String.format("whiteboxSubscriber::onNext(%s)", element));
             probe.registerOnNext(element);
           }
 
@@ -428,7 +431,7 @@ public abstract class IdentityProcessorVerification<T> {
 
           @Override
           public void onError(Throwable cause) {
-            env.debug("whiteboxSubscriber::onError(" + cause + ")");
+            env.debug(String.format("whiteboxSubscriber::onError(%s)", cause));
             probe.registerOnError(cause);
           }
         });
@@ -533,8 +536,8 @@ public abstract class IdentityProcessorVerification<T> {
   }
 
   @Test
-  public void spec212_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality() throws Throwable {
-    subscriberVerification.spec212_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality();
+  public void spec212_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality_specViolation() throws Throwable {
+    subscriberVerification.spec212_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality_specViolation();
   }
 
   @Test
@@ -646,8 +649,8 @@ public abstract class IdentityProcessorVerification<T> {
    */
   public void optionalMultipleSubscribersTest(long requiredSubscribersSupport, Function<Long, TestSetup> body) throws Throwable {
     if (requiredSubscribersSupport > maxSupportedSubscribers())
-      notVerified("The Publisher under test only supports " + maxSupportedSubscribers() + " subscribers, " +
-                      "while this test requires at least " + requiredSubscribersSupport + "to run.");
+      notVerified(String.format("The Publisher under test only supports %d subscribers, while this test requires at least %d to run.",
+                                maxSupportedSubscribers(), requiredSubscribersSupport));
     else body.apply(requiredSubscribersSupport);
   }
 
@@ -671,16 +674,16 @@ public abstract class IdentityProcessorVerification<T> {
     public T nextT() throws InterruptedException {
       final T t = tees.requestNextElement();
       if (seenTees.contains(t)) {
-        env.flop("Helper publisher illegally produced the same element " + t + " twice");
+        env.flop(String.format("Helper publisher illegally produced the same element %s twice", t));
       }
       seenTees.add(t);
       return t;
     }
 
     public void expectNextElement(ManualSubscriber<T> sub, T expected) throws InterruptedException {
-      final T elem = sub.nextElement("timeout while awaiting " + expected);
+      final T elem = sub.nextElement(String.format("timeout while awaiting %s", expected));
       if (!elem.equals(expected)) {
-        env.flop("Received `onNext(" + elem + ")` on downstream but expected `onNext(" + expected + ")`");
+        env.flop(String.format("Received `onNext(%s)` on downstream but expected `onNext(%s)`", elem, expected));
       }
     }
 
@@ -712,7 +715,7 @@ public abstract class IdentityProcessorVerification<T> {
     public void expectError(Throwable cause, long timeoutMillis) throws InterruptedException {
       error.expectCompletion(timeoutMillis, "Did not receive expected error on downstream");
       if (!error.value().equals(cause)) {
-        env.flop("Expected error " + cause + " but got " + error.value());
+        env.flop(String.format("Expected error %s but got %s", cause, error.value()));
       }
     }
   }

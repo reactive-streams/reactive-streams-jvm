@@ -3,13 +3,18 @@ package org.reactivestreams.tck;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.reactivestreams.tck.Annotations.Additional;
 import org.reactivestreams.tck.TestEnvironment.*;
+import org.reactivestreams.tck.support.Function;
+import org.reactivestreams.tck.support.Optional;
+import org.reactivestreams.tck.support.TestException;
 import org.testng.SkipException;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import static org.reactivestreams.tck.Annotations.NotVerified;
 import static org.reactivestreams.tck.Annotations.Required;
+import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
 /**
@@ -132,21 +137,21 @@ public abstract class SubscriberWhiteboxVerification<T> {
         final Subscription subs = new Subscription() {
           @Override
           public void request(long n) {
-            Throwable thr = new Throwable();
-            for (StackTraceElement stackTraceElement : thr.getStackTrace()) {
-              if (stackTraceElement.getMethodName().equals("onComplete")) {
-                env.flop("Subscription::request MUST NOT be called from onComplete!");
-              }
+            final Optional<StackTraceElement> onCompleteStackTraceElement = env.findCallerMethodInStackTrace("onComplete");
+            if (onCompleteStackTraceElement.isDefined()) {
+              final StackTraceElement stackElem = onCompleteStackTraceElement.get();
+              env.flop(String.format("Subscription::request MUST NOT be called from Subscriber::onComplete (Rule 2.3)! (Caller: %s::%s line %d)",
+                                     stackElem.getClassName(), stackElem.getMethodName(), stackElem.getLineNumber()));
             }
           }
 
           @Override
           public void cancel() {
-            Throwable thr = new Throwable();
-            for (StackTraceElement stackTraceElement : thr.getStackTrace()) {
-              if (stackTraceElement.getMethodName().equals("onComplete")) {
-                env.flop("Subscriber::onComplete MUST NOT call Subscription::cancel");
-              }
+            final Optional<StackTraceElement> onCompleteStackElement = env.findCallerMethodInStackTrace("onComplete");
+            if (onCompleteStackElement.isDefined()) {
+              final StackTraceElement stackElem = onCompleteStackElement.get();
+              env.flop(String.format("Subscription::cancel MUST NOT be called from Subscriber::onComplete (Rule 2.3)! (Caller: %s::%s line %d)",
+                                     stackElem.getClassName(), stackElem.getMethodName(), stackElem.getLineNumber()));
             }
           }
         };
@@ -172,9 +177,10 @@ public abstract class SubscriberWhiteboxVerification<T> {
           @Override
           public void request(long n) {
             Throwable thr = new Throwable();
-            for (StackTraceElement stackTraceElement : thr.getStackTrace()) {
-              if (stackTraceElement.getMethodName().equals("onError")) {
-                env.flop("Subscriber::onError MUST NOT call Subscription::request!");
+            for (StackTraceElement stackElem : thr.getStackTrace()) {
+              if (stackElem.getMethodName().equals("onError")) {
+                env.flop(String.format("Subscription::request MUST NOT be called from Subscriber::onError (Rule 2.3)! (Caller: %s::%s line %d)",
+                                       stackElem.getClassName(), stackElem.getMethodName(), stackElem.getLineNumber()));
               }
             }
           }
@@ -182,9 +188,10 @@ public abstract class SubscriberWhiteboxVerification<T> {
           @Override
           public void cancel() {
             Throwable thr = new Throwable();
-            for (StackTraceElement stackTraceElement : thr.getStackTrace()) {
-              if (stackTraceElement.getMethodName().equals("onError")) {
-                env.flop("Subscriber::onError MUST NOT call Subscription::cancel");
+            for (StackTraceElement stackElem : thr.getStackTrace()) {
+              if (stackElem.getMethodName().equals("onError")) {
+                env.flop(String.format("Subscription::cancel MUST NOT be called from Subscriber::onError (Rule 2.3)! (Caller: %s::%s line %d)",
+                                       stackElem.getClassName(), stackElem.getMethodName(), stackElem.getLineNumber()));
               }
             }
           }
@@ -194,7 +201,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
         final Subscriber<T> sub = createSubscriber(stage.probe);
 
         sub.onSubscribe(subs);
-        sub.onComplete();
+        sub.onError(new TestException());
 
         env.verifyNoAsyncErrors();
       }
@@ -305,7 +312,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
         stage.puppet().triggerRequest(1);
         stage.puppet().triggerRequest(1);
 
-        Exception ex = new RuntimeException("Test exception");
+        Exception ex = new TestException();
         stage.sendError(ex);
         stage.probe.expectError(ex);
 
@@ -320,7 +327,7 @@ public abstract class SubscriberWhiteboxVerification<T> {
     subscriberTest(new TestStageTestRun() {
       @Override
       public void run(WhiteboxTestStage stage) throws InterruptedException {
-        Exception ex = new RuntimeException("Test exception");
+        Exception ex = new TestException();
         stage.sendError(ex);
         stage.probe.expectError(ex);
 
@@ -336,9 +343,9 @@ public abstract class SubscriberWhiteboxVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.12
-  @Required @Test
-  public void spec212_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality() throws Throwable {
-    subscriberTestWithoutSetup(new TestStageTestRun() {
+  @Additional @Test
+  public void spec212_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality_specViolation() throws Throwable {
+    optionalSubscriberTestWithoutSetup(new TestStageTestRun() {
       @Override @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
       public void run(WhiteboxTestStage stage) throws Exception {
         stage.pub = stage.createHelperPublisher(1);
@@ -351,8 +358,14 @@ public abstract class SubscriberWhiteboxVerification<T> {
         // subscribe the same subscriber again,
         // this can not use convinience subscribe(pub, sub), because that one checks for noAsyncErrors
         // instead we expect the error afterwards
-        stage.pub.subscribe(stage.tees);
-        stage.tees.expectError(IllegalStateException.class, "2.12");
+        stage.pub.subscribe(stage.tees); // NOTE: This is a spec violation!
+
+        // NOTE: It would be nice to signal an error in response to such spec violation, however
+        // reacting to spec violations is not strictly regulated by the Spec - for example, just logging and ignoring may
+        // also be a valid response to this spec violation - it's up to the implementation
+        //
+        // The TCK is able to check only for onErroring in such case, thus the check below and the optional nature of this test
+        stage.tees.expectError(Exception.class, "Should not allow subscribing the same instance multiple times, see Reactive Streams Specification Rule 2.12");
       }
     });
   }
@@ -435,6 +448,17 @@ public abstract class SubscriberWhiteboxVerification<T> {
   public void subscriberTestWithoutSetup(TestStageTestRun body) throws Throwable {
     WhiteboxTestStage stage = new WhiteboxTestStage(env, false);
     body.run(stage);
+  }
+
+  /**
+   * Test for feature that MAY be implemented. This test will be marked as SKIPPED if it fails.
+   */
+  public void optionalSubscriberTestWithoutSetup(TestStageTestRun body) throws Throwable {
+    try {
+      subscriberTestWithoutSetup(body);
+    } catch (Exception ex) {
+      notVerified("Skipped because tested publisher does NOT implement this OPTIONAL requirement.");
+    }
   }
 
   public class WhiteboxTestStage extends ManualPublisher<T> {
@@ -616,15 +640,11 @@ public abstract class SubscriberWhiteboxVerification<T> {
     public <E extends Throwable> E expectError(Class<E> expected, long timeoutMillis) throws InterruptedException {
       error.expectCompletion(timeoutMillis, String.format("Subscriber %s did not call `registerOnError(%s)`", sub(), expected));
       if (error.value() == null) {
-        env.flop(String.format("Subscriber %s did not call `registerOnError(%s)`", sub(), expected));
-        return null; // make compiler happy
+        return env.flopAndFail(String.format("Subscriber %s did not call `registerOnError(%s)`", sub(), expected));
       } else if (expected.isInstance(error.value())) {
         return (E) error.value();
       } else {
-        env.flop(String.format("Subscriber %s called `registerOnError(%s)` rather than `registerOnError(%s)`", sub(), error.value(), expected));
-
-        // make compiler happy
-        return null;
+        return env.flopAndFail(String.format("Subscriber %s called `registerOnError(%s)` rather than `registerOnError(%s)`", sub(), error.value(), expected));
       }
     }
 
@@ -709,5 +729,9 @@ public abstract class SubscriberWhiteboxVerification<T> {
 
   public void notVerified() {
     throw new SkipException("Not verified using this TCK.");
+  }
+
+  public void notVerified(String msg) {
+    throw new SkipException(msg);
   }
 }

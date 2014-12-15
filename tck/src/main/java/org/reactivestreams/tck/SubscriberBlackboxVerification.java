@@ -6,6 +6,7 @@ import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.TestEnvironment.ManualPublisher;
 import org.reactivestreams.tck.TestEnvironment.ManualSubscriber;
 import org.reactivestreams.tck.support.Optional;
+import org.reactivestreams.tck.support.TestException;
 import org.testng.SkipException;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -95,21 +96,21 @@ public abstract class SubscriberBlackboxVerification<T> {
         final Subscription subs = new Subscription() {
           @Override
           public void request(long n) {
-            final Throwable thr = new Throwable();
-            for (StackTraceElement stackElem : thr.getStackTrace()) {
-              if (stackElem.getMethodName().equals("onComplete")) {
-                env.flop("Subscription::request MUST NOT be called from onComplete!");
-              }
+            final Optional<StackTraceElement> onCompleteStackTraceElement = env.findCallerMethodInStackTrace("onComplete");
+            if (onCompleteStackTraceElement.isDefined()) {
+              final StackTraceElement stackElem = onCompleteStackTraceElement.get();
+              env.flop(String.format("Subscription::request MUST NOT be called from Subscriber::onComplete (Rule 2.3)! (Caller: %s::%s line %d)",
+                                     stackElem.getClassName(), stackElem.getMethodName(), stackElem.getLineNumber()));
             }
           }
 
           @Override
           public void cancel() {
-            final Throwable thr = new Throwable();
-            for (StackTraceElement stackElem : thr.getStackTrace()) {
-              if (stackElem.getMethodName().equals("onComplete")) {
-                env.flop("Subscriber::onComplete MUST NOT call Subscription::cancel");
-              }
+            final Optional<StackTraceElement> onCompleteStackElement = env.findCallerMethodInStackTrace("onComplete");
+            if (onCompleteStackElement.isDefined()) {
+              final StackTraceElement stackElem = onCompleteStackElement.get();
+              env.flop(String.format("Subscription::cancel MUST NOT be called from Subscriber::onComplete (Rule 2.3)! (Caller: %s::%s line %d)",
+                                     stackElem.getClassName(), stackElem.getMethodName(), stackElem.getLineNumber()));
             }
           }
         };
@@ -132,10 +133,10 @@ public abstract class SubscriberBlackboxVerification<T> {
         final Subscription subs = new Subscription() {
           @Override
           public void request(long n) {
-            final Throwable thr = new Throwable();
+            Throwable thr = new Throwable();
             for (StackTraceElement stackElem : thr.getStackTrace()) {
               if (stackElem.getMethodName().equals("onError")) {
-                env.flop(String.format("Subscriber::onError MUST NOT call Subscription::request! (Caller: %s::%s line %d)",
+                env.flop(String.format("Subscription::request MUST NOT be called from Subscriber::onError (Rule 2.3)! (Caller: %s::%s line %d)",
                                        stackElem.getClassName(), stackElem.getMethodName(), stackElem.getLineNumber()));
               }
             }
@@ -143,10 +144,10 @@ public abstract class SubscriberBlackboxVerification<T> {
 
           @Override
           public void cancel() {
-            final Throwable thr = new Throwable();
+            Throwable thr = new Throwable();
             for (StackTraceElement stackElem : thr.getStackTrace()) {
               if (stackElem.getMethodName().equals("onError")) {
-                env.flop(String.format("Subscriber::onError MUST NOT call Subscription::cancel! (Caller: %s::%s line %d)",
+                env.flop(String.format("Subscription::cancel MUST NOT be called from Subscriber::onError (Rule 2.3)! (Caller: %s::%s line %d)",
                                        stackElem.getClassName(), stackElem.getMethodName(), stackElem.getLineNumber()));
               }
             }
@@ -155,7 +156,7 @@ public abstract class SubscriberBlackboxVerification<T> {
 
         final Subscriber<T> sub = createSubscriber();
         sub.onSubscribe(subs);
-        sub.onError(new Throwable("Boom!"));
+        sub.onError(new TestException());
 
         env.verifyNoAsyncErrors();
       }
@@ -267,7 +268,7 @@ public abstract class SubscriberBlackboxVerification<T> {
       @Override
       @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
       public void run(BlackboxTestStage stage) throws Throwable {
-        stage.sub().onError(new Throwable("Boom!"));
+        stage.sub().onError(new TestException());
         stage.subProxy().expectError(Throwable.class);
       }
     });

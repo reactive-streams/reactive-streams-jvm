@@ -124,7 +124,7 @@ public class RangePublisherTest extends PublisherVerification<Integer> {
 
   @Override
   public long maxElementsFromPublisher() {
-    return Long.MAX_VALUE;
+    return Long.MAX_VALUE - 1;
   }
 
   @Override
