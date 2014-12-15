@@ -1,0 +1,7 @@
+name: ExamplesSuite
+threadCount: 1
+
+tests:
+  - name: Examples
+    classes:
+      - org.reactivestreams.example.unicast.InfiniteIncrementNumberPublisherTest
