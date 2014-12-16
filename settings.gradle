@@ -1,9 +1,6 @@
 rootProject.name = 'reactive-streams'
 include ':reactive-streams'
 include ':reactive-streams-tck'
-include ':reactive-streams-examples'
 
 project(':reactive-streams').projectDir = "$rootDir/api" as File
 project(':reactive-streams-tck').projectDir = "$rootDir/tck" as File
-project(':reactive-streams-examples').projectDir = "$rootDir/examples" as File
-
