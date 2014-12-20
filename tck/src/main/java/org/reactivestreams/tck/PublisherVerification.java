@@ -314,6 +314,9 @@ public abstract class PublisherVerification<T> {
           env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
         }
       });
+    } catch (SkipException ex) {
+      // skipping is expected, rethrow
+      throw ex;
     } catch (Throwable ex) {
       // we also want to catch AssertionErrors and anything the publisher may have thrown inside subscribe
       // which was wrong of him - he should have signalled on error using onError
@@ -942,6 +945,7 @@ public abstract class PublisherVerification<T> {
    */
   public void optionalActivePublisherTest(long elements, boolean completionSignalRequired, PublisherTestRun<T> body) throws Throwable {
     if (elements > maxElementsFromPublisher()) {
+      throw new SkipException(String.format("Unable to run this test, as required elements nr: %d is higher than supported by given producer: %d", elements, maxElementsFromPublisher()));
     } else if (completionSignalRequired && maxElementsFromPublisher() == Long.MAX_VALUE) {
       throw new SkipException("Unable to run this test, as it requires an onComplete signal, " +
                                 "which this Publisher is unable to provide (as signalled by returning Long.MAX_VALUE from `maxElementsFromPublisher()`)");
@@ -960,18 +964,28 @@ public abstract class PublisherVerification<T> {
     }
   }
 
+  public static final String SKIPPING_NO_ERROR_PUBLISHER_AVAILABLE =
+    "Skipping because no error state Publisher provided, and the test requires it. " +
+          "Please implement PublisherVerification#createErrorStatePublisher to run this test.";
+
+  public static final String SKIPPING_OPTIONAL_TEST_FAILED =
+    "Skipping, because provided Publisher does not pass this *additional* verification.";
   /**
    * Additional test for Publisher in error state
    */
   public void errorPublisherTest(PublisherTestRun<T> body) throws Throwable {
-    potentiallyPendingTest(createErrorStatePublisher(), body);
+    potentiallyPendingTest(createErrorStatePublisher(), body, SKIPPING_NO_ERROR_PUBLISHER_AVAILABLE);
   }
 
   public void potentiallyPendingTest(Publisher<T> pub, PublisherTestRun<T> body) throws Throwable {
+    potentiallyPendingTest(pub, body, SKIPPING_OPTIONAL_TEST_FAILED);
+  }
+
+  public void potentiallyPendingTest(Publisher<T> pub, PublisherTestRun<T> body, String message) throws Throwable {
     if (pub != null) {
       body.run(pub);
     } else {
-      throw new SkipException("Skipping, because no Publisher was provided for this type of test");
+      throw new SkipException(message);
     }
   }
 

@@ -155,6 +155,15 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
   }
 
   @Test
+  public void spec104_mustSignalOnErrorWhenFails_shouldBeSkippedWhenNoErrorPublisherGiven() throws Throwable {
+    requireTestSkip(new ThrowingRunnable() {
+      @Override public void run() throws Throwable {
+        noopPublisherVerification().spec104_mustSignalOnErrorWhenFails();
+      }
+    }, PublisherVerification.SKIPPING_NO_ERROR_PUBLISHER_AVAILABLE);
+  }
+
+  @Test
   public void spec105_mustSignalOnCompleteWhenFiniteStreamTerminates_shouldFail() throws Throwable {
     final Publisher<Integer> forgotToSignalCompletionPublisher = new Publisher<Integer>() {
       @Override public void subscribe(final Subscriber<? super Integer> s) {
@@ -307,6 +316,15 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
         s.onError(new RuntimeException("Sorry, I'm busy now. Call me later."));
       }
     }).spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
+  }
+
+  @Additional @Test
+  public void spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe_beSkippedForNoGivenErrorPublisher() throws Throwable {
+    requireTestSkip(new ThrowingRunnable() {
+      @Override public void run() throws Throwable {
+        noopPublisherVerification().spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
+      }
+    }, PublisherVerification.SKIPPING_NO_ERROR_PUBLISHER_AVAILABLE);
   }
 
   @Additional @Test
@@ -564,7 +582,8 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
   }
 
   /**
-   * Verification using a Publisher that never publishes any element
+   * Verification using a Publisher that never publishes any element.
+   * Skips the error state publisher tests.
    */
   final PublisherVerification<Integer> noopPublisherVerification() {
     return new PublisherVerification<Integer>(newTestEnvironment(), GC_TIMEOUT_MILLIS) {
