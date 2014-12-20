@@ -1,4 +1,6 @@
 description = 'reactive-streams-examples'
 dependencies {
     compile project(':reactive-streams')
+    testCompile project(':reactive-streams-tck')
 }
+test.useTestNG()

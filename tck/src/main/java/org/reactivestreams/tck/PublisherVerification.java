@@ -314,9 +314,8 @@ public abstract class PublisherVerification<T> {
           env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
         }
       });
-    } catch (SkipException ex) {
-      // skipping is expected, rethrow
-      throw ex;
+    } catch (SkipException se) {
+      throw se;
     } catch (Throwable ex) {
       // we also want to catch AssertionErrors and anything the publisher may have thrown inside subscribe
       // which was wrong of him - he should have signalled on error using onError
