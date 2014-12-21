@@ -381,17 +381,9 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.10
-  @Additional @Test
+  @NotVerified @Test
   public void spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice() throws Throwable {
-    optionalActivePublisherTest(3, false, new PublisherTestRun<T>() {
-      @Override
-      public void run(final Publisher<T> pub) throws Throwable {
-        ManualSubscriber<T> sub = env.newManualSubscriber(pub);
-
-        pub.subscribe(sub);
-        sub.expectErrorWithMessage(IllegalStateException.class, "1.10"); // we do require implementations to mention the rule number at the very least
-      }
-    });
+    notVerified(); // can we meaningfully test this?
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.11
