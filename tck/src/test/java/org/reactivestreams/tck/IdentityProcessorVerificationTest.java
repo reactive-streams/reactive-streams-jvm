@@ -5,7 +5,12 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.support.TCKVerificationSupport;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 /**
 * Validates that the TCK's {@link IdentityProcessorVerification} fails with nice human readable errors.
@@ -15,6 +20,10 @@ public class IdentityProcessorVerificationTest extends TCKVerificationSupport {
 
   static final int DEFAULT_TIMEOUT_MILLIS = 100;
 
+  private ExecutorService ex;
+  @BeforeClass void before() { ex = Executors.newFixedThreadPool(4); }
+  @AfterClass void after() { if (ex != null) ex.shutdown(); }
+
   @Test
   public void spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError_shouldBeIgnored() throws Throwable {
     requireTestSkip(new ThrowingRunnable() {
@@ -22,6 +31,12 @@ public class IdentityProcessorVerificationTest extends TCKVerificationSupport {
         new IdentityProcessorVerification(newTestEnvironment(), DEFAULT_TIMEOUT_MILLIS){
           @Override public Processor createIdentityProcessor(int bufferSize) {
             return new NoopProcessor();
+          }
+
+          @Override public ExecutorService publisherExecutorService() { return ex; }
+
+          @Override public Object createElement(int element) {
+            return null;
           }
 
           @Override public Publisher createHelperPublisher(long elements) {
@@ -44,7 +59,7 @@ public class IdentityProcessorVerificationTest extends TCKVerificationSupport {
   public void spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError_shouldFailWhileWaitingForOnError() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        new IdentityProcessorVerification(newTestEnvironment(), DEFAULT_TIMEOUT_MILLIS) {
+        new IdentityProcessorVerification<Integer>(newTestEnvironment(), DEFAULT_TIMEOUT_MILLIS) {
           @Override public Processor<Integer, Integer> createIdentityProcessor(int bufferSize) {
             return new Processor<Integer, Integer>() {
               @Override public void subscribe(final Subscriber<? super Integer> s) {
@@ -76,6 +91,10 @@ public class IdentityProcessorVerificationTest extends TCKVerificationSupport {
             };
           }
 
+          @Override public ExecutorService publisherExecutorService() { return ex; }
+
+          @Override public Integer createElement(int element) { return element; }
+
           @Override public Publisher<Integer> createHelperPublisher(long elements) {
             return new Publisher<Integer>() {
               @Override public void subscribe(final Subscriber<? super Integer> s) {
@@ -90,7 +109,7 @@ public class IdentityProcessorVerificationTest extends TCKVerificationSupport {
             };
           }
 
-          @Override public Publisher createErrorStatePublisher() {
+          @Override public Publisher<Integer> createErrorStatePublisher() {
             return SKIP;
           }
         }.spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError();
