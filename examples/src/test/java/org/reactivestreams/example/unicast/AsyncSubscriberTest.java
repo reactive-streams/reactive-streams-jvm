@@ -1,7 +1,5 @@
 package org.reactivestreams.example.unicast;
 
-import java.util.Collections;
-import java.util.Iterator;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.tck.SubscriberBlackboxVerification;
@@ -31,16 +29,10 @@ public class AsyncSubscriberTest extends SubscriberBlackboxVerification<Integer>
 
   @Override public Subscriber<Integer> createSubscriber() {
     return new AsyncSubscriber<Integer>(e) {
-      private long acc;
       @Override protected boolean whenNext(final Integer element) {
         return true;
       }
     };
-  }
-  @SuppressWarnings("unchecked")
-  @Override public Publisher<Integer> createHelperPublisher(long elements) {
-    if (elements > Integer.MAX_VALUE) return new InfiniteIncrementNumberPublisher(e);
-    else return new NumberIterablePublisher(0, (int)elements, e);
   }
 
   @Test public void testAccumulation() throws InterruptedException {
@@ -63,5 +55,9 @@ public class AsyncSubscriberTest extends SubscriberBlackboxVerification<Integer>
     new NumberIterablePublisher(0, 10, e).subscribe(sub);
     latch.await(DefaultTimeoutMillis * 10, TimeUnit.MILLISECONDS);
     assertEquals(i.get(), 45);
+  }
+
+  @Override public Integer createElement(int element) {
+    return element;
   }
 }

@@ -9,8 +9,13 @@ import org.reactivestreams.tck.support.Optional;
 import org.reactivestreams.tck.support.TestException;
 import org.reactivestreams.tck.support.SubscriberWhiteboxVerificationRules;
 import org.testng.SkipException;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
@@ -21,13 +26,16 @@ import static org.testng.Assert.assertTrue;
  * @see org.reactivestreams.Subscriber
  * @see org.reactivestreams.Subscription
  */
-public abstract class SubscriberWhiteboxVerification<T> implements SubscriberWhiteboxVerificationRules {
+public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublisher<T>
+  implements SubscriberWhiteboxVerificationRules {
 
   private final TestEnvironment env;
 
   protected SubscriberWhiteboxVerification(TestEnvironment env) {
     this.env = env;
   }
+
+  // USER API
 
   /**
    * This is the main method you must implement in your test incarnation.
@@ -38,33 +46,16 @@ public abstract class SubscriberWhiteboxVerification<T> implements SubscriberWhi
    */
   public abstract Subscriber<T> createSubscriber(WhiteboxSubscriberProbe<T> probe);
 
-  /**
-   * Helper method required for generating test elements.
-   * It must create a {@link org.reactivestreams.Publisher} for a stream with exactly the given number of elements.
-   * <p>
-   * It also must treat the following numbers of elements in these specific ways:
-   * <ul>
-   *   <li>
-   *    If {@code elements} is {@code Long.MAX_VALUE} the produced stream must be infinite.
-   *   </li>
-   *   <li>
-   *    If {@code elements} is {@code 0} the {@code Publisher} should signal {@code onComplete} immediatly.
-   *    In other words, it should represent a "completed stream".
-   *   </li>
-   * </ul>
-   */
-  public abstract Publisher<T> createHelperPublisher(long elements);
+  // ENV SETUP
 
   /**
-   * Used to break possibly infinite wait-loops.
-   * Some Rules use the "eventually stop signalling" wording, which requires the test to spin accepting {@code onNext}
-   * signals until no more are signalled. In these tests, this value will be used as upper bound on the number of spin iterations.
-   *
-   * Override this method in case your implementation synchronously signals very large batches before reacting to cancellation (for example).
+   * Executor service used by the default provided asynchronous Publisher.
+   * @see #createHelperPublisher(long)
    */
-  public long maxOnNextSignalsInTest() {
-    return 100;
-  }
+  private ExecutorService publisherExecutor;
+  @BeforeClass public void startPublisherExecutorService() { publisherExecutor = Executors.newFixedThreadPool(4); }
+  @AfterClass public void shutdownPublisherExecutorService() { if (publisherExecutor != null) publisherExecutor.shutdown(); }
+  @Override public ExecutorService publisherExecutorService() { return publisherExecutor; }
 
   ////////////////////// TEST ENV CLEANUP /////////////////////////////////////
 

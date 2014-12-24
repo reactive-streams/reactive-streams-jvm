@@ -9,8 +9,13 @@ import org.reactivestreams.tck.support.Optional;
 import org.reactivestreams.tck.support.TestException;
 import org.reactivestreams.tck.support.SubscriberBlackboxVerificationRules;
 import org.testng.SkipException;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
+
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 import static org.reactivestreams.tck.SubscriberWhiteboxVerification.BlackboxSubscriberProxy;
 
@@ -25,7 +30,8 @@ import static org.reactivestreams.tck.SubscriberWhiteboxVerification.BlackboxSub
  * @see org.reactivestreams.Subscriber
  * @see org.reactivestreams.Subscription
  */
-public abstract class SubscriberBlackboxVerification<T> implements SubscriberBlackboxVerificationRules {
+public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublisher<T> 
+  implements SubscriberBlackboxVerificationRules {
 
   private final TestEnvironment env;
 
@@ -33,28 +39,24 @@ public abstract class SubscriberBlackboxVerification<T> implements SubscriberBla
     this.env = env;
   }
 
+  // USER API
+
   /**
    * This is the main method you must implement in your test incarnation.
    * It must create a new {@link org.reactivestreams.Subscriber} instance to be subjected to the testing logic.
    */
   public abstract Subscriber<T> createSubscriber();
 
+  // ENV SETUP
+
   /**
-   * Helper method required for generating test elements.
-   * It must create a {@link org.reactivestreams.Publisher} for a stream with exactly the given number of elements.
-   * <p>
-   * It also must treat the following numbers of elements in these specific ways:
-   * <ul>
-   *   <li>
-   *    If {@code elements} is {@code Long.MAX_VALUE} the produced stream must be infinite.
-   *   </li>
-   *   <li>
-   *    If {@code elements} is {@code 0} the {@code Publisher} should signal {@code onComplete} immediatly.
-   *    In other words, it should represent a "completed stream".
-   *   </li>
-   * </ul>
+   * Executor service used by the default provided asynchronous Publisher.
+   * @see #createHelperPublisher(long)
    */
-  public abstract Publisher<T> createHelperPublisher(long elements);
+  private ExecutorService publisherExecutor;
+  @BeforeClass public void startPublisherExecutorService() { publisherExecutor = Executors.newFixedThreadPool(4); }
+  @AfterClass public void shutdownPublisherExecutorService() { if (publisherExecutor != null) publisherExecutor.shutdown(); }
+  @Override public ExecutorService publisherExecutorService() { return publisherExecutor; }
 
   ////////////////////// TEST ENV CLEANUP /////////////////////////////////////
 
