@@ -231,65 +231,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
       @Override public void run() throws Throwable {
         noopPublisherVerification().spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice();
       }
-    }, "Skipped because tested publisher does NOT implement this OPTIONAL requirement.");
-  }
-
-  @Additional @Test
-  public void spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice_shouldFailBy_signallingWrongException() throws Throwable {
-    requireTestFailure(new ThrowingRunnable() {
-      @Override public void run() throws Throwable {
-        customPublisherVerification(new Publisher<Integer>() {
-          volatile Subscriber subscriber = null;
-
-          @Override public void subscribe(Subscriber<? super Integer> s) {
-            if (subscriber == null) {
-              this.subscriber = s;
-              s.onSubscribe(new Subscription() {
-                @Override public void request(long n) {
-                  // noop
-                }
-
-                @Override public void cancel() {
-                   // noop
-                }
-              });
-            } else {
-              // onErrors properly, but intentionally omits rule number
-              s.onError(new RuntimeException("This is the wrong exception type, but in the right place [1.10]"));
-            }
-          }
-        }).spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice();
-      }
-    }, "Got java.lang.RuntimeException but expected java.lang.IllegalStateException");
-  }
-
-  @Additional @Test
-  public void spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice_shouldFailBy_missingSpecReferenceInRightException() throws Throwable {
-    requireTestFailure(new ThrowingRunnable() {
-      @Override public void run() throws Throwable {
-        customPublisherVerification(new Publisher<Integer>() {
-          volatile Subscriber subscriber = null;
-
-          @Override public void subscribe(Subscriber<? super Integer> s) {
-            if (subscriber == null) {
-              this.subscriber = s;
-              s.onSubscribe(new Subscription() {
-                @Override public void request(long n) {
-                  // noop
-                }
-
-                @Override public void cancel() {
-                   // noop
-                }
-              });
-            } else {
-              // onErrors properly, but intentionally omits rule number
-              s.onError(new IllegalStateException("Sorry, I can only support one subscriber, and I have one already. See rule [XXX]"));
-            }
-          }
-        }).spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice();
-      }
-    }, "Got expected exception [class java.lang.IllegalStateException] but missing message part [1.10]");
+    }, "Not verified by this TCK.");
   }
 
   @Test
