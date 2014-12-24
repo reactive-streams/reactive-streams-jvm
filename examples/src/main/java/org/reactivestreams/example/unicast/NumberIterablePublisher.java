@@ -7,7 +7,7 @@ import org.reactivestreams.Subscription;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Publisher;
 
-class NumberIterablePublisher<T> extends AsyncIterablePublisher<Integer> {
+public class NumberIterablePublisher extends AsyncIterablePublisher<Integer> {
     public NumberIterablePublisher(final int from, final int to, final Executor executor) {
         super(new Iterable<Integer>() {
           { if(from > to) throw new IllegalArgumentException("from must be equal or greater than to!"); }

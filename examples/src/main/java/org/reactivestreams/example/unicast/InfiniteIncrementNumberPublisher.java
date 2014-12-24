@@ -7,7 +7,7 @@ import org.reactivestreams.Subscription;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Publisher;
 
-class InfiniteIncrementNumberPublisher extends AsyncIterablePublisher<Integer> {
+public class InfiniteIncrementNumberPublisher extends AsyncIterablePublisher<Integer> {
     public InfiniteIncrementNumberPublisher(final Executor executor) {
         super(new Iterable<Integer>() {
           @Override public Iterator<Integer> iterator() {
