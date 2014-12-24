@@ -1,11 +1,11 @@
 language: java
 script:
-- ./gradlew check
+  - ./gradlew check
 cache:
   directories:
   - $HOME/.gradle
 jdk:
-- openjdk6
+  - openjdk6
 env:
   global:
   - TERM=dumb
