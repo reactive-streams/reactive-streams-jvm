@@ -3,6 +3,7 @@ package org.reactivestreams.tck;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.reactivestreams.tck.support.SubscriberBufferOverflowException;
 import org.reactivestreams.tck.support.Optional;
 
 import java.util.LinkedList;
@@ -12,7 +13,6 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
-import static org.testng.Assert.assertNotNull;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -51,13 +51,20 @@ public class TestEnvironment {
     this(defaultTimeoutMillis, false);
   }
 
-
-  // keeping method around
   public long defaultTimeoutMillis() {
     return defaultTimeoutMillis;
   }
 
-  // don't use the name `fail` as it would collide with other `fail` definitions like the one in scalatest's traits
+  /**
+   * To flop means to "fail asynchronously", either by onErroring or by failing some TCK check triggered asynchronously.
+   * This method does *NOT* fail the test - it's up to inspections of the error to fail the test if required.
+   *
+   * Use {@code env.verifyNoAsyncErrors()} at the end of your TCK tests to verify there no flops called during it's execution.
+   * To check investigate asyncErrors more closely you can use {@code expectError} methods or collect the error directly
+   * from the environment using {@code env.dropAsyncError()}.
+   *
+   * To clear asyncErrors you can call {@link org.reactivestreams.tck.TestEnvironment#clearAsyncErrors()}
+   */
   public void flop(String msg) {
     try {
       fail(msg);
@@ -66,7 +73,18 @@ public class TestEnvironment {
     }
   }
 
-  // keeps passed in throwable as asyncError instead of creating a new AssertionError
+  /**
+   * To flop means to "fail asynchronously", either by onErroring or by failing some TCK check triggered asynchronously.
+   * This method does *NOT* fail the test - it's up to inspections of the error to fail the test if required.
+   *
+   * This overload keeps the passed in throwable as the asyncError, instead of creating an AssertionError for this.
+   *
+   * Use {@code env.verifyNoAsyncErrors()} at the end of your TCK tests to verify there no flops called during it's execution.
+   * To check investigate asyncErrors more closely you can use {@code expectError} methods or collect the error directly
+   * from the environment using {@code env.dropAsyncError()}.
+   *
+   * To clear asyncErrors you can call {@link org.reactivestreams.tck.TestEnvironment#clearAsyncErrors()}
+   */
   public void flop(Throwable thr, String msg) {
     try {
       fail(msg, thr);
@@ -74,42 +92,50 @@ public class TestEnvironment {
       asyncErrors.add(thr);
     }
   }
-
-
-  public <T extends Throwable> void expectThrowingOfWithMessage(Class<T> clazz, String requiredMessagePart, Runnable block) throws Throwable {
-    String errorMsg = String.format("Expected [%s] to be thrown", clazz);
-
+  
+  /**
+   * To flop means to "fail asynchronously", either by onErroring or by failing some TCK check triggered asynchronously.
+   * This method does *NOT* fail the test - it's up to inspections of the error to fail the test if required.
+   *
+   * This overload keeps the passed in throwable as the asyncError, instead of creating an AssertionError for this.
+   *
+   * Use {@code env.verifyNoAsyncErrors()} at the end of your TCK tests to verify there no flops called during it's execution.
+   * To check investigate asyncErrors more closely you can use {@code expectError} methods or collect the error directly
+   * from the environment using {@code env.dropAsyncError()}.
+   *
+   * To clear asyncErrors you can call {@link org.reactivestreams.tck.TestEnvironment#clearAsyncErrors()}
+   */
+  public void flop(Throwable thr) {
     try {
-      block.run();
-      throw new AssertionError("Expected " + clazz.getCanonicalName() + ", yet no exception was thrown!");
-    } catch (Throwable e) {
-      if (clazz.isInstance(e)) {
-        // ok
-        String message = e.getMessage();
-        assertTrue(message.contains(requiredMessagePart),
-                   String.format("Got expected exception [%s] but missing message part [%s], was: %s", e.getClass(), requiredMessagePart, message));
-      } else {
-        String msg = errorMsg + " but was: " + e;
-        flop(e, msg);
-        throw new AssertionError(msg); // would love to include the `e` cause, but that constructor is Java 7+
-      }
+      fail(thr.getMessage(), thr);
+    } catch (Throwable t) {
+      asyncErrors.add(thr);
     }
-
   }
 
-  public <T extends Throwable> void assertAsyncErrorWithMessage(Class<T> clazz, String requiredMessagePart) throws Throwable {
-    assertErrorWithMessage(dropAsyncError(), clazz, requiredMessagePart);
+  /**
+   * To flop means to "fail asynchronously", either by onErroring or by failing some TCK check triggered asynchronously.
+   *
+   * This method DOES fail the test right away (it tries to, by throwing an AssertionException),
+   * in such it is different from {@link org.reactivestreams.tck.TestEnvironment#flop} which only records the error.
+   *
+   * Use {@code env.verifyNoAsyncErrors()} at the end of your TCK tests to verify there no flops called during it's execution.
+   * To check investigate asyncErrors more closely you can use {@code expectError} methods or collect the error directly
+   * from the environment using {@code env.dropAsyncError()}.
+   *
+   * To clear asyncErrors you can call {@link org.reactivestreams.tck.TestEnvironment#clearAsyncErrors()}
+   */
+  public <T> T flopAndFail(String msg) {
+    try {
+      fail(msg);
+    } catch (Throwable t) {
+      asyncErrors.add(t);
+      fail(msg, t);
+    }
+    return null; // unreachable, the previous block will always exit by throwing
   }
 
-  public <T extends Throwable> void assertErrorWithMessage(Throwable err, Class<T> clazz, String requiredMessagePart) throws Throwable {
-    assertNotNull(err, "Expected " + clazz.getCanonicalName() + " exception but got null!");
-    assertTrue(clazz.isInstance(err), "Expected " + clazz.getCanonicalName() + " exception but got " + err.getClass().getCanonicalName() + "!");
 
-    String message = err.getMessage();
-    assertTrue(message.contains(requiredMessagePart),
-               String.format("Got expected exception [%s] but missing message part [%s], was: %s", err.getClass(), requiredMessagePart, message));
-
-  }
 
   public <T> void subscribe(Publisher<T> pub, TestSubscriber<T> sub) throws InterruptedException {
     subscribe(pub, sub, defaultTimeoutMillis);
@@ -163,7 +189,7 @@ public class TestEnvironment {
       if (e instanceof AssertionError) {
         throw (AssertionError) e;
       } else {
-        fail("Async error during test execution: " + e.getMessage(), e);
+        fail(String.format("Async error during test execution: %s", e.getMessage()), e);
       }
     }
   }
@@ -171,7 +197,24 @@ public class TestEnvironment {
   /** If {@code TestEnvironment#printlnDebug} is true, print debug message to std out. */
   public void debug(String msg) {
     if (printlnDebug)
-      System.out.println("[TCK-DEBUG] " + msg);
+      System.out.printf("[TCK-DEBUG] %s%n", msg);
+  }
+
+  /**
+   * Looks for given {@code method} method in stack trace.
+   * Can be used to answer questions like "was this method called from onComplete?".
+   *
+   * @return the caller's StackTraceElement at which he the looked for method was found in the call stack, EMPTY otherwise
+   */
+  public Optional<StackTraceElement> findCallerMethodInStackTrace(String method) {
+    final Throwable thr = new Throwable(); // gets the stacktrace
+
+    for (StackTraceElement stackElement : thr.getStackTrace()) {
+      if (stackElement.getMethodName().equals(method)) {
+        return Optional.of(stackElement);
+      }
+    }
+    return Optional.empty();
   }
 
   // ---- classes ----
@@ -186,7 +229,15 @@ public class TestEnvironment {
 
     @Override
     public void onNext(T element) {
-      received.add(element);
+      try {
+        received.add(element);
+      } catch (IllegalStateException ex) {
+          // error message refinement
+          throw new SubscriberBufferOverflowException(
+            String.format("Received more than bufferSize (%d) onNext signals. " +
+                            "The Publisher probably emited more signals than expected!",
+                          received.QUEUE_SIZE), ex);
+      }
     }
 
     @Override
@@ -331,20 +382,25 @@ public class TestEnvironment {
       received.expectCompletion(timeoutMillis, errorMsg);
     }
 
-    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     public <E extends Throwable> void expectErrorWithMessage(Class<E> expected, String requiredMessagePart) throws Exception {
-      E err = expectError(expected);
-      String message = err.getMessage();
+      expectErrorWithMessage(expected, requiredMessagePart, env.defaultTimeoutMillis());
+    }
+
+    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+    public <E extends Throwable> void expectErrorWithMessage(Class<E> expected, String requiredMessagePart, long timeoutMillis) throws Exception {
+      final E err = expectError(expected, timeoutMillis);
+      final String message = err.getMessage();
       assertTrue(message.contains(requiredMessagePart),
-                 String.format("Got expected exception [%s] but missing message part [%s], was: %s", err.getClass(), requiredMessagePart, err.getMessage()));
+                 String.format("Got expected exception [%s] but missing message part [%s], was: %s",
+                               err.getClass(), requiredMessagePart, err.getMessage()));
     }
 
     public <E extends Throwable> E expectError(Class<E> expected) throws Exception {
-      return expectError(expected, env.defaultTimeoutMillis(), "Expected onError");
+      return expectError(expected, env.defaultTimeoutMillis());
     }
 
     public <E extends Throwable> E expectError(Class<E> expected, long timeoutMillis) throws Exception {
-      return expectError(expected, timeoutMillis, "Expected onError");
+      return expectError(expected, timeoutMillis, String.format("Expected onError(%s)", expected.getName()));
     }
 
     public <E extends Throwable> E expectError(Class<E> expected, String errorMsg) throws Exception {
@@ -364,7 +420,7 @@ public class TestEnvironment {
     }
 
     public void expectNone(long withinMillis) throws InterruptedException {
-      expectNone(withinMillis, "Did not expect an element but got ");
+      expectNone(withinMillis, "Did not expect an element but got element");
     }
 
     public void expectNone(long withinMillis, String errMsgPrefix) throws InterruptedException {
@@ -381,11 +437,11 @@ public class TestEnvironment {
 
     @Override
     public void onNext(T element) {
-      env.debug(this + "::onNext(" + element + ")");
+      env.debug(String.format("%s::onNext(%s)", this, element));
       if (subscription.isCompleted()) {
         super.onNext(element);
       } else {
-        env.flop("Subscriber::onNext(" + element + ") called before Subscriber::onSubscribe");
+        env.flop(String.format("Subscriber::onNext(%s) called before Subscriber::onSubscribe", element));
       }
     }
 
@@ -401,7 +457,7 @@ public class TestEnvironment {
 
     @Override
     public void onSubscribe(Subscription s) {
-      env.debug(this + "::onSubscribe(" + s + ")");
+      env.debug(String.format("%s::onSubscribe(%s)", this, s));
       if (!subscription.isCompleted()) {
         subscription.complete(s);
       } else {
@@ -411,11 +467,11 @@ public class TestEnvironment {
 
     @Override
     public void onError(Throwable cause) {
-      env.debug(this + "::onError(" + cause + ")");
+      env.debug(String.format("%s::onError(%s)", this, cause));
       if (subscription.isCompleted()) {
         super.onError(cause);
       } else {
-        env.flop(cause, "Subscriber::onError(" + cause + ") called before Subscriber::onSubscribe");
+        env.flop(cause, String.format("Subscriber::onError(%s) called before Subscriber::onSubscribe", cause));
       }
     }
   }
@@ -434,12 +490,10 @@ public class TestEnvironment {
 
     @Override
     public void onNext(T element) {
-      env.debug(this + "::onNext(" + element + ")");
-            if (subscription.isCompleted()) {
-              // blackhole it...
-            } else {
-              env.flop("Subscriber::onNext(" + element + ") called before Subscriber::onSubscribe");
-            }
+      env.debug(String.format("%s::onNext(%s)", this, element));
+      if (!subscription.isCompleted()) {
+        env.flop(String.format("Subscriber::onNext(%s) called before Subscriber::onSubscribe", element));
+      }
     }
 
     @Override
@@ -563,8 +617,7 @@ public class TestEnvironment {
     public long expectRequest(long timeoutMillis) throws InterruptedException {
       long requested = requests.next(timeoutMillis, "Did not receive expected `request` call");
       if (requested <= 0) {
-        env.flop(String.format("Requests cannot be zero or negative but received request(%s)", requested));
-        return 0; // keep compiler happy
+        return env.<Long>flopAndFail(String.format("Requests cannot be zero or negative but received request(%s)", requested));
       } else {
         pendingDemand += requested;
         return requested;
@@ -625,13 +678,13 @@ public class TestEnvironment {
 
     public void assertClosed(String openErrorMsg) {
       if (!isClosed()) {
-        env.flop(openErrorMsg);
+        env.flop(new ExpectedClosedLatchException(openErrorMsg));
       }
     }
 
     public void assertOpen(String closedErrorMsg) {
       if (isClosed()) {
-        env.flop(closedErrorMsg);
+        env.flop(new ExpectedOpenLatchException(closedErrorMsg));
       }
     }
 
@@ -645,6 +698,19 @@ public class TestEnvironment {
         env.flop(String.format("%s within %d ms", notClosedErrorMsg, timeoutMillis));
       }
     }
+
+    static final class ExpectedOpenLatchException extends RuntimeException {
+      public ExpectedOpenLatchException(String message) {
+        super(message);
+      }
+    }
+
+    static final class ExpectedClosedLatchException extends RuntimeException {
+      public ExpectedClosedLatchException(String message) {
+        super(message);
+      }
+    }
+
   }
 
   // simple promise for *one* value, which cannot be reset
@@ -736,14 +802,12 @@ public class TestEnvironment {
       Optional<T> value = abq.poll(timeoutMillis, TimeUnit.MILLISECONDS);
 
       if (value == null) {
-        env.flop(String.format("%s within %d ms", errorMsg, timeoutMillis));
+        return env.flopAndFail(String.format("%s within %d ms", errorMsg, timeoutMillis));
       } else if (value.isDefined()) {
         return value.get();
       } else {
-        env.flop("Expected element but got end-of-stream");
+        return env.flopAndFail("Expected element but got end-of-stream");
       }
-
-      return null; // keep compiler happy
     }
 
     public Optional<T> nextOrEndOfStream(long timeoutMillis, String errorMsg) throws InterruptedException {
@@ -751,7 +815,7 @@ public class TestEnvironment {
 
       if (value == null) {
         env.flop(String.format("%s within %d ms", errorMsg, timeoutMillis));
-        return Optional.<T>empty();
+        return Optional.empty();
       }
 
       return value;
@@ -781,7 +845,7 @@ public class TestEnvironment {
       if (value == null) {
         env.flop(String.format("%s within %d ms", errorMsg, timeoutMillis));
       } else if (value.isDefined()) {
-        env.flop("Expected end-of-stream but got " + value.get());
+        env.flop(String.format("Expected end-of-stream but got element [%s]", value.get()));
       } // else, ok
     }
 
@@ -790,7 +854,7 @@ public class TestEnvironment {
       Thread.sleep(timeoutMillis);
 
       if (env.asyncErrors.isEmpty()) {
-        env.flop(String.format("%s within %d ms", errorMsg, timeoutMillis));
+        return env.flopAndFail(String.format("%s within %d ms", errorMsg, timeoutMillis));
       } else {
         // ok, there was an expected error
         Throwable thrown = env.asyncErrors.remove(0);
@@ -798,23 +862,10 @@ public class TestEnvironment {
         if (clazz.isInstance(thrown)) {
           return (E) thrown;
         } else {
-          env.flop(String.format("%s within %d ms; Got %s but expected %s",
-                                 errorMsg, timeoutMillis, thrown.getClass().getCanonicalName(), clazz.getCanonicalName()));
+
+          return env.flopAndFail(String.format("%s within %d ms; Got %s but expected %s",
+                                               errorMsg, timeoutMillis, thrown.getClass().getCanonicalName(), clazz.getCanonicalName()));
         }
-      }
-      // make compiler happy
-      return null;
-    }
-
-    @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-    public void expectError(long timeoutMillis, String errorMsg) throws Exception {
-      Thread.sleep(timeoutMillis);
-
-      if (env.asyncErrors.isEmpty()) {
-        env.flop(String.format("%s within %d ms", errorMsg, timeoutMillis));
-      } else {
-        // ok, there was an expected error
-        env.asyncErrors.remove(0);
       }
     }
 
@@ -825,7 +876,7 @@ public class TestEnvironment {
       if (value == null) {
         // ok
       } else if (value.isDefined()) {
-        env.flop(errorMsgPrefix + value.get());
+        env.flop(String.format("%s [%s]", errorMsgPrefix, value.get()));
       } else {
         env.flop("Expected no element but got end-of-stream");
       }

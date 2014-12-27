@@ -1,53 +1,23 @@
 package org.reactivestreams.example.unicast;
 
-import java.util.concurrent.atomic.AtomicLong;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.util.Iterator;
+import java.util.concurrent.Executor;
 
 import org.reactivestreams.Subscription;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Publisher;
 
-class InfiniteIncrementNumberPublisher implements Publisher<Integer> {
-
-    @Override
-    public void subscribe(final Subscriber<? super Integer> s) {
-
-        final AtomicInteger i = new AtomicInteger();
-
-        Subscription subscription = new Subscription() {
-
-            AtomicLong capacity = new AtomicLong();
-
-            @Override
-            public void request(long n) {
-                System.out.println("signalAdditionalDemand => " + n);
-                if (capacity.getAndAdd(n) == 0) {
-                    // start sending again if it wasn't already running
-                    send();
-                }
-            }
-
-            private void send() {
-                System.out.println("send => " + capacity.get());
-                // this would normally use an eventloop, actor, whatever
-                new Thread(new Runnable() {
-
-                    public void run() {
-                        do {
-                            s.onNext(i.incrementAndGet());
-                        } while (capacity.decrementAndGet() > 0);
-                    }
-                }).start();
-            }
-
-            @Override
-            public void cancel() {
-                capacity.set(-1);
-            }
-
-        };
-
-        s.onSubscribe(subscription);
-
+public class InfiniteIncrementNumberPublisher extends AsyncIterablePublisher<Integer> {
+    public InfiniteIncrementNumberPublisher(final Executor executor) {
+        super(new Iterable<Integer>() {
+          @Override public Iterator<Integer> iterator() {
+            return new Iterator<Integer>() {
+              private int at = 0;
+              @Override public boolean hasNext() { return true; }
+              @Override public Integer next() { return at++; } // Wraps around on overflow
+              @Override public void remove() { throw new UnsupportedOperationException(); }
+            };
+          }
+        }, executor);
     }
 }
