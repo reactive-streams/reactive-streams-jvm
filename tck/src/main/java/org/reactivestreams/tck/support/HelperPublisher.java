@@ -22,8 +22,7 @@ public class HelperPublisher<T> extends AsyncIterablePublisher<T> {
                 else try {
                   return create.apply(at++);
                 } catch (Throwable t) {
-                  throw new HelperPublisherException(
-                    String.format("Failed to create element in %s for id %s!", getClass().getSimpleName(), at - 1), t);
+                  throw new IllegalStateException(String.format("Failed to create element for id %d!", at - 1), t);
                 }
               }
               @Override public void remove() { throw new UnsupportedOperationException(); }

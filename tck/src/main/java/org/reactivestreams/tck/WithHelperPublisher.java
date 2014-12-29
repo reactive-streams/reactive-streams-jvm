@@ -27,6 +27,9 @@ public abstract class WithHelperPublisher<T> {
    * Sometimes the Subscriber may be limited in what type of element it is able to consume, this you may have to implement
    * this method such that the emitted element matches the Subscribers requirements. Simplest implementations would be
    * to simply pass in the {@code element} as payload of your custom element, such as appending it to a String or other identifier.
+   * <p/>
+   * <b>Warning:</b> This method may be called concurrently by the helper publisher, thus it should be implemented in a
+   * thread-safe manner.
    *
    * @return element of the matching type {@code T} that will be delivered to the tested Subscriber
    */
