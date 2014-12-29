@@ -1,37 +1,43 @@
 package org.reactivestreams.tck.support;
 
+
+
 /**
  * Internal TCK use only.
  * Add / Remove tests for PublisherVerification here to make sure that they arre added/removed in the other places.
  */
 public interface PublisherVerificationRules {
-  void spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements() throws Throwable;
-  void spec102_maySignalLessThanRequestedAndTerminateSubscription() throws Throwable;
-  void spec103_mustSignalOnMethodsSequentially() throws Throwable;
-  void spec104_mustSignalOnErrorWhenFails() throws Throwable;
-  void spec105_mustSignalOnCompleteWhenFiniteStreamTerminates() throws Throwable;
-  void spec106_mustConsiderSubscriptionCancelledAfterOnErrorOrOnCompleteHasBeenCalled() throws Throwable;
-  void spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled() throws Throwable;
-  void spec107_mustNotEmitFurtherSignalsOnceOnErrorHasBeenSignalled() throws Throwable;
-  void spec108_possiblyCanceledSubscriptionShouldNotReceiveOnErrorOrOnCompleteSignals() throws Throwable;
-  void spec109_subscribeShouldNotThrowNonFatalThrowable() throws Throwable;
-  void spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice() throws Throwable;
-  void spec111_maySupportMultiSubscribe() throws Throwable;
-  void spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe() throws Throwable;
-  void spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingOneByOne() throws Throwable;
-  void spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront() throws Throwable;
-  void spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfrontAndCompleteAsExpected() throws Throwable;
-  void spec302_mustAllowSynchronousRequestCallsFromOnNextAndOnSubscribe() throws Throwable;
-  void spec303_mustNotAllowUnboundedRecursion() throws Throwable;
-  void spec304_requestShouldNotPerformHeavyComputations() throws Exception;
-  void spec305_cancelMustNotSynchronouslyPerformHeavyCompuatation() throws Exception;
-  void spec306_afterSubscriptionIsCancelledRequestMustBeNops() throws Throwable;
-  void spec307_afterSubscriptionIsCancelledAdditionalCancelationsMustBeNops() throws Throwable;
-  void spec309_requestZeroMustSignalIllegalArgumentException() throws Throwable;
-  void spec309_requestNegativeNumberMustSignalIllegalArgumentException() throws Throwable;
-  void spec312_cancelMustMakeThePublisherToEventuallyStopSignaling() throws Throwable;
-  void spec313_cancelMustMakeThePublisherEventuallyDropAllReferencesToTheSubscriber() throws Throwable;
-  void spec317_mustSupportAPendingElementCountUpToLongMaxValue() throws Throwable;
-  void spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue() throws Throwable;
-  void spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable;
+  void required___validate_maxElementsFromPublisher() throws Exception;
+  void required___validate_boundedDepthOfOnNextAndRequestRecursion() throws Exception;
+  void required___createPublisher1MustProduceAStreamOfExactly1Element() throws Throwable;
+  void required___createPublisher3MustProduceAStreamOfExactly3Elements() throws Throwable;
+  void required___spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements() throws Throwable;
+  void required___spec102_maySignalLessThanRequestedAndTerminateSubscription() throws Throwable;
+  void stochastic___spec103_mustSignalOnMethodsSequentially() throws Throwable;
+  void optional___spec104_mustSignalOnErrorWhenFails() throws Throwable;
+  void required___spec105_mustSignalOnCompleteWhenFiniteStreamTerminates() throws Throwable;
+  void unverified___spec106_mustConsiderSubscriptionCancelledAfterOnErrorOrOnCompleteHasBeenCalled() throws Throwable;
+  void required___spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled() throws Throwable;
+  void unverified___spec107_mustNotEmitFurtherSignalsOnceOnErrorHasBeenSignalled() throws Throwable;
+  void unverified___spec108_possiblyCanceledSubscriptionShouldNotReceiveOnErrorOrOnCompleteSignals() throws Throwable;
+  void unverified___spec109_subscribeShouldNotThrowNonFatalThrowable() throws Throwable;
+  void unverified___spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice() throws Throwable;
+  void optional___spec111_maySupportMultiSubscribe() throws Throwable;
+  void optional___spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe() throws Throwable;
+  void required___spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingOneByOne() throws Throwable;
+  void required___spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront() throws Throwable;
+  void required___spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfrontAndCompleteAsExpected() throws Throwable;
+  void required___spec302_mustAllowSynchronousRequestCallsFromOnNextAndOnSubscribe() throws Throwable;
+  void required___spec303_mustNotAllowUnboundedRecursion() throws Throwable;
+  void unverified___spec304_requestShouldNotPerformHeavyComputations() throws Exception;
+  void unverified___spec305_cancelMustNotSynchronouslyPerformHeavyCompuatation() throws Exception;
+  void required___spec306_afterSubscriptionIsCancelledRequestMustBeNops() throws Throwable;
+  void required___spec307_afterSubscriptionIsCancelledAdditionalCancelationsMustBeNops() throws Throwable;
+  void required___spec309_requestZeroMustSignalIllegalArgumentException() throws Throwable;
+  void required___spec309_requestNegativeNumberMustSignalIllegalArgumentException() throws Throwable;
+  void required___spec312_cancelMustMakeThePublisherToEventuallyStopSignaling() throws Throwable;
+  void required___spec313_cancelMustMakeThePublisherEventuallyDropAllReferencesToTheSubscriber() throws Throwable;
+  void required___spec317_mustSupportAPendingElementCountUpToLongMaxValue() throws Throwable;
+  void required___spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue() throws Throwable;
+  void required___spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable;
 }

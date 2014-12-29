@@ -9,6 +9,7 @@ import org.reactivestreams.tck.TestEnvironment.ManualSubscriber;
 import org.reactivestreams.tck.TestEnvironment.ManualSubscriberWithSubscriptionSupport;
 import org.reactivestreams.tck.support.Function;
 import org.reactivestreams.tck.support.Optional;
+import org.reactivestreams.tck.support.PublisherVerificationRules;
 import org.testng.SkipException;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
@@ -22,7 +23,6 @@ import java.util.List;
 import java.util.Random;
 import java.util.concurrent.atomic.AtomicReference;
 
-import static org.reactivestreams.tck.Annotations.*;
 import static org.testng.Assert.assertEquals;
 import static org.testng.Assert.assertTrue;
 
@@ -31,7 +31,7 @@ import static org.testng.Assert.assertTrue;
  *
  * @see org.reactivestreams.Publisher
  */
-public abstract class PublisherVerification<T> {
+public abstract class PublisherVerification<T> implements PublisherVerificationRules {
 
   private final TestEnvironment env;
   private final long publisherReferenceGCTimeoutMillis;
@@ -82,7 +82,7 @@ public abstract class PublisherVerification<T> {
    * recursive calls to exceed the number returned by this method.
    *
    * @see <a href="https://github.com/reactive-streams/reactive-streams#3.3">reactive streams spec, rule 3.3</a>
-   * @see PublisherVerification#spec303_mustNotAllowUnboundedRecursion()
+   * @see PublisherVerification#required___spec303_mustNotAllowUnboundedRecursion()
    */
   public long boundedDepthOfOnNextAndRequestRecursion() {
     return 1;
@@ -97,8 +97,8 @@ public abstract class PublisherVerification<T> {
 
   ////////////////////// TEST SETUP VERIFICATION //////////////////////////////
 
-  @Required @Test
-  public void createPublisher1MustProduceAStreamOfExactly1Element() throws Throwable {
+  @Override @Test
+  public void required___createPublisher1MustProduceAStreamOfExactly1Element() throws Throwable {
     activePublisherTest(1, true, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws InterruptedException {
@@ -114,8 +114,8 @@ public abstract class PublisherVerification<T> {
     });
   }
 
-  @Required @Test
-  public void createPublisher3MustProduceAStreamOfExactly3Elements() throws Throwable {
+  @Override @Test
+  public void required___createPublisher3MustProduceAStreamOfExactly3Elements() throws Throwable {
     activePublisherTest(3, true, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws InterruptedException {
@@ -133,13 +133,13 @@ public abstract class PublisherVerification<T> {
     });
   }
 
-  @Required @Test
-  public void validate_maxElementsFromPublisher() throws Exception {
+  @Override @Test
+  public void required___validate_maxElementsFromPublisher() throws Exception {
     assertTrue(maxElementsFromPublisher() > 0, "maxElementsFromPublisher MUST return a number > 0");
   }
 
-  @Required @Test
-  public void validate_boundedDepthOfOnNextAndRequestRecursion() throws Exception {
+  @Override @Test
+  public void required___validate_boundedDepthOfOnNextAndRequestRecursion() throws Exception {
     assertTrue(boundedDepthOfOnNextAndRequestRecursion() >= 1, "boundedDepthOfOnNextAndRequestRecursion must return a number >= 1");
   }
 
@@ -147,8 +147,8 @@ public abstract class PublisherVerification<T> {
   ////////////////////// SPEC RULE VERIFICATION ///////////////////////////////
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.1
-  @Required @Test
-  public void spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements() throws Throwable {
+  @Override @Test
+  public void required___spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements() throws Throwable {
     activePublisherTest(5, false, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws InterruptedException {
@@ -170,8 +170,8 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.2
-  @Required @Test
-  public void spec102_maySignalLessThanRequestedAndTerminateSubscription() throws Throwable {
+  @Override @Test
+  public void required___spec102_maySignalLessThanRequestedAndTerminateSubscription() throws Throwable {
     final int elements = 3;
     final int requested = 10;
 
@@ -187,8 +187,8 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.3
-  @Stochastic @Test
-  public void spec103_mustSignalOnMethodsSequentially() throws Throwable {
+  @Override @Test
+  public void stochastic___spec103_mustSignalOnMethodsSequentially() throws Throwable {
     final int iterations = 100;
     final int elements = 10;
 
@@ -294,8 +294,8 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.4
-  @Additional(implement = "createErrorStatePublisher") @Test
-  public void spec104_mustSignalOnErrorWhenFails() throws Throwable {
+  @Override @Test
+  public void optional___spec104_mustSignalOnErrorWhenFails() throws Throwable {
     try {
       errorPublisherTest(new PublisherTestRun<T>() {
         @Override
@@ -324,8 +324,8 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.5
-  @Required @Test
-  public void spec105_mustSignalOnCompleteWhenFiniteStreamTerminates() throws Throwable {
+  @Override @Test
+  public void required___spec105_mustSignalOnCompleteWhenFiniteStreamTerminates() throws Throwable {
     activePublisherTest(3, true, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
@@ -340,14 +340,14 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.6
-  @NotVerified @Test
-  public void spec106_mustConsiderSubscriptionCancelledAfterOnErrorOrOnCompleteHasBeenCalled() throws Throwable {
+  @Override @Test
+  public void unverified___spec106_mustConsiderSubscriptionCancelledAfterOnErrorOrOnCompleteHasBeenCalled() throws Throwable {
     notVerified(); // not really testable without more control over the Publisher
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.7
-  @Required @Test
-  public void spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled() throws Throwable {
+  @Override @Test
+  public void required___spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled() throws Throwable {
     activePublisherTest(1, true, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
@@ -363,32 +363,32 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.7
-  @NotVerified @Test
-  public void spec107_mustNotEmitFurtherSignalsOnceOnErrorHasBeenSignalled() throws Throwable {
+  @Override @Test
+  public void unverified___spec107_mustNotEmitFurtherSignalsOnceOnErrorHasBeenSignalled() throws Throwable {
     notVerified(); // can we meaningfully test this, without more control over the publisher?
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.8
-  @NotVerified @Test
-  public void spec108_possiblyCanceledSubscriptionShouldNotReceiveOnErrorOrOnCompleteSignals() throws Throwable {
+  @Override @Test
+  public void unverified___spec108_possiblyCanceledSubscriptionShouldNotReceiveOnErrorOrOnCompleteSignals() throws Throwable {
     notVerified(); // can we meaningfully test this?
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.9
-  @NotVerified @Test
-  public void spec109_subscribeShouldNotThrowNonFatalThrowable() throws Throwable {
+  @Override @Test
+  public void unverified___spec109_subscribeShouldNotThrowNonFatalThrowable() throws Throwable {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.10
-  @NotVerified @Test
-  public void spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice() throws Throwable {
+  @Override @Test
+  public void unverified___spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice() throws Throwable {
     notVerified(); // can we meaningfully test this?
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.11
-  @Additional @Test
-  public void spec111_maySupportMultiSubscribe() throws Throwable {
+  @Override @Test
+  public void optional___spec111_maySupportMultiSubscribe() throws Throwable {
     optionalActivePublisherTest(1, false, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
@@ -401,9 +401,9 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.12
-  @Additional(implement = "createErrorStatePublisher") @Test
-  public void spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe() throws Throwable {
-    errorPublisherTest(new PublisherTestRun<T>() {
+  @Override @Test
+  public void optional___spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe() throws Throwable {
+    errorPublisherTest(new PublisherTestRun<T>() { //FIXME shouldn't this be some "optional" method??? Method was marked as @Additional
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         final Latch onErrorLatch = new Latch(env);
@@ -428,9 +428,9 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.13
-  @Required @Test
-  public void spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingOneByOne() throws Throwable {
-    optionalActivePublisherTest(5, true, new PublisherTestRun<T>() {
+  @Override @Test
+  public void required___spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingOneByOne() throws Throwable {
+    optionalActivePublisherTest(5, true, new PublisherTestRun<T>() { // FIXME shouldn't this be a non-"optional" method??? Method was marked as @Required
       @Override
       public void run(Publisher<T> pub) throws InterruptedException {
         ManualSubscriber<T> sub1 = env.newManualSubscriber(pub);
@@ -479,9 +479,9 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.13
-  @Required @Test
-  public void spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront() throws Throwable {
-    optionalActivePublisherTest(3, false, new PublisherTestRun<T>() {
+  @Override @Test
+  public void required___spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront() throws Throwable {
+    optionalActivePublisherTest(3, false, new PublisherTestRun<T>() { // FIXME shouldn't this be a non-"optional" method??? Method was marked as @Required
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         ManualSubscriber<T> sub1 = env.newManualSubscriber(pub);
@@ -512,9 +512,9 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.13
-  @Required @Test
-  public void spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfrontAndCompleteAsExpected() throws Throwable {
-    optionalActivePublisherTest(3, true, new PublisherTestRun<T>() {
+  @Override @Test
+  public void required___spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfrontAndCompleteAsExpected() throws Throwable {
+    optionalActivePublisherTest(3, true, new PublisherTestRun<T>() { // FIXME shouldn't this be a non-"optional" method??? Method was marked as @Required
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         ManualSubscriber<T> sub1 = env.newManualSubscriber(pub);
@@ -548,8 +548,8 @@ public abstract class PublisherVerification<T> {
   ///////////////////// SUBSCRIPTION TESTS //////////////////////////////////
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.2
-  @Required @Test
-  public void spec302_mustAllowSynchronousRequestCallsFromOnNextAndOnSubscribe() throws Throwable {
+  @Override @Test
+  public void required___spec302_mustAllowSynchronousRequestCallsFromOnNextAndOnSubscribe() throws Throwable {
     activePublisherTest(6, false, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
@@ -579,9 +579,8 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.3
-  @Required @Test
-  @Additional(implement = "boundedDepthOfOnNextAndRequestRecursion")
-  public void spec303_mustNotAllowUnboundedRecursion() throws Throwable {
+  @Override @Test
+  public void required___spec303_mustNotAllowUnboundedRecursion() throws Throwable {
     final long oneMoreThanBoundedLimit = boundedDepthOfOnNextAndRequestRecursion() + 1;
 
     activePublisherTest(oneMoreThanBoundedLimit, false, new PublisherTestRun<T>() {
@@ -627,20 +626,20 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.4
-  @NotVerified @Test
-  public void spec304_requestShouldNotPerformHeavyComputations() throws Exception {
+  @Override @Test
+  public void unverified___spec304_requestShouldNotPerformHeavyComputations() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.5
-  @NotVerified @Test
-  public void spec305_cancelMustNotSynchronouslyPerformHeavyCompuatation() throws Exception {
+  @Override @Test
+  public void unverified___spec305_cancelMustNotSynchronouslyPerformHeavyCompuatation() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.6
-  @Required @Test
-  public void spec306_afterSubscriptionIsCancelledRequestMustBeNops() throws Throwable {
+  @Override @Test
+  public void required___spec306_afterSubscriptionIsCancelledRequestMustBeNops() throws Throwable {
     activePublisherTest(3, false, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
@@ -673,8 +672,8 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.7
-  @Required @Test
-  public void spec307_afterSubscriptionIsCancelledAdditionalCancelationsMustBeNops() throws Throwable {
+  @Override @Test
+  public void required___spec307_afterSubscriptionIsCancelledAdditionalCancelationsMustBeNops() throws Throwable {
     activePublisherTest(1, false, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
@@ -694,8 +693,8 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.9
-  @Required @Test
-  public void spec309_requestZeroMustSignalIllegalArgumentException() throws Throwable {
+  @Override @Test
+  public void required___spec309_requestZeroMustSignalIllegalArgumentException() throws Throwable {
     activePublisherTest(10, false, new PublisherTestRun<T>() {
       @Override public void run(Publisher<T> pub) throws Throwable {
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
@@ -706,8 +705,8 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.9
-  @Required @Test
-  public void spec309_requestNegativeNumberMustSignalIllegalArgumentException() throws Throwable {
+  @Override @Test
+  public void required___spec309_requestNegativeNumberMustSignalIllegalArgumentException() throws Throwable {
     activePublisherTest(10, false, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
@@ -720,8 +719,8 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.12
-  @Required @Test
-  public void spec312_cancelMustMakeThePublisherToEventuallyStopSignaling() throws Throwable {
+  @Override @Test
+  public void required___spec312_cancelMustMakeThePublisherToEventuallyStopSignaling() throws Throwable {
     // the publisher is able to signal more elements than the subscriber will be requesting in total
     final int publisherElements = 20;
 
@@ -783,8 +782,8 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.13
-  @Required @Test
-  public void spec313_cancelMustMakeThePublisherEventuallyDropAllReferencesToTheSubscriber() throws Throwable {
+  @Override @Test
+  public void required___spec313_cancelMustMakeThePublisherEventuallyDropAllReferencesToTheSubscriber() throws Throwable {
     final ReferenceQueue<ManualSubscriber<T>> queue = new ReferenceQueue<ManualSubscriber<T>>();
 
     final Function<Publisher<T>, WeakReference<ManualSubscriber<T>>> run = new Function<Publisher<T>, WeakReference<ManualSubscriber<T>>>() {
@@ -821,8 +820,8 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.17
-  @Required @Test
-  public void spec317_mustSupportAPendingElementCountUpToLongMaxValue() throws Throwable {
+  @Override @Test
+  public void required___spec317_mustSupportAPendingElementCountUpToLongMaxValue() throws Throwable {
     final int totalElements = 3;
 
     activePublisherTest(totalElements, true, new PublisherTestRun<T>() {
@@ -840,8 +839,8 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.17
-  @Required @Test
-  public void spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue() throws Throwable {
+  @Override @Test
+  public void required___spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue() throws Throwable {
     final int totalElements = 3;
 
     activePublisherTest(totalElements, true, new PublisherTestRun<T>() {
@@ -861,8 +860,8 @@ public abstract class PublisherVerification<T> {
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.17
-  @Required @Test
-  public void spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable {
+  @Override @Test
+  public void required___spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable {
     activePublisherTest(Integer.MAX_VALUE, false, new PublisherTestRun<T>() {
       @Override public void run(Publisher<T> pub) throws Throwable {
         ManualSubscriberWithSubscriptionSupport<T> sub = new BlackholeSubscriberWithSubscriptionSupport<T>(env) {

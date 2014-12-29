@@ -22,7 +22,7 @@ public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
   static final int DEFAULT_TIMEOUT_MILLIS = 100;
 
   @Test
-  public void spec201_mustSignalDemandViaSubscriptionRequest_shouldFailBy_notGettingRequestCall() throws Throwable {
+  public void required___spec201_mustSignalDemandViaSubscriptionRequest_shouldFailBy_notGettingRequestCall() throws Throwable {
     // this mostly verifies the probe is injected correctly
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
@@ -42,18 +42,18 @@ public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
               }
             };
           }
-        }).spec201_mustSignalDemandViaSubscriptionRequest();
+        }).required___spec201_mustSignalDemandViaSubscriptionRequest();
       }
     }, "Did not receive expected `request` call within");
   }
 
   @Test
-  public void spec201_mustSignalDemandViaSubscriptionRequest_shouldPass() throws Throwable {
-    simpleSubscriberVerification().spec201_mustSignalDemandViaSubscriptionRequest();
+  public void required___spec201_mustSignalDemandViaSubscriptionRequest_shouldPass() throws Throwable {
+    simpleSubscriberVerification().required___spec201_mustSignalDemandViaSubscriptionRequest();
   }
 
   @Test
-  public void spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_shouldFail_dueToCallingRequest() throws Throwable {
+  public void required___spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_shouldFail_dueToCallingRequest() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customSubscriberVerification(new Function<WhiteboxSubscriberProbe<Integer>, Subscriber<Integer>>() {
@@ -70,13 +70,13 @@ public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
               }
             };
           }
-        }).spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete();
+        }).required___spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete();
       }
     }, "Subscription::request MUST NOT be called from Subscriber::onComplete (Rule 2.3)!");
   }
 
   @Test
-  public void spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_shouldFail_dueToCallingCancel() throws Throwable {
+  public void required___spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_shouldFail_dueToCallingCancel() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customSubscriberVerification(new Function<WhiteboxSubscriberProbe<Integer>, Subscriber<Integer>>() {
@@ -93,13 +93,13 @@ public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
               }
             };
           }
-        }).spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete();
+        }).required___spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete();
       }
     }, "Subscription::cancel MUST NOT be called from Subscriber::onComplete (Rule 2.3)!");
   }
 
   @Test
-  public void spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError_shouldFail_dueToCallingRequest() throws Throwable {
+  public void required___spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError_shouldFail_dueToCallingRequest() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customSubscriberVerification(new Function<WhiteboxSubscriberProbe<Integer>, Subscriber<Integer>>() {
@@ -115,13 +115,13 @@ public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
               }
             };
           }
-        }).spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError();
+        }).required___spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError();
       }
     }, "Subscription::request MUST NOT be called from Subscriber::onError (Rule 2.3)!");
   }
 
   @Test
-  public void spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError_shouldFail_dueToCallingCancel() throws Throwable {
+  public void required___spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError_shouldFail_dueToCallingCancel() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customSubscriberVerification(new Function<WhiteboxSubscriberProbe<Integer>, Subscriber<Integer>>() {
@@ -137,13 +137,13 @@ public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
               }
             };
           }
-        }).spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError();
+        }).required___spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError();
       }
     }, "Subscription::cancel MUST NOT be called from Subscriber::onError (Rule 2.3)!");
   }
 
   @Test
-  public void spec205_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal_shouldFail() throws Throwable {
+  public void required___spec205_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal_shouldFail() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customSubscriberVerification(new Function<WhiteboxSubscriberProbe<Integer>, Subscriber<Integer>>() {
@@ -157,13 +157,13 @@ public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
               }
             };
           }
-        }).spec205_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal();
+        }).required___spec205_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal();
       }
     }, "illegally accepted a second Subscription");
   }
 
   @Test
-  public void spec208_mustBePreparedToReceiveOnNextSignalsAfterHavingCalledSubscriptionCancel_shouldFail() throws Throwable {
+  public void required___spec208_mustBePreparedToReceiveOnNextSignalsAfterHavingCalledSubscriptionCancel_shouldFail() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customSubscriberVerification(new Function<WhiteboxSubscriberProbe<Integer>, Subscriber<Integer>>() {
@@ -198,13 +198,13 @@ public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
               }
             };
           }
-        }).spec208_mustBePreparedToReceiveOnNextSignalsAfterHavingCalledSubscriptionCancel();
+        }).required___spec208_mustBePreparedToReceiveOnNextSignalsAfterHavingCalledSubscriptionCancel();
       }
     }, "But I thought it's cancelled!");
   }
 
   @Test
-  public void spec209_mustBePreparedToReceiveAnOnCompleteSignalWithPrecedingRequestCall_shouldFail() throws Throwable {
+  public void required___spec209_mustBePreparedToReceiveAnOnCompleteSignalWithPrecedingRequestCall_shouldFail() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customSubscriberVerification(new Function<WhiteboxSubscriberProbe<Integer>, Subscriber<Integer>>() {
@@ -216,13 +216,13 @@ public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
               }
             };
           }
-        }).spec209_mustBePreparedToReceiveAnOnCompleteSignalWithPrecedingRequestCall();
+        }).required___spec209_mustBePreparedToReceiveAnOnCompleteSignalWithPrecedingRequestCall();
       }
     }, "did not call `registerOnComplete()`");
   }
 
   @Test
-  public void spec209_mustBePreparedToReceiveAnOnCompleteSignalWithoutPrecedingRequestCall_shouldPass_withNoopSubscriber() throws Throwable {
+  public void required___spec209_mustBePreparedToReceiveAnOnCompleteSignalWithoutPrecedingRequestCall_shouldPass_withNoopSubscriber() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customSubscriberVerification(new Function<WhiteboxSubscriberProbe<Integer>, Subscriber<Integer>>() {
@@ -234,14 +234,14 @@ public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
               }
             };
           }
-        }).spec209_mustBePreparedToReceiveAnOnCompleteSignalWithoutPrecedingRequestCall();
+        }).required___spec209_mustBePreparedToReceiveAnOnCompleteSignalWithoutPrecedingRequestCall();
 
       }
     }, "did not `registerOnSubscribe`");
   }
 
   @Test
-  public void spec210_mustBePreparedToReceiveAnOnErrorSignalWithPrecedingRequestCall_shouldFail() throws Throwable {
+  public void required___spec210_mustBePreparedToReceiveAnOnErrorSignalWithPrecedingRequestCall_shouldFail() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
 
@@ -255,13 +255,13 @@ public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
               }
             };
           }
-        }).spec210_mustBePreparedToReceiveAnOnErrorSignalWithPrecedingRequestCall();
+        }).required___spec210_mustBePreparedToReceiveAnOnErrorSignalWithPrecedingRequestCall();
       }
     }, "Test Exception: Boom!"); // checks that the expected exception was delivered to onError, we don't expect anyone to implement onError so weirdly
   }
 
   @Test
-  public void spec210_mustBePreparedToReceiveAnOnErrorSignalWithoutPrecedingRequestCall_shouldFail() throws Throwable {
+  public void required___spec210_mustBePreparedToReceiveAnOnErrorSignalWithoutPrecedingRequestCall_shouldFail() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
 
@@ -279,13 +279,13 @@ public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
               }
             };
           }
-        }).spec210_mustBePreparedToReceiveAnOnErrorSignalWithoutPrecedingRequestCall();
+        }).required___spec210_mustBePreparedToReceiveAnOnErrorSignalWithoutPrecedingRequestCall();
       }
     }, "Test Exception: Boom!"); // checks that the expected exception was delivered to onError, we don't expect anyone to implement onError so weirdly
   }
 
   @Test
-  public void spec212_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality_shouldFail_ifItAcceptsTheSameSubscriberMoreTimes() throws Throwable {
+  public void optional___spec212_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality_shouldFail_ifItAcceptsTheSameSubscriberMoreTimes() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
 
@@ -295,20 +295,20 @@ public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
             return new SimpleSubscriberWithProbe(probe) {
             };
           }
-        }).spec212_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality_specViolation();
+        }).optional___spec212_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality_specViolation();
       }
     }, "");
   }
 
   @Test
-  public void spec308_requestMustRegisterGivenNumberElementsToBeProduced_shouldFail() throws Throwable {
+  public void required___spec308_requestMustRegisterGivenNumberElementsToBeProduced_shouldFail() throws Throwable {
     // sanity checks the "happy path", that triggerRequest() propagates the right demand
     customSubscriberVerification(new Function<WhiteboxSubscriberProbe<Integer>, Subscriber<Integer>>() {
       @Override
       public Subscriber<Integer> apply(WhiteboxSubscriberProbe<Integer> probe) throws Throwable {
         return new SimpleSubscriberWithProbe(probe) {};
       }
-    }).spec308_requestMustRegisterGivenNumberElementsToBeProduced();
+    }).required___spec308_requestMustRegisterGivenNumberElementsToBeProduced();
   }
 
   // FAILING IMPLEMENTATIONS //
