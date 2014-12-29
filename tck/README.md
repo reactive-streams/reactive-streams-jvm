@@ -45,38 +45,40 @@ Specification rule abides the following naming convention: `spec###_DESC` where:
 
 ```java
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.1
-  @Required @Test
-  public void spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements() throws Throwable {
+  @Test public void required_spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements() throws Throwable
     // ...
   }
 ```
 
-The annotations on the test methods are used in order to signify the character of the test. For example, these are the kinds of annotations you may find:
+The prefixes of the names of the test methods are used in order to signify the character of the test. For example, these are the kinds of prefixes you may find:
+"required_", "optional_", "stochastic_", "untested_".
+
+Explanations:
 
 ```java
-@Required @Test
+@Test public void required_spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements() throws Throwable
 ```
 
 ... means that this test case is a hard requirement, it covers a *MUST* or *MUST NOT* Rule of the Specification.
 
 
 ```java
-@Additional @Test
+@Test public void optional_spec104_mustSignalOnErrorWhenFails() throws Throwable
 ```
 
-... means that this test case is optional, it covers a *MAY* or *SHOULD* Rule of the Specification. This annotation is also used if more configuration is needed in order to run it, e.g. `@Additional(implement = "createErrorStatePublisher") @Test` signals the implementer that in order to include this test case in his test runs, (s)he must implement the `Publisher<T> createErrorStatePublisher()` method.
+... means that this test case is optional, it covers a *MAY* or *SHOULD* Rule of the Specification. This prefix is also used if more configuration is needed in order to run it, e.g. `@Additional(implement = "createErrorStatePublisher") @Test` signals the implementer that in order to include this test case in his test runs, (s)he must implement the `Publisher<T> createErrorStatePublisher()` method.
 
 ```java
-@Stochastic @Test
+@Test public void stochastic_spec103_mustSignalOnMethodsSequentially() throws Throwable
 ```
 
 ... means that the Rule is either racy, and/or inherently hard to verify without heavy modification of the tested implementation. Usually this means that this test case can yield false positives ("be green") even if for some case, the given implementation may violate the tested behaviour.
 
 ```java
-@NotVerified @Test
+@Test public void untested_spec106_mustConsiderSubscriptionCancelledAfterOnErrorOrOnCompleteHasBeenCalled() throws Throwable
 ```
 
-... means that the test case is not implemented, either because it is inherently hard to verify (e.g. Rules which use the wording "*SHOULD consider X as Y*") or have not been implemented yet (though we hope we have implemented all we could!). Such tests will show up in your test runs as `SKIPPED`, with a message pointing out that the TCK is unable to validate this Rule. We would be delighted if you can figure out a way to deterministically test Rules, which have been marked with this annotation – pull requests are very welcome!
+... means that the test case is not implemented, either because it is inherently hard to verify (e.g. Rules which use the wording "*SHOULD consider X as Y*") or have not been implemented yet (though we hope we have implemented all we could!). Such tests will show up in your test runs as `SKIPPED`, with a message pointing out that the TCK is unable to validate this Rule. We would be delighted if you can figure out a way to deterministically test Rules, which have been marked with this prefix – pull requests are very welcome!
 
 ### Test isolation
 

@@ -76,7 +76,7 @@ public abstract class SubscriberWhiteboxVerification<T> implements SubscriberWhi
   ////////////////////// TEST SETUP VERIFICATION //////////////////////////////
 
   @Test
-  public void required___exerciseWhiteboxHappyPath() throws Throwable {
+  public void required_exerciseWhiteboxHappyPath() throws Throwable {
     subscriberTest(new TestStageTestRun() {
       @Override
       public void run(WhiteboxTestStage stage) throws InterruptedException {
@@ -108,7 +108,7 @@ public abstract class SubscriberWhiteboxVerification<T> implements SubscriberWhi
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.1
   @Override @Test
-  public void required___spec201_mustSignalDemandViaSubscriptionRequest() throws Throwable {
+  public void required_spec201_mustSignalDemandViaSubscriptionRequest() throws Throwable {
     subscriberTest(new TestStageTestRun() {
       @Override
       public void run(WhiteboxTestStage stage) throws InterruptedException {
@@ -122,13 +122,13 @@ public abstract class SubscriberWhiteboxVerification<T> implements SubscriberWhi
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.2
   @Override @Test
-  public void unverified___spec202_shouldAsynchronouslyDispatch() throws Exception {
+  public void untested_spec202_shouldAsynchronouslyDispatch() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.3
   @Override @Test
-  public void required___spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete() throws Throwable {
+  public void required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete() throws Throwable {
     subscriberTestWithoutSetup(new TestStageTestRun() {
       @Override
       public void run(WhiteboxTestStage stage) throws Throwable {
@@ -167,7 +167,7 @@ public abstract class SubscriberWhiteboxVerification<T> implements SubscriberWhi
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.3
   @Override @Test
-  public void required___spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError() throws Throwable {
+  public void required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError() throws Throwable {
     subscriberTestWithoutSetup(new TestStageTestRun() {
       @Override
       public void run(WhiteboxTestStage stage) throws Throwable {
@@ -208,13 +208,13 @@ public abstract class SubscriberWhiteboxVerification<T> implements SubscriberWhi
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.4
   @Override @Test
-  public void unverified___spec204_mustConsiderTheSubscriptionAsCancelledInAfterRecievingOnCompleteOrOnError() throws Exception {
+  public void untested_spec204_mustConsiderTheSubscriptionAsCancelledInAfterRecievingOnCompleteOrOnError() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.5
   @Override @Test
-  public void required___spec205_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal() throws Exception {
+  public void required_spec205_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal() throws Exception {
     new WhiteboxTestStage(env) {{
       // try to subscribe another time, if the subscriber calls `probe.registerOnSubscribe` the test will fail
       final Latch secondSubscriptionCancelled = new Latch(env);
@@ -243,20 +243,20 @@ public abstract class SubscriberWhiteboxVerification<T> implements SubscriberWhi
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.6
   @Override @Test
-  public void unverified___spec206_mustCallSubscriptionCancelIfItIsNoLongerValid() throws Exception {
+  public void untested_spec206_mustCallSubscriptionCancelIfItIsNoLongerValid() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.7
   @Override @Test
-  public void unverified___spec207_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThreadOrTakeCareOfSynchronization() throws Exception {
+  public void untested_spec207_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThreadOrTakeCareOfSynchronization() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
     // the same thread part of the clause can be verified but that is not very useful, or is it?
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.8
   @Override @Test
-  public void required___spec208_mustBePreparedToReceiveOnNextSignalsAfterHavingCalledSubscriptionCancel() throws Throwable {
+  public void required_spec208_mustBePreparedToReceiveOnNextSignalsAfterHavingCalledSubscriptionCancel() throws Throwable {
     subscriberTest(new TestStageTestRun() {
       @Override
       public void run(WhiteboxTestStage stage) throws InterruptedException {
@@ -274,7 +274,7 @@ public abstract class SubscriberWhiteboxVerification<T> implements SubscriberWhi
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.9
   @Override @Test
-  public void required___spec209_mustBePreparedToReceiveAnOnCompleteSignalWithPrecedingRequestCall() throws Throwable {
+  public void required_spec209_mustBePreparedToReceiveAnOnCompleteSignalWithPrecedingRequestCall() throws Throwable {
     subscriberTest(new TestStageTestRun() {
       @Override
       public void run(WhiteboxTestStage stage) throws InterruptedException {
@@ -289,7 +289,7 @@ public abstract class SubscriberWhiteboxVerification<T> implements SubscriberWhi
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.9
   @Override @Test
-  public void required___spec209_mustBePreparedToReceiveAnOnCompleteSignalWithoutPrecedingRequestCall() throws Throwable {
+  public void required_spec209_mustBePreparedToReceiveAnOnCompleteSignalWithoutPrecedingRequestCall() throws Throwable {
     subscriberTest(new TestStageTestRun() {
       @Override
       public void run(WhiteboxTestStage stage) throws InterruptedException {
@@ -303,7 +303,7 @@ public abstract class SubscriberWhiteboxVerification<T> implements SubscriberWhi
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.10
   @Override @Test
-  public void required___spec210_mustBePreparedToReceiveAnOnErrorSignalWithPrecedingRequestCall() throws Throwable {
+  public void required_spec210_mustBePreparedToReceiveAnOnErrorSignalWithPrecedingRequestCall() throws Throwable {
     subscriberTest(new TestStageTestRun() {
       @Override
       public void run(WhiteboxTestStage stage) throws InterruptedException {
@@ -321,7 +321,7 @@ public abstract class SubscriberWhiteboxVerification<T> implements SubscriberWhi
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.10
   @Override @Test
-  public void required___spec210_mustBePreparedToReceiveAnOnErrorSignalWithoutPrecedingRequestCall() throws Throwable {
+  public void required_spec210_mustBePreparedToReceiveAnOnErrorSignalWithoutPrecedingRequestCall() throws Throwable {
     subscriberTest(new TestStageTestRun() {
       @Override
       public void run(WhiteboxTestStage stage) throws InterruptedException {
@@ -336,41 +336,19 @@ public abstract class SubscriberWhiteboxVerification<T> implements SubscriberWhi
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.11
   @Override @Test
-  public void unverified___spec211_mustMakeSureThatAllCallsOnItsMethodsHappenBeforeTheProcessingOfTheRespectiveEvents() throws Exception {
+  public void untested_spec211_mustMakeSureThatAllCallsOnItsMethodsHappenBeforeTheProcessingOfTheRespectiveEvents() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.12
   @Override @Test
-  public void optional___spec212_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality_specViolation() throws Throwable {
-    optionalSubscriberTestWithoutSetup(new TestStageTestRun() {
-      @Override @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
-      public void run(WhiteboxTestStage stage) throws Exception {
-        stage.pub = stage.createHelperPublisher(1);
-
-        stage.tees = new ManualSubscriberWithSubscriptionSupport<T>(env);
-
-        env.subscribe(stage.pub, stage.tees);
-        stage.tees.expectNone();
-
-        // subscribe the same subscriber again,
-        // this can not use convinience subscribe(pub, sub), because that one checks for noAsyncErrors
-        // instead we expect the error afterwards
-        stage.pub.subscribe(stage.tees); // NOTE: This is a spec violation!
-
-        // NOTE: It would be nice to signal an error in response to such spec violation, however
-        // reacting to spec violations is not strictly regulated by the Spec - for example, just logging and ignoring may
-        // also be a valid response to this spec violation - it's up to the implementation
-        //
-        // The TCK is able to check only for onErroring in such case, thus the check below and the optional nature of this test
-        stage.tees.expectError(Exception.class, "Should not allow subscribing the same instance multiple times, see Reactive Streams Specification Rule 2.12");
-      }
-    });
+  public void untested_spec212_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality_specViolation() throws Throwable {
+    notVerified(); // cannot be meaningfully tested, or can it?
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.13
   @Override @Test
-  public void unverified___spec213_failingOnSignalInvocation() throws Exception {
+  public void untested_spec213_failingOnSignalInvocation() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 
@@ -378,13 +356,13 @@ public abstract class SubscriberWhiteboxVerification<T> implements SubscriberWhi
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.1
   @Override @Test
-  public void unverified___spec301_mustNotBeCalledOutsideSubscriberContext() throws Exception {
+  public void untested_spec301_mustNotBeCalledOutsideSubscriberContext() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.8
   @Override @Test
-  public void required___spec308_requestMustRegisterGivenNumberElementsToBeProduced() throws Throwable {
+  public void required_spec308_requestMustRegisterGivenNumberElementsToBeProduced() throws Throwable {
     subscriberTest(new TestStageTestRun() {
       @Override
       public void run(WhiteboxTestStage stage) throws InterruptedException {
@@ -402,31 +380,31 @@ public abstract class SubscriberWhiteboxVerification<T> implements SubscriberWhi
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.10
   @Override @Test
-  public void unverified___spec310_requestMaySynchronouslyCallOnNextOnSubscriber() throws Exception {
+  public void untested_spec310_requestMaySynchronouslyCallOnNextOnSubscriber() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.11
   @Override @Test
-  public void unverified___spec311_requestMaySynchronouslyCallOnCompleteOrOnError() throws Exception {
+  public void untested_spec311_requestMaySynchronouslyCallOnCompleteOrOnError() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.14
   @Override @Test
-  public void unverified___spec314_cancelMayCauseThePublisherToShutdownIfNoOtherSubscriptionExists() throws Exception {
+  public void untested_spec314_cancelMayCauseThePublisherToShutdownIfNoOtherSubscriptionExists() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.15
   @Override @Test
-  public void unverified___spec315_cancelMustNotThrowExceptionAndMustSignalOnError() throws Exception {
+  public void untested_spec315_cancelMustNotThrowExceptionAndMustSignalOnError() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.16
   @Override @Test
-  public void unverified___spec316_requestMustNotThrowExceptionAndMustOnErrorTheSubscriber() throws Exception {
+  public void untested_spec316_requestMustNotThrowExceptionAndMustOnErrorTheSubscriber() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 

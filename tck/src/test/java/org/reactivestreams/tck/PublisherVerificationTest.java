@@ -25,34 +25,34 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
   static final int GC_TIMEOUT_MILLIS = 300;
 
   @Test
-  public void required___spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements_shouldFailBy_ExpectingOnError() throws Throwable {
+  public void required_spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements_shouldFailBy_ExpectingOnError() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        noopPublisherVerification().required___spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements();
+        noopPublisherVerification().required_spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements();
       }
     }, "produced no element after first");
   }
 
   @Test
-  public void required___spec102_maySignalLessThanRequestedAndTerminateSubscription_shouldFailBy_notReceivingAnyElement() throws Throwable {
+  public void required_spec102_maySignalLessThanRequestedAndTerminateSubscription_shouldFailBy_notReceivingAnyElement() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        noopPublisherVerification().required___spec102_maySignalLessThanRequestedAndTerminateSubscription();
+        noopPublisherVerification().required_spec102_maySignalLessThanRequestedAndTerminateSubscription();
       }
     }, "Did not receive expected element");
   }
 
   @Test
-  public void required___spec102_maySignalLessThanRequestedAndTerminateSubscription_shouldFailBy_receivingTooManyElements() throws Throwable {
+  public void required_spec102_maySignalLessThanRequestedAndTerminateSubscription_shouldFailBy_receivingTooManyElements() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        demandIgnoringSynchronousPublisherVerification().required___spec102_maySignalLessThanRequestedAndTerminateSubscription();
+        demandIgnoringSynchronousPublisherVerification().required_spec102_maySignalLessThanRequestedAndTerminateSubscription();
       }
     }, "Expected end-of-stream but got element [3]");
   }
 
   @Test
-  public void stochastic___spec103_mustSignalOnMethodsSequentially_shouldFailBy_concurrentlyAccessingOnNext() throws Throwable {
+  public void stochastic_spec103_mustSignalOnMethodsSequentially_shouldFailBy_concurrentlyAccessingOnNext() throws Throwable {
     final AtomicInteger startedSignallingThreads = new AtomicInteger(0);
     // this is an arbitrary number, we just need "many threads" to try to force an concurrent access scenario
     final int maxSignallingThreads = 10;
@@ -113,7 +113,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
     try {
       requireTestFailure(new ThrowingRunnable() {
         @Override public void run() throws Throwable {
-          customPublisherVerification(concurrentAccessPublisher).stochastic___spec103_mustSignalOnMethodsSequentially();
+          customPublisherVerification(concurrentAccessPublisher).stochastic_spec103_mustSignalOnMethodsSequentially();
         }
       }, "Illegal concurrent access detected");
     } finally {
@@ -123,7 +123,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
   }
 
   @Test
-  public void stochastic___spec103_mustSignalOnMethodsSequentially_shouldPass_forSynchronousPublisher() throws Throwable {
+  public void stochastic_spec103_mustSignalOnMethodsSequentially_shouldPass_forSynchronousPublisher() throws Throwable {
     customPublisherVerification(new Publisher<Integer>() {
       @Override public void subscribe(final Subscriber<? super Integer> s) {
         s.onSubscribe(new NoopSubscription() {
@@ -136,11 +136,11 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
           }
         });
       }
-    }).stochastic___spec103_mustSignalOnMethodsSequentially();
+    }).stochastic_spec103_mustSignalOnMethodsSequentially();
   }
 
   @Test
-  public void optional___spec104_mustSignalOnErrorWhenFails_shouldFail() throws Throwable {
+  public void optional_spec104_mustSignalOnErrorWhenFails_shouldFail() throws Throwable {
     final Publisher<Integer> invalidErrorPublisher = new Publisher<Integer>() {
       @Override public void subscribe(Subscriber<? super Integer> s) {
         throw new RuntimeException("It is not valid to throw here!");
@@ -148,22 +148,22 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
     };
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        customPublisherVerification(SKIP, invalidErrorPublisher).optional___spec104_mustSignalOnErrorWhenFails();
+        customPublisherVerification(SKIP, invalidErrorPublisher).optional_spec104_mustSignalOnErrorWhenFails();
       }
     }, "Publisher threw exception (It is not valid to throw here!) instead of signalling error via onError!");
   }
 
   @Test
-  public void optional___spec104_mustSignalOnErrorWhenFails_shouldBeSkippedWhenNoErrorPublisherGiven() throws Throwable {
+  public void optional_spec104_mustSignalOnErrorWhenFails_shouldBeSkippedWhenNoErrorPublisherGiven() throws Throwable {
     requireTestSkip(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        noopPublisherVerification().optional___spec104_mustSignalOnErrorWhenFails();
+        noopPublisherVerification().optional_spec104_mustSignalOnErrorWhenFails();
       }
     }, PublisherVerification.SKIPPING_NO_ERROR_PUBLISHER_AVAILABLE);
   }
 
   @Test
-  public void required___spec105_mustSignalOnCompleteWhenFiniteStreamTerminates_shouldFail() throws Throwable {
+  public void required_spec105_mustSignalOnCompleteWhenFiniteStreamTerminates_shouldFail() throws Throwable {
     final Publisher<Integer> forgotToSignalCompletionPublisher = new Publisher<Integer>() {
       @Override public void subscribe(final Subscriber<? super Integer> s) {
         s.onSubscribe(new NoopSubscription() {
@@ -182,22 +182,22 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
 
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        customPublisherVerification(forgotToSignalCompletionPublisher).required___spec105_mustSignalOnCompleteWhenFiniteStreamTerminates();
+        customPublisherVerification(forgotToSignalCompletionPublisher).required_spec105_mustSignalOnCompleteWhenFiniteStreamTerminates();
       }
     }, "Expected end-of-stream but got element [3]");
   }
 
   @Test
-  public void required___spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled_shouldFailForNotCompletingPublisher() throws Throwable {
+  public void required_spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled_shouldFailForNotCompletingPublisher() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        demandIgnoringSynchronousPublisherVerification().required___spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled();
+        demandIgnoringSynchronousPublisherVerification().required_spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled();
       }
     }, "Expected end-of-stream but got element [" /* element which should not have been signalled */);
   }
 
   @Test
-  public void required___spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled_shouldFailForPublisherWhichCompletesButKeepsServingData() throws Throwable {
+  public void required_spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled_shouldFailForPublisherWhichCompletesButKeepsServingData() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customPublisherVerification(new Publisher<Integer>() {
@@ -219,57 +219,57 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
               }
             });
           }
-        }).required___spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled();
+        }).required_spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled();
       }
     }, "Unexpected element 0 received after stream completed");
   }
 
   @Test
-  public void unverified___spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice_shouldFailBy_skippingSinceOptional() throws Throwable {
+  public void untested_spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice_shouldFailBy_skippingSinceOptional() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        noopPublisherVerification().unverified___spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice();
+        noopPublisherVerification().untested_spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice();
       }
     }, "Not verified by this TCK.");
   }
 
   @Test
-  public void optional___spec111_maySupportMultiSubscribe_shouldFailBy_actuallyPass() throws Throwable {
-    noopPublisherVerification().optional___spec111_maySupportMultiSubscribe();
+  public void optional_spec111_maySupportMultiSubscribe_shouldFailBy_actuallyPass() throws Throwable {
+    noopPublisherVerification().optional_spec111_maySupportMultiSubscribe();
   }
 
   @Test
-  public void optional___spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe_shouldFail() throws Throwable {
+  public void optional_spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe_shouldFail() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customPublisherVerification(SKIP, new Publisher<Integer>() {
           @Override public void subscribe(Subscriber<? super Integer> s) {
           }
-        }).optional___spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
+        }).required_spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
       }
     }, "Should have received onError");
   }
 
   @Test
-  public void optional___spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe_actuallyPass() throws Throwable {
+  public void optional_spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe_actuallyPass() throws Throwable {
     customPublisherVerification(SKIP, new Publisher<Integer>() {
       @Override public void subscribe(Subscriber<? super Integer> s) {
         s.onError(new RuntimeException("Sorry, I'm busy now. Call me later."));
       }
-    }).optional___spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
+    }).required_spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
   }
 
   @Test
-  public void optional___spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe_beSkippedForNoGivenErrorPublisher() throws Throwable {
+  public void required_spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe_beSkippedForNoGivenErrorPublisher() throws Throwable {
     requireTestSkip(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        noopPublisherVerification().optional___spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
+        noopPublisherVerification().required_spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
       }
     }, PublisherVerification.SKIPPING_NO_ERROR_PUBLISHER_AVAILABLE);
   }
 
   @Test
-  public void required___spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront_shouldFailBy_expectingOnError() throws Throwable {
+  public void required_spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront_shouldFailBy_expectingOnError() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customPublisherVerification(new Publisher<Integer>() {
@@ -287,23 +287,23 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
               }
             });
           }
-        }).required___spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront();
+        }).required_spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront();
       }
     }, "Expected elements to be signaled in the same sequence to 1st and 2nd subscribers: Lists differ at element ");
   }
 
 
   @Test
-  public void required___spec302_mustAllowSynchronousRequestCallsFromOnNextAndOnSubscribe_shouldFailBy_reportingAsyncError() throws Throwable {
+  public void required_spec302_mustAllowSynchronousRequestCallsFromOnNextAndOnSubscribe_shouldFailBy_reportingAsyncError() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        onErroringPublisherVerification().required___spec302_mustAllowSynchronousRequestCallsFromOnNextAndOnSubscribe();
+        onErroringPublisherVerification().required_spec302_mustAllowSynchronousRequestCallsFromOnNextAndOnSubscribe();
       }
     }, "Async error during test execution: Test Exception: Boom!");
   }
 
   @Test
-  public void required___spec303_mustNotAllowUnboundedRecursion_shouldFailBy_informingAboutTooDeepStack() throws Throwable {
+  public void required_spec303_mustNotAllowUnboundedRecursion_shouldFailBy_informingAboutTooDeepStack() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customPublisherVerification(new Publisher<Integer>() {
@@ -318,27 +318,27 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
               }
             });
           }
-        }).required___spec303_mustNotAllowUnboundedRecursion();
+        }).required_spec303_mustNotAllowUnboundedRecursion();
       }
     }, /* Got 2 onNext calls within thread: ... */ "yet expected recursive bound was 1");
   }
 
   @Test
-  public void required___spec306_afterSubscriptionIsCancelledRequestMustBeNops_shouldFailBy_unexpectedElement() throws Throwable {
+  public void required_spec306_afterSubscriptionIsCancelledRequestMustBeNops_shouldFailBy_unexpectedElement() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        demandIgnoringSynchronousPublisherVerification().required___spec306_afterSubscriptionIsCancelledRequestMustBeNops();
+        demandIgnoringSynchronousPublisherVerification().required_spec306_afterSubscriptionIsCancelledRequestMustBeNops();
       }
     }, "Did not expect an element but got element [0]");
   }
 
   @Test
-  public void required___spec307_afterSubscriptionIsCancelledAdditionalCancelationsMustBeNops_shouldPass() throws Throwable {
-    demandIgnoringSynchronousPublisherVerification().required___spec307_afterSubscriptionIsCancelledAdditionalCancelationsMustBeNops();
+  public void required_spec307_afterSubscriptionIsCancelledAdditionalCancelationsMustBeNops_shouldPass() throws Throwable {
+    demandIgnoringSynchronousPublisherVerification().required_spec307_afterSubscriptionIsCancelledAdditionalCancelationsMustBeNops();
   }
 
   @Test
-  public void required___spec307_afterSubscriptionIsCancelledAdditionalCancelationsMustBeNops_shouldFailBy_unexpectedErrorInCancelling() throws Throwable {
+  public void required_spec307_afterSubscriptionIsCancelledAdditionalCancelationsMustBeNops_shouldFailBy_unexpectedErrorInCancelling() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customPublisherVerification(new Publisher<Integer>() {
@@ -353,37 +353,37 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
               }
             });
           }
-        }).required___spec307_afterSubscriptionIsCancelledAdditionalCancelationsMustBeNops();
+        }).required_spec307_afterSubscriptionIsCancelledAdditionalCancelationsMustBeNops();
       }
     }, "Async error during test execution: Test Exception: Boom!");
   }
 
   @Test
-  public void required___spec309_requestZeroMustSignalIllegalArgumentException_shouldFailBy_expectingOnError() throws Throwable {
+  public void required_spec309_requestZeroMustSignalIllegalArgumentException_shouldFailBy_expectingOnError() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        noopPublisherVerification().required___spec309_requestZeroMustSignalIllegalArgumentException();
+        noopPublisherVerification().required_spec309_requestZeroMustSignalIllegalArgumentException();
       }
     }, "Expected onError");
   }
 
   @Test
-  public void required___spec309_requestNegativeNumberMustSignalIllegalArgumentException_shouldFailBy_expectingOnError() throws Throwable {
+  public void required_spec309_requestNegativeNumberMustSignalIllegalArgumentException_shouldFailBy_expectingOnError() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        noopPublisherVerification().required___spec309_requestNegativeNumberMustSignalIllegalArgumentException();
+        noopPublisherVerification().required_spec309_requestNegativeNumberMustSignalIllegalArgumentException();
       }
     }, "Expected onError");
   }
 
   @Test
-  public void required___spec312_cancelMustMakeThePublisherToEventuallyStopSignaling_shouldFailBy_havingEmitedMoreThanRequested() throws Throwable {
+  public void required_spec312_cancelMustMakeThePublisherToEventuallyStopSignaling_shouldFailBy_havingEmitedMoreThanRequested() throws Throwable {
     final ExecutorService pool = Executors.newFixedThreadPool(2);
 
     try {
       requireTestFailure(new ThrowingRunnable() {
         @Override public void run() throws Throwable {
-          demandIgnoringAsynchronousPublisherVerification(pool).required___spec312_cancelMustMakeThePublisherToEventuallyStopSignaling();
+          demandIgnoringAsynchronousPublisherVerification(pool).required_spec312_cancelMustMakeThePublisherToEventuallyStopSignaling();
         }
       }, /*Publisher signalled [...] */ ", which is more than the signalled demand: ");
     } finally {
@@ -393,7 +393,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
   }
 
   @Test
-  public void required___spec313_cancelMustMakeThePublisherEventuallyDropAllReferencesToTheSubscriber_shouldFailBy_keepingTheReferenceLongerThanNeeded() throws Throwable {
+  public void required_spec313_cancelMustMakeThePublisherEventuallyDropAllReferencesToTheSubscriber_shouldFailBy_keepingTheReferenceLongerThanNeeded() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customPublisherVerification(new Publisher<Integer>() {
@@ -414,13 +414,13 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
               }
             });
           }
-        }).required___spec313_cancelMustMakeThePublisherEventuallyDropAllReferencesToTheSubscriber();
+        }).required_spec313_cancelMustMakeThePublisherEventuallyDropAllReferencesToTheSubscriber();
       }
     }, "did not drop reference to test subscriber after subscription cancellation");
   }
 
   @Test
-  public void required___spec317_mustSupportAPendingElementCountUpToLongMaxValue_shouldFail_onAsynchDemandIgnoringPublisher() throws Throwable {
+  public void required_spec317_mustSupportAPendingElementCountUpToLongMaxValue_shouldFail_onAsynchDemandIgnoringPublisher() throws Throwable {
     // 10 is arbitrary here, we just need a "larger number" to get into concurrent access scenarios, anything more than 2
     // should work, but getting up to 10 should be safer and doesn't hurt to play safe here
     final ExecutorService pool = Executors.newFixedThreadPool(10);
@@ -428,7 +428,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
     try {
       requireTestFailure(new ThrowingRunnable() {
         @Override public void run() throws Throwable {
-          demandIgnoringAsynchronousPublisherVerification(pool).required___spec317_mustSupportAPendingElementCountUpToLongMaxValue();
+          demandIgnoringAsynchronousPublisherVerification(pool).required_spec317_mustSupportAPendingElementCountUpToLongMaxValue();
         }
       }, "Expected end-of-stream but got");
     } finally {
@@ -438,26 +438,26 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
   }
 
   @Test
-  public void required___spec317_mustSupportAPendingElementCountUpToLongMaxValue_shouldFail_onSynchDemandIgnoringPublisher() throws Throwable {
+  public void required_spec317_mustSupportAPendingElementCountUpToLongMaxValue_shouldFail_onSynchDemandIgnoringPublisher() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        demandIgnoringSynchronousPublisherVerification().required___spec317_mustSupportAPendingElementCountUpToLongMaxValue();
+        demandIgnoringSynchronousPublisherVerification().required_spec317_mustSupportAPendingElementCountUpToLongMaxValue();
       }
     }, "Received more than bufferSize (32) onNext signals. The Publisher probably emited more signals than expected!");
   }
 
   @Test
-  public void required___spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue_shouldFail_onAsynchDemandIgnoringPublisher() throws Throwable {
+  public void required_spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue_shouldFail_onAsynchDemandIgnoringPublisher() throws Throwable {
     final ExecutorService signallersPool = Executors.newFixedThreadPool(2);
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        demandIgnoringAsynchronousPublisherVerification(signallersPool).required___spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue();
+        demandIgnoringAsynchronousPublisherVerification(signallersPool).required_spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue();
       }
     }, "Expected onError(java.lang.IllegalStateException)");
   }
 
   @Test
-  public void required___spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue_shouldFail_onSynchDemandIgnoringPublisher() throws Throwable {
+  public void required_spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue_shouldFail_onSynchDemandIgnoringPublisher() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customPublisherVerification(new Publisher<Integer>() {
@@ -475,13 +475,13 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
               }
             });
           }
-        }).required___spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue();
+        }).required_spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue();
       }
     }, "Expected onError(java.lang.IllegalStateException)");
   }
 
   @Test
-  public void required___spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue_shouldFail_overflowingDemand() throws Throwable {
+  public void required_spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue_shouldFail_overflowingDemand() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customPublisherVerification(new Publisher<Integer>() {
@@ -500,7 +500,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
               }
             });
           }
-        }).required___spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue();
+        }).required_spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue();
       }
     }, "Async error during test execution: I'm signalling onError too soon!");
   }

@@ -18,72 +18,72 @@ public class SubscriberBlackboxVerificationTest extends TCKVerificationSupport {
   static final int DEFAULT_TIMEOUT_MILLIS = 100;
 
   @Test
-  public void required___spec201_blackbox_mustSignalDemandViaSubscriptionRequest_shouldFailBy_notGettingRequestCall() throws Throwable {
+  public void required_spec201_blackbox_mustSignalDemandViaSubscriptionRequest_shouldFailBy_notGettingRequestCall() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        noopSubscriberVerification().required___spec201_blackbox_mustSignalDemandViaSubscriptionRequest();
+        noopSubscriberVerification().required_spec201_blackbox_mustSignalDemandViaSubscriptionRequest();
       }
     }, "Did not receive expected `request` call within");
   }
 
   @Test
-  public void required___spec201_blackbox_mustSignalDemandViaSubscriptionRequest_shouldPass() throws Throwable {
-    simpleSubscriberVerification().required___spec201_blackbox_mustSignalDemandViaSubscriptionRequest();
+  public void required_spec201_blackbox_mustSignalDemandViaSubscriptionRequest_shouldPass() throws Throwable {
+    simpleSubscriberVerification().required_spec201_blackbox_mustSignalDemandViaSubscriptionRequest();
   }
 
   @Test
-  public void required___spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_shouldFail_dueToCallingRequest() throws Throwable {
+  public void required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_shouldFail_dueToCallingRequest() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customSubscriberVerification(new KeepSubscriptionSubscriber() {
           @Override public void onComplete() {
             subscription.request(1);
           }
-        }).required___spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete();
+        }).required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete();
       }
     }, "Subscription::request MUST NOT be called from Subscriber::onComplete (Rule 2.3)!");
   }
 
   @Test
-  public void required___spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_shouldFail_dueToCallingCancel() throws Throwable {
+  public void required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_shouldFail_dueToCallingCancel() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customSubscriberVerification(new KeepSubscriptionSubscriber() {
           @Override public void onComplete() {
             subscription.cancel();
           }
-        }).required___spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete();
+        }).required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete();
       }
     }, "Subscription::cancel MUST NOT be called from Subscriber::onComplete (Rule 2.3)!");
   }
 
   @Test
-  public void required___spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnError_shouldFail_dueToCallingRequest() throws Throwable {
+  public void required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnError_shouldFail_dueToCallingRequest() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customSubscriberVerification(new KeepSubscriptionSubscriber() {
           @Override public void onError(Throwable t) {
             subscription.request(1);
           }
-        }).required___spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnError();
+        }).required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnError();
       }
     }, "Subscription::request MUST NOT be called from Subscriber::onError (Rule 2.3)!");
   }
   @Test
-  public void required___spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnError_shouldFail_dueToCallingCancel() throws Throwable {
+  public void required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnError_shouldFail_dueToCallingCancel() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customSubscriberVerification(new KeepSubscriptionSubscriber() {
           @Override public void onError(Throwable t) {
             subscription.cancel();
           }
-        }).required___spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnError();
+        }).required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnError();
       }
     }, "Subscription::cancel MUST NOT be called from Subscriber::onError (Rule 2.3)!");
   }
 
   @Test
-  public void required___spec205_blackbox_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal_shouldFail() throws Throwable {
+  public void required_spec205_blackbox_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal_shouldFail() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customSubscriberVerification(new KeepSubscriptionSubscriber() {
@@ -92,31 +92,31 @@ public class SubscriberBlackboxVerificationTest extends TCKVerificationSupport {
 
             s.request(1); // this is wrong, as one should always check if should accept or reject the subscription
           }
-        }).required___spec205_blackbox_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal();
+        }).required_spec205_blackbox_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal();
       }
     }, "illegally called `subscription.request(1)");
   }
 
   @Test
-  public void required___spec209_blackbox_mustBePreparedToReceiveAnOnCompleteSignalWithPrecedingRequestCall_shouldFail() throws Throwable {
+  public void required_spec209_blackbox_mustBePreparedToReceiveAnOnCompleteSignalWithPrecedingRequestCall_shouldFail() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customSubscriberVerification(new NoopSubscriber() {
           // don't even request()
-        }).required___spec209_blackbox_mustBePreparedToReceiveAnOnCompleteSignalWithPrecedingRequestCall();
+        }).required_spec209_blackbox_mustBePreparedToReceiveAnOnCompleteSignalWithPrecedingRequestCall();
       }
     }, "did not call `registerOnComplete()`");
   }
 
   @Test
-  public void required___spec209_blackbox_mustBePreparedToReceiveAnOnCompleteSignalWithoutPrecedingRequestCall_shouldPass_withNoopSubscriber() throws Throwable {
+  public void required_spec209_blackbox_mustBePreparedToReceiveAnOnCompleteSignalWithoutPrecedingRequestCall_shouldPass_withNoopSubscriber() throws Throwable {
     customSubscriberVerification(new NoopSubscriber() {
       // don't even request()
-    }).required___spec209_blackbox_mustBePreparedToReceiveAnOnCompleteSignalWithoutPrecedingRequestCall();
+    }).required_spec209_blackbox_mustBePreparedToReceiveAnOnCompleteSignalWithoutPrecedingRequestCall();
   }
 
   @Test
-  public void required___spec210_blackbox_mustBePreparedToReceiveAnOnErrorSignalWithPrecedingRequestCall_shouldFail() throws Throwable {
+  public void required_spec210_blackbox_mustBePreparedToReceiveAnOnErrorSignalWithPrecedingRequestCall_shouldFail() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
 
@@ -125,7 +125,7 @@ public class SubscriberBlackboxVerificationTest extends TCKVerificationSupport {
             // this is wrong in many ways (incl. spec violation), but aims to simulate user code which "blows up" when handling the onError signal
             throw new RuntimeException("Wrong, don't do this!", t); // don't do this
           }
-        }).required___spec210_blackbox_mustBePreparedToReceiveAnOnErrorSignalWithPrecedingRequestCall();
+        }).required_spec210_blackbox_mustBePreparedToReceiveAnOnErrorSignalWithPrecedingRequestCall();
       }
     }, "Test Exception: Boom!"); // checks that the expected exception was delivered to onError, we don't expect anyone to implement onError so weirdly
   }
