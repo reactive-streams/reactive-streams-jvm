@@ -18,7 +18,7 @@ public class InfiniteHelperPublisher<T> extends AsyncIterablePublisher<T> {
                 try {
                   return create.apply(at++); // Wraps around on overflow
                 } catch (Throwable t) {
-                  throw new HelperPublisherException(
+                  throw new IllegalStateException(
                     String.format("Failed to create element in %s for id %s!", getClass().getSimpleName(), at - 1), t);
                 }
               }

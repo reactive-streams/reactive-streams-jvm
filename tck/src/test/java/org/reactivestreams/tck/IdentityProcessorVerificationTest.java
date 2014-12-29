@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
 */
 public class IdentityProcessorVerificationTest extends TCKVerificationSupport {
 
-  static final int DEFAULT_TIMEOUT_MILLIS = 100;
+  static final int DEFAULT_TIMEOUT_MILLIS = 500;
 
   private ExecutorService ex;
   @BeforeClass void before() { ex = Executors.newFixedThreadPool(4); }
@@ -28,22 +28,20 @@ public class IdentityProcessorVerificationTest extends TCKVerificationSupport {
   public void required_spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError_shouldBeIgnored() throws Throwable {
     requireTestSkip(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        new IdentityProcessorVerification(newTestEnvironment(), DEFAULT_TIMEOUT_MILLIS){
-          @Override public Processor createIdentityProcessor(int bufferSize) {
+        new IdentityProcessorVerification<Integer>(newTestEnvironment(), DEFAULT_TIMEOUT_MILLIS){
+          @Override public Processor<Integer, Integer> createIdentityProcessor(int bufferSize) {
             return new NoopProcessor();
           }
 
           @Override public ExecutorService publisherExecutorService() { return ex; }
 
-          @Override public Object createElement(int element) {
-            return null;
-          }
+          @Override public Integer createElement(int element) { return element; }
 
-          @Override public Publisher createHelperPublisher(long elements) {
+          @Override public Publisher<Integer> createHelperPublisher(long elements) {
             return SKIP;
           }
 
-          @Override public Publisher createErrorStatePublisher() {
+          @Override public Publisher<Integer> createErrorStatePublisher() {
             return SKIP;
           }
 

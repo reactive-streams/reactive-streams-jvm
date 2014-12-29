@@ -222,7 +222,24 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
     blackboxSubscriberWithoutSetupTest(new BlackboxTestStageTestRun() {
       @Override
       public void run(BlackboxTestStage stage) throws Throwable {
-        final Publisher<T> pub = createHelperPublisher(0);
+        final Publisher<T> pub = new Publisher<T>() {
+          @Override public void subscribe(final Subscriber<? super T> s) {
+            s.onSubscribe(new Subscription() {
+              private boolean completed = false;
+
+              @Override public void request(long n) {
+                if (!completed) {
+                  completed = true;
+                  s.onComplete(); // Publisher now realises that it is in fact already completed
+                }
+              }
+
+              @Override public void cancel() {
+                // noop, ignore
+              }
+            });
+          }
+        };
 
         final Subscriber<T> sub = createSubscriber();
         final BlackboxSubscriberProxy<T> probe = stage.createBlackboxSubscriberProxy(env, sub);

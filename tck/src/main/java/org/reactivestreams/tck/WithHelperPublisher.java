@@ -23,7 +23,7 @@ public abstract class WithHelperPublisher<T> {
    * Implement this method to match your expected element type.
    * In case of implementing a simple Subscriber which is able to consume any kind of element simply return the
    * incoming {@code element} element.
-   * <p/>
+   * <p>
    * Sometimes the Subscriber may be limited in what type of element it is able to consume, this you may have to implement
    * this method such that the emitted element matches the Subscribers requirements. Simplest implementations would be
    * to simply pass in the {@code element} as payload of your custom element, such as appending it to a String or other identifier.

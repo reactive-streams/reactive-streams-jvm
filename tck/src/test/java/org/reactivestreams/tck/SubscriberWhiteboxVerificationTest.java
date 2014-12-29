@@ -20,7 +20,7 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
 
-  static final int DEFAULT_TIMEOUT_MILLIS = 100;
+  static final int DEFAULT_TIMEOUT_MILLIS = 500;
 
   private ExecutorService ex;
   @BeforeClass void before() { ex = Executors.newFixedThreadPool(4); }
