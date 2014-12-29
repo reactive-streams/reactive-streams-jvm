@@ -60,7 +60,7 @@ public class AsyncSubscriberTest extends SubscriberBlackboxVerification<Integer>
       }
     };
 
-    new NumberIterablePublisher<Integer>(0, 10, e).subscribe(sub);
+    new NumberIterablePublisher(0, 10, e).subscribe(sub);
     latch.await(DefaultTimeoutMillis * 10, TimeUnit.MILLISECONDS);
     assertEquals(i.get(), 45);
   }
