@@ -1,17 +1,18 @@
 package org.reactivestreams.tck;
 
-import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.SubscriberWhiteboxVerification.SubscriberPuppet;
-import org.reactivestreams.tck.SubscriberWhiteboxVerification.SubscriberPuppeteer;
 import org.reactivestreams.tck.SubscriberWhiteboxVerification.WhiteboxSubscriberProbe;
 import org.reactivestreams.tck.support.Function;
 import org.reactivestreams.tck.support.TCKVerificationSupport;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Validates that the TCK's {@link SubscriberWhiteboxVerification} fails with nice human readable errors.
@@ -20,6 +21,10 @@ import java.util.concurrent.atomic.AtomicLong;
 public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
 
   static final int DEFAULT_TIMEOUT_MILLIS = 100;
+
+  private ExecutorService ex;
+  @BeforeClass void before() { ex = Executors.newFixedThreadPool(4); }
+  @AfterClass void after() { if (ex != null) ex.shutdown(); }
 
   @Test
   public void spec201_mustSignalDemandViaSubscriptionRequest_shouldFailBy_notGettingRequestCall() throws Throwable {
@@ -351,9 +356,9 @@ public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
         };
       }
 
-      @Override public Publisher<Integer> createHelperPublisher(long elements) {
-        return newSimpleIntsPublisher(elements);
-      }
+      @Override public Integer createElement(int element) { return element; }
+
+      @Override public ExecutorService publisherExecutorService() { return ex; }
     };
   }
 
@@ -371,9 +376,9 @@ public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
         }
       }
 
-      @Override public Publisher<Integer> createHelperPublisher(long elements) {
-        return newSimpleIntsPublisher(elements);
-      }
+      @Override public Integer createElement(int element) { return element; }
+
+      @Override public ExecutorService publisherExecutorService() { return ex; }
     };
   }
 
