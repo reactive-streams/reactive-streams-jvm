@@ -4,19 +4,20 @@ import org.reactivestreams.Processor;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import org.reactivestreams.tck.Annotations.Subscribers;
 import org.reactivestreams.tck.TestEnvironment.ManualPublisher;
 import org.reactivestreams.tck.TestEnvironment.ManualSubscriber;
 import org.reactivestreams.tck.TestEnvironment.ManualSubscriberWithSubscriptionSupport;
 import org.reactivestreams.tck.TestEnvironment.Promise;
 import org.reactivestreams.tck.support.Function;
+import org.reactivestreams.tck.support.SubscriberWhiteboxVerificationRules;
+import org.reactivestreams.tck.support.PublisherVerificationRules;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
 import java.util.HashSet;
 import java.util.Set;
 
-public abstract class IdentityProcessorVerification<T> {
+public abstract class IdentityProcessorVerification<T> implements SubscriberWhiteboxVerificationRules, PublisherVerificationRules {
 
   private final TestEnvironment env;
 
@@ -145,7 +146,7 @@ public abstract class IdentityProcessorVerification<T> {
    * recursive calls to exceed the number returned by this method.
    *
    * @see <a href="https://github.com/reactive-streams/reactive-streams#3.3">reactive streams spec, rule 3.3</a>
-   * @see PublisherVerification#spec303_mustNotAllowUnboundedRecursion()
+   * @see PublisherVerification#required_spec303_mustNotAllowUnboundedRecursion()
    */
   public long boundedDepthOfOnNextAndRequestRecursion() {
     return 1;
@@ -189,178 +190,178 @@ public abstract class IdentityProcessorVerification<T> {
     return processor; // we run the PublisherVerification against this
   }
 
-  @Test
-  public void validate_maxElementsFromPublisher() throws Exception {
-    publisherVerification.validate_maxElementsFromPublisher();
+  @Override @Test
+  public void required_validate_maxElementsFromPublisher() throws Exception {
+    publisherVerification.required_validate_maxElementsFromPublisher();
   }
 
-  @Test
-  public void validate_boundedDepthOfOnNextAndRequestRecursion() throws Exception {
-    publisherVerification.validate_boundedDepthOfOnNextAndRequestRecursion();
+  @Override @Test
+  public void required_validate_boundedDepthOfOnNextAndRequestRecursion() throws Exception {
+    publisherVerification.required_validate_boundedDepthOfOnNextAndRequestRecursion();
   }
 
   /////////////////////// DELEGATED TESTS, A PROCESSOR "IS A" PUBLISHER //////////////////////
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#4.1
 
   @Test
-  public void createPublisher1MustProduceAStreamOfExactly1Element() throws Throwable {
-    publisherVerification.createPublisher1MustProduceAStreamOfExactly1Element();
+  public void required_createPublisher1MustProduceAStreamOfExactly1Element() throws Throwable {
+    publisherVerification.required_createPublisher1MustProduceAStreamOfExactly1Element();
   }
 
   @Test
-  public void createPublisher3MustProduceAStreamOfExactly3Elements() throws Throwable {
-    publisherVerification.createPublisher3MustProduceAStreamOfExactly3Elements();
+  public void required_createPublisher3MustProduceAStreamOfExactly3Elements() throws Throwable {
+    publisherVerification.required_createPublisher3MustProduceAStreamOfExactly3Elements();
   }
 
-  @Test
-  public void spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements() throws Throwable {
-    publisherVerification.spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements();
+  @Override @Test
+  public void required_spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements() throws Throwable {
+    publisherVerification.required_spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements();
   }
 
-  @Test
-  public void spec102_maySignalLessThanRequestedAndTerminateSubscription() throws Throwable {
-    publisherVerification.spec102_maySignalLessThanRequestedAndTerminateSubscription();
+  @Override @Test
+  public void required_spec102_maySignalLessThanRequestedAndTerminateSubscription() throws Throwable {
+    publisherVerification.required_spec102_maySignalLessThanRequestedAndTerminateSubscription();
   }
 
-  @Test
-  public void spec103_mustSignalOnMethodsSequentially() throws Throwable {
-    publisherVerification.spec103_mustSignalOnMethodsSequentially();
+  @Override @Test
+  public void stochastic_spec103_mustSignalOnMethodsSequentially() throws Throwable {
+    publisherVerification.stochastic_spec103_mustSignalOnMethodsSequentially();
   }
 
-  @Test
-  public void spec104_mustSignalOnErrorWhenFails() throws Throwable {
-    publisherVerification.spec104_mustSignalOnErrorWhenFails();
+  @Override @Test
+  public void optional_spec104_mustSignalOnErrorWhenFails() throws Throwable {
+    publisherVerification.optional_spec104_mustSignalOnErrorWhenFails();
   }
 
-  @Test
-  public void spec105_mustSignalOnCompleteWhenFiniteStreamTerminates() throws Throwable {
-    publisherVerification.spec105_mustSignalOnCompleteWhenFiniteStreamTerminates();
+  @Override @Test
+  public void required_spec105_mustSignalOnCompleteWhenFiniteStreamTerminates() throws Throwable {
+    publisherVerification.required_spec105_mustSignalOnCompleteWhenFiniteStreamTerminates();
   }
 
-  @Test
-  public void spec106_mustConsiderSubscriptionCancelledAfterOnErrorOrOnCompleteHasBeenCalled() throws Throwable {
-    publisherVerification.spec106_mustConsiderSubscriptionCancelledAfterOnErrorOrOnCompleteHasBeenCalled();
+  @Override @Test
+  public void untested_spec106_mustConsiderSubscriptionCancelledAfterOnErrorOrOnCompleteHasBeenCalled() throws Throwable {
+    publisherVerification.untested_spec106_mustConsiderSubscriptionCancelledAfterOnErrorOrOnCompleteHasBeenCalled();
   }
 
-  @Test
-  public void spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled() throws Throwable {
-    publisherVerification.spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled();
+  @Override @Test
+  public void required_spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled() throws Throwable {
+    publisherVerification.required_spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled();
   }
 
-  @Test
-  public void spec107_mustNotEmitFurtherSignalsOnceOnErrorHasBeenSignalled() throws Throwable {
-    publisherVerification.spec107_mustNotEmitFurtherSignalsOnceOnErrorHasBeenSignalled();
+  @Override @Test
+  public void untested_spec107_mustNotEmitFurtherSignalsOnceOnErrorHasBeenSignalled() throws Throwable {
+    publisherVerification.untested_spec107_mustNotEmitFurtherSignalsOnceOnErrorHasBeenSignalled();
   }
 
-  @Test
-  public void spec108_possiblyCanceledSubscriptionShouldNotReceiveOnErrorOrOnCompleteSignals() throws Throwable {
-    publisherVerification.spec108_possiblyCanceledSubscriptionShouldNotReceiveOnErrorOrOnCompleteSignals();
+  @Override @Test
+  public void untested_spec108_possiblyCanceledSubscriptionShouldNotReceiveOnErrorOrOnCompleteSignals() throws Throwable {
+    publisherVerification.untested_spec108_possiblyCanceledSubscriptionShouldNotReceiveOnErrorOrOnCompleteSignals();
   }
 
-  @Test
-  public void spec109_subscribeShouldNotThrowNonFatalThrowable() throws Throwable {
-    publisherVerification.spec109_subscribeShouldNotThrowNonFatalThrowable();
+  @Override @Test
+  public void untested_spec109_subscribeShouldNotThrowNonFatalThrowable() throws Throwable {
+    publisherVerification.untested_spec109_subscribeShouldNotThrowNonFatalThrowable();
   }
 
-  @Test
-  public void spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice() throws Throwable {
-    publisherVerification.spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice();
+  @Override @Test
+  public void untested_spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice() throws Throwable {
+    publisherVerification.untested_spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice();
   }
 
-  @Test
-  public void spec111_maySupportMultiSubscribe() throws Throwable {
-    publisherVerification.spec111_maySupportMultiSubscribe();
+  @Override @Test
+  public void optional_spec111_maySupportMultiSubscribe() throws Throwable {
+    publisherVerification.optional_spec111_maySupportMultiSubscribe();
   }
 
-  @Test
-  public void spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe() throws Throwable {
-    publisherVerification.spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
+  @Override @Test
+  public void required_spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe() throws Throwable {
+    publisherVerification.required_spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
   }
 
-  @Test
-  public void spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingOneByOne() throws Throwable {
-    publisherVerification.spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingOneByOne();
+  @Override @Test
+  public void required_spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingOneByOne() throws Throwable {
+    publisherVerification.required_spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingOneByOne();
   }
 
-  @Test
-  public void spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront() throws Throwable {
-    publisherVerification.spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront();
+  @Override @Test
+  public void required_spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront() throws Throwable {
+    publisherVerification.required_spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront();
   }
 
-  @Test
-  public void spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfrontAndCompleteAsExpected() throws Throwable {
-    publisherVerification.spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfrontAndCompleteAsExpected();
+  @Override @Test
+  public void required_spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfrontAndCompleteAsExpected() throws Throwable {
+    publisherVerification.required_spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfrontAndCompleteAsExpected();
   }
 
-  @Test
-  public void spec302_mustAllowSynchronousRequestCallsFromOnNextAndOnSubscribe() throws Throwable {
-    publisherVerification.spec302_mustAllowSynchronousRequestCallsFromOnNextAndOnSubscribe();
+  @Override @Test
+  public void required_spec302_mustAllowSynchronousRequestCallsFromOnNextAndOnSubscribe() throws Throwable {
+    publisherVerification.required_spec302_mustAllowSynchronousRequestCallsFromOnNextAndOnSubscribe();
   }
 
-  @Test
-  public void spec303_mustNotAllowUnboundedRecursion() throws Throwable {
-    publisherVerification.spec303_mustNotAllowUnboundedRecursion();
+  @Override @Test
+  public void required_spec303_mustNotAllowUnboundedRecursion() throws Throwable {
+    publisherVerification.required_spec303_mustNotAllowUnboundedRecursion();
   }
 
-  @Test
-  public void spec304_requestShouldNotPerformHeavyComputations() throws Exception {
-    publisherVerification.spec304_requestShouldNotPerformHeavyComputations();
+  @Override @Test
+  public void untested_spec304_requestShouldNotPerformHeavyComputations() throws Exception {
+    publisherVerification.untested_spec304_requestShouldNotPerformHeavyComputations();
   }
 
-  @Test
-  public void spec305_cancelMustNotSynchronouslyPerformHeavyCompuatation() throws Exception {
-    publisherVerification.spec305_cancelMustNotSynchronouslyPerformHeavyCompuatation();
+  @Override @Test
+  public void untested_spec305_cancelMustNotSynchronouslyPerformHeavyCompuatation() throws Exception {
+    publisherVerification.untested_spec305_cancelMustNotSynchronouslyPerformHeavyCompuatation();
   }
 
-  @Test
-  public void spec306_afterSubscriptionIsCancelledRequestMustBeNops() throws Throwable {
-    publisherVerification.spec306_afterSubscriptionIsCancelledRequestMustBeNops();
+  @Override @Test
+  public void required_spec306_afterSubscriptionIsCancelledRequestMustBeNops() throws Throwable {
+    publisherVerification.required_spec306_afterSubscriptionIsCancelledRequestMustBeNops();
   }
 
-  @Test
-  public void spec307_afterSubscriptionIsCancelledAdditionalCancelationsMustBeNops() throws Throwable {
-    publisherVerification.spec307_afterSubscriptionIsCancelledAdditionalCancelationsMustBeNops();
+  @Override @Test
+  public void required_spec307_afterSubscriptionIsCancelledAdditionalCancelationsMustBeNops() throws Throwable {
+    publisherVerification.required_spec307_afterSubscriptionIsCancelledAdditionalCancelationsMustBeNops();
   }
 
-  @Test
-  public void spec309_requestZeroMustSignalIllegalArgumentException() throws Throwable {
-    publisherVerification.spec309_requestZeroMustSignalIllegalArgumentException();
+  @Override @Test
+  public void required_spec309_requestZeroMustSignalIllegalArgumentException() throws Throwable {
+    publisherVerification.required_spec309_requestZeroMustSignalIllegalArgumentException();
   }
 
-  @Test
-  public void spec309_requestNegativeNumberMustSignalIllegalArgumentException() throws Throwable {
-    publisherVerification.spec309_requestNegativeNumberMustSignalIllegalArgumentException();
+  @Override @Test
+  public void required_spec309_requestNegativeNumberMustSignalIllegalArgumentException() throws Throwable {
+    publisherVerification.required_spec309_requestNegativeNumberMustSignalIllegalArgumentException();
   }
 
-  @Test
-  public void spec312_cancelMustMakeThePublisherToEventuallyStopSignaling() throws Throwable {
-    publisherVerification.spec312_cancelMustMakeThePublisherToEventuallyStopSignaling();
+  @Override @Test
+  public void required_spec312_cancelMustMakeThePublisherToEventuallyStopSignaling() throws Throwable {
+    publisherVerification.required_spec312_cancelMustMakeThePublisherToEventuallyStopSignaling();
   }
 
-  @Test
-  public void spec313_cancelMustMakeThePublisherEventuallyDropAllReferencesToTheSubscriber() throws Throwable {
-    publisherVerification.spec313_cancelMustMakeThePublisherEventuallyDropAllReferencesToTheSubscriber();
+  @Override @Test
+  public void required_spec313_cancelMustMakeThePublisherEventuallyDropAllReferencesToTheSubscriber() throws Throwable {
+    publisherVerification.required_spec313_cancelMustMakeThePublisherEventuallyDropAllReferencesToTheSubscriber();
   }
 
-  @Test
-  public void spec317_mustSupportAPendingElementCountUpToLongMaxValue() throws Throwable {
-    publisherVerification.spec317_mustSupportAPendingElementCountUpToLongMaxValue();
+  @Override @Test
+  public void required_spec317_mustSupportAPendingElementCountUpToLongMaxValue() throws Throwable {
+    publisherVerification.required_spec317_mustSupportAPendingElementCountUpToLongMaxValue();
   }
 
-  @Test
-  public void spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue() throws Throwable {
-    publisherVerification.spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue();
+  @Override @Test
+  public void required_spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue() throws Throwable {
+    publisherVerification.required_spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue();
   }
 
-  @Test
-  public void spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable {
-    publisherVerification.spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue();
+  @Override @Test
+  public void required_spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable {
+    publisherVerification.required_spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue();
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.4
   // for multiple subscribers
-  @Test @Subscribers(2)
-  public void spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError() throws Throwable {
+  @Test 
+  public void required_spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError() throws Throwable {
     optionalMultipleSubscribersTest(2, new Function<Long,TestSetup>() {
       @Override
       public TestSetup apply(Long aLong) throws Throwable {
@@ -465,131 +466,131 @@ public abstract class IdentityProcessorVerification<T> {
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#4.1
 
   @Test
-  public void exerciseWhiteboxHappyPath() throws Throwable {
-    subscriberVerification.exerciseWhiteboxHappyPath();
+  public void required_exerciseWhiteboxHappyPath() throws Throwable {
+    subscriberVerification.required_exerciseWhiteboxHappyPath();
   }
 
-  @Test
-  public void spec201_mustSignalDemandViaSubscriptionRequest() throws Throwable {
-    subscriberVerification.spec201_mustSignalDemandViaSubscriptionRequest();
+  @Override @Test
+  public void required_spec201_mustSignalDemandViaSubscriptionRequest() throws Throwable {
+    subscriberVerification.required_spec201_mustSignalDemandViaSubscriptionRequest();
   }
 
-  @Test
-  public void spec202_shouldAsynchronouslyDispatch() throws Exception {
-    subscriberVerification.spec202_shouldAsynchronouslyDispatch();
+  @Override @Test
+  public void untested_spec202_shouldAsynchronouslyDispatch() throws Exception {
+    subscriberVerification.untested_spec202_shouldAsynchronouslyDispatch();
   }
 
-  @Test
-  public void spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete() throws Throwable {
-    subscriberVerification.spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete();
+  @Override @Test
+  public void required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete() throws Throwable {
+    subscriberVerification.required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete();
   }
 
-  @Test
-  public void spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError() throws Throwable {
-    subscriberVerification.spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError();
+  @Override @Test
+  public void required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError() throws Throwable {
+    subscriberVerification.required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError();
   }
 
-  @Test
-  public void spec204_mustConsiderTheSubscriptionAsCancelledInAfterRecievingOnCompleteOrOnError() throws Exception {
-    subscriberVerification.spec204_mustConsiderTheSubscriptionAsCancelledInAfterRecievingOnCompleteOrOnError();
+  @Override @Test
+  public void untested_spec204_mustConsiderTheSubscriptionAsCancelledInAfterRecievingOnCompleteOrOnError() throws Exception {
+    subscriberVerification.untested_spec204_mustConsiderTheSubscriptionAsCancelledInAfterRecievingOnCompleteOrOnError();
   }
 
-  @Test
-  public void spec205_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal() throws Exception {
-    subscriberVerification.spec205_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal();
+  @Override @Test
+  public void required_spec205_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal() throws Exception {
+    subscriberVerification.required_spec205_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal();
   }
 
-  @Test
-  public void spec206_mustCallSubscriptionCancelIfItIsNoLongerValid() throws Exception {
-    subscriberVerification.spec206_mustCallSubscriptionCancelIfItIsNoLongerValid();
+  @Override @Test
+  public void untested_spec206_mustCallSubscriptionCancelIfItIsNoLongerValid() throws Exception {
+    subscriberVerification.untested_spec206_mustCallSubscriptionCancelIfItIsNoLongerValid();
   }
 
-  @Test
-  public void spec207_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThreadOrTakeCareOfSynchronization() throws Exception {
-    subscriberVerification.spec207_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThreadOrTakeCareOfSynchronization();
+  @Override @Test
+  public void untested_spec207_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThreadOrTakeCareOfSynchronization() throws Exception {
+    subscriberVerification.untested_spec207_mustEnsureAllCallsOnItsSubscriptionTakePlaceFromTheSameThreadOrTakeCareOfSynchronization();
   }
 
-  @Test
-  public void spec208_mustBePreparedToReceiveOnNextSignalsAfterHavingCalledSubscriptionCancel() throws Throwable {
-    subscriberVerification.spec208_mustBePreparedToReceiveOnNextSignalsAfterHavingCalledSubscriptionCancel();
+  @Override @Test
+  public void required_spec208_mustBePreparedToReceiveOnNextSignalsAfterHavingCalledSubscriptionCancel() throws Throwable {
+    subscriberVerification.required_spec208_mustBePreparedToReceiveOnNextSignalsAfterHavingCalledSubscriptionCancel();
   }
 
-  @Test
-  public void spec209_mustBePreparedToReceiveAnOnCompleteSignalWithPrecedingRequestCall() throws Throwable {
-    subscriberVerification.spec209_mustBePreparedToReceiveAnOnCompleteSignalWithPrecedingRequestCall();
+  @Override @Test
+  public void required_spec209_mustBePreparedToReceiveAnOnCompleteSignalWithPrecedingRequestCall() throws Throwable {
+    subscriberVerification.required_spec209_mustBePreparedToReceiveAnOnCompleteSignalWithPrecedingRequestCall();
   }
 
-  @Test
-  public void spec209_mustBePreparedToReceiveAnOnCompleteSignalWithoutPrecedingRequestCall() throws Throwable {
-    subscriberVerification.spec209_mustBePreparedToReceiveAnOnCompleteSignalWithoutPrecedingRequestCall();
+  @Override @Test
+  public void required_spec209_mustBePreparedToReceiveAnOnCompleteSignalWithoutPrecedingRequestCall() throws Throwable {
+    subscriberVerification.required_spec209_mustBePreparedToReceiveAnOnCompleteSignalWithoutPrecedingRequestCall();
   }
 
-  @Test
-  public void spec210_mustBePreparedToReceiveAnOnErrorSignalWithPrecedingRequestCall() throws Throwable {
-    subscriberVerification.spec210_mustBePreparedToReceiveAnOnErrorSignalWithPrecedingRequestCall();
+  @Override @Test
+  public void required_spec210_mustBePreparedToReceiveAnOnErrorSignalWithPrecedingRequestCall() throws Throwable {
+    subscriberVerification.required_spec210_mustBePreparedToReceiveAnOnErrorSignalWithPrecedingRequestCall();
   }
 
-  @Test
-  public void spec210_mustBePreparedToReceiveAnOnErrorSignalWithoutPrecedingRequestCall() throws Throwable {
-    subscriberVerification.spec210_mustBePreparedToReceiveAnOnErrorSignalWithoutPrecedingRequestCall();
+  @Override @Test
+  public void required_spec210_mustBePreparedToReceiveAnOnErrorSignalWithoutPrecedingRequestCall() throws Throwable {
+    subscriberVerification.required_spec210_mustBePreparedToReceiveAnOnErrorSignalWithoutPrecedingRequestCall();
   }
 
-  @Test
-  public void spec211_mustMakeSureThatAllCallsOnItsMethodsHappenBeforeTheProcessingOfTheRespectiveEvents() throws Exception {
-    subscriberVerification.spec211_mustMakeSureThatAllCallsOnItsMethodsHappenBeforeTheProcessingOfTheRespectiveEvents();
+  @Override @Test
+  public void untested_spec211_mustMakeSureThatAllCallsOnItsMethodsHappenBeforeTheProcessingOfTheRespectiveEvents() throws Exception {
+    subscriberVerification.untested_spec211_mustMakeSureThatAllCallsOnItsMethodsHappenBeforeTheProcessingOfTheRespectiveEvents();
   }
 
-  @Test
-  public void spec212_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality_specViolation() throws Throwable {
-    subscriberVerification.spec212_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality_specViolation();
+  @Override @Test
+  public void untested_spec212_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality_specViolation() throws Throwable {
+    subscriberVerification.untested_spec212_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality_specViolation();
   }
 
-  @Test
-  public void spec213_failingOnSignalInvocation() throws Exception {
-    subscriberVerification.spec213_failingOnSignalInvocation();
+  @Override @Test
+  public void untested_spec213_failingOnSignalInvocation() throws Exception {
+    subscriberVerification.untested_spec213_failingOnSignalInvocation();
   }
 
-  @Test
-  public void spec301_mustNotBeCalledOutsideSubscriberContext() throws Exception {
-    subscriberVerification.spec301_mustNotBeCalledOutsideSubscriberContext();
+  @Override @Test
+  public void untested_spec301_mustNotBeCalledOutsideSubscriberContext() throws Exception {
+    subscriberVerification.untested_spec301_mustNotBeCalledOutsideSubscriberContext();
   }
 
-  @Test
-  public void spec308_requestMustRegisterGivenNumberElementsToBeProduced() throws Throwable {
-    subscriberVerification.spec308_requestMustRegisterGivenNumberElementsToBeProduced();
+  @Override @Test
+  public void required_spec308_requestMustRegisterGivenNumberElementsToBeProduced() throws Throwable {
+    subscriberVerification.required_spec308_requestMustRegisterGivenNumberElementsToBeProduced();
   }
 
-  @Test
-  public void spec310_requestMaySynchronouslyCallOnNextOnSubscriber() throws Exception {
-    subscriberVerification.spec310_requestMaySynchronouslyCallOnNextOnSubscriber();
+  @Override @Test
+  public void untested_spec310_requestMaySynchronouslyCallOnNextOnSubscriber() throws Exception {
+    subscriberVerification.untested_spec310_requestMaySynchronouslyCallOnNextOnSubscriber();
   }
 
-  @Test
-  public void spec311_requestMaySynchronouslyCallOnCompleteOrOnError() throws Exception {
-    subscriberVerification.spec311_requestMaySynchronouslyCallOnCompleteOrOnError();
+  @Override @Test
+  public void untested_spec311_requestMaySynchronouslyCallOnCompleteOrOnError() throws Exception {
+    subscriberVerification.untested_spec311_requestMaySynchronouslyCallOnCompleteOrOnError();
   }
 
-  @Test
-  public void spec314_cancelMayCauseThePublisherToShutdownIfNoOtherSubscriptionExists() throws Exception {
-    subscriberVerification.spec314_cancelMayCauseThePublisherToShutdownIfNoOtherSubscriptionExists();
+  @Override @Test
+  public void untested_spec314_cancelMayCauseThePublisherToShutdownIfNoOtherSubscriptionExists() throws Exception {
+    subscriberVerification.untested_spec314_cancelMayCauseThePublisherToShutdownIfNoOtherSubscriptionExists();
   }
 
-  @Test
-  public void spec315_cancelMustNotThrowExceptionAndMustSignalOnError() throws Exception {
-    subscriberVerification.spec315_cancelMustNotThrowExceptionAndMustSignalOnError();
+  @Override @Test
+  public void untested_spec315_cancelMustNotThrowExceptionAndMustSignalOnError() throws Exception {
+    subscriberVerification.untested_spec315_cancelMustNotThrowExceptionAndMustSignalOnError();
   }
 
-  @Test
-  public void spec316_requestMustNotThrowExceptionAndMustOnErrorTheSubscriber() throws Exception {
-    subscriberVerification.spec316_requestMustNotThrowExceptionAndMustOnErrorTheSubscriber();
+  @Override @Test
+  public void untested_spec316_requestMustNotThrowExceptionAndMustOnErrorTheSubscriber() throws Exception {
+    subscriberVerification.untested_spec316_requestMustNotThrowExceptionAndMustOnErrorTheSubscriber();
   }
 
   /////////////////////// ADDITIONAL "COROLLARY" TESTS //////////////////////
 
   // A Processor
   //   must trigger `requestFromUpstream` for elements that have been requested 'long ago'
-  @Test @Subscribers(2)
-  public void mustRequestFromUpstreamForElementsThatHaveBeenRequestedLongAgo() throws Throwable {
+  @Test
+  public void required_mustRequestFromUpstreamForElementsThatHaveBeenRequestedLongAgo() throws Throwable {
     optionalMultipleSubscribersTest(2, new Function<Long,TestSetup>() {
       @Override
       public TestSetup apply(Long subscribers) throws Throwable {

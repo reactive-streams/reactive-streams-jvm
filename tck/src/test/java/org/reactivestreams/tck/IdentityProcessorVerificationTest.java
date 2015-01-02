@@ -16,7 +16,7 @@ public class IdentityProcessorVerificationTest extends TCKVerificationSupport {
   static final int DEFAULT_TIMEOUT_MILLIS = 100;
 
   @Test
-  public void spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError_shouldBeIgnored() throws Throwable {
+  public void required_spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError_shouldBeIgnored() throws Throwable {
     requireTestSkip(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         new IdentityProcessorVerification(newTestEnvironment(), DEFAULT_TIMEOUT_MILLIS){
@@ -35,13 +35,13 @@ public class IdentityProcessorVerificationTest extends TCKVerificationSupport {
           @Override public long maxSupportedSubscribers() {
             return 1; // can only support 1 subscribe => unable to run this test
           }
-        }.spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError();
+        }.required_spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError();
       }
     }, "The Publisher under test only supports 1 subscribers, while this test requires at least 2 to run");
   }
 
   @Test
-  public void spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError_shouldFailWhileWaitingForOnError() throws Throwable {
+  public void required_spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError_shouldFailWhileWaitingForOnError() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         new IdentityProcessorVerification(newTestEnvironment(), DEFAULT_TIMEOUT_MILLIS) {
@@ -93,7 +93,7 @@ public class IdentityProcessorVerificationTest extends TCKVerificationSupport {
           @Override public Publisher createErrorStatePublisher() {
             return SKIP;
           }
-        }.spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError();
+        }.required_spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError();
       }
     }, "Did not receive expected error on downstream within " + DEFAULT_TIMEOUT_MILLIS);
   }
