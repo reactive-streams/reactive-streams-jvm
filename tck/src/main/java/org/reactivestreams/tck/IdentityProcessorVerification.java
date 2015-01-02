@@ -41,22 +41,33 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
    * shut itself down when the the last downstream {@code Subscription} is cancelled.
    *
    * The processor will be required to be able to buffer {@code TestEnvironment.TEST_BUFFER_SIZE} elements.
-   *
-   * @param publisherShutdownTimeoutMillis expected time which a processor requires to shut itself down
    */
   @SuppressWarnings("unused")
-  public IdentityProcessorVerification(final TestEnvironment env, long publisherShutdownTimeoutMillis) {
-    this(env, publisherShutdownTimeoutMillis, TestEnvironment.TEST_BUFFER_SIZE);
+  public IdentityProcessorVerification(final TestEnvironment env) {
+    this(env, PublisherVerification.envPublisherReferenceGCTimeoutMillis(), TestEnvironment.TEST_BUFFER_SIZE);
   }
 
   /**
    * Test class must specify the expected time it takes for the publisher to
    * shut itself down when the the last downstream {@code Subscription} is cancelled.
    *
-   * @param publisherShutdownTimeoutMillis expected time which a processor requires to shut itself down
+   * The processor will be required to be able to buffer {@code TestEnvironment.TEST_BUFFER_SIZE} elements.
+   *
+   * @param publisherReferenceGCTimeoutMillis used to determine after how much time a reference to a Subscriber should be already dropped by the Publisher.
+   */
+  @SuppressWarnings("unused")
+  public IdentityProcessorVerification(final TestEnvironment env, long publisherReferenceGCTimeoutMillis) {
+    this(env, publisherReferenceGCTimeoutMillis, TestEnvironment.TEST_BUFFER_SIZE);
+  }
+
+  /**
+   * Test class must specify the expected time it takes for the publisher to
+   * shut itself down when the the last downstream {@code Subscription} is cancelled.
+   *
+   * @param publisherReferenceGCTimeoutMillis used to determine after how much time a reference to a Subscriber should be already dropped by the Publisher.
    * @param processorBufferSize            number of elements the processor is required to be able to buffer.
    */
-  public IdentityProcessorVerification(final TestEnvironment env, long publisherShutdownTimeoutMillis, int processorBufferSize) {
+  public IdentityProcessorVerification(final TestEnvironment env, long publisherReferenceGCTimeoutMillis, int processorBufferSize) {
     this.env = env;
     this.processorBufferSize = processorBufferSize;
 
@@ -76,7 +87,7 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
       }
     };
 
-    publisherVerification = new PublisherVerification<T>(env, publisherShutdownTimeoutMillis) {
+    publisherVerification = new PublisherVerification<T>(env, publisherReferenceGCTimeoutMillis) {
       @Override
       public Publisher<T> createPublisher(long elements) {
         return IdentityProcessorVerification.this.createPublisher(elements);

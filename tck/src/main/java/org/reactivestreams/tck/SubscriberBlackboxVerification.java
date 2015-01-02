@@ -6,8 +6,8 @@ import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.TestEnvironment.ManualPublisher;
 import org.reactivestreams.tck.TestEnvironment.ManualSubscriber;
 import org.reactivestreams.tck.support.Optional;
-import org.reactivestreams.tck.support.TestException;
 import org.reactivestreams.tck.support.SubscriberBlackboxVerificationRules;
+import org.reactivestreams.tck.support.TestException;
 import org.testng.SkipException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -16,7 +16,6 @@ import org.testng.annotations.Test;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.reactivestreams.tck.SubscriberWhiteboxVerification.BlackboxSubscriberProxy;
 
@@ -34,7 +33,7 @@ import static org.reactivestreams.tck.SubscriberWhiteboxVerification.BlackboxSub
 public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublisher<T> 
   implements SubscriberBlackboxVerificationRules {
 
-  private final TestEnvironment env;
+  protected final TestEnvironment env;
 
   protected SubscriberBlackboxVerification(TestEnvironment env) {
     this.env = env;

@@ -13,14 +13,12 @@ import java.util.concurrent.Executors;
 @Test // Must be here for TestNG to find and run this, do not remove
 public class SyncSubscriberTest extends SubscriberBlackboxVerification<Integer> {
 
-  final static long DefaultTimeoutMillis = 100;
-
   private ExecutorService e;
   @BeforeClass void before() { e = Executors.newFixedThreadPool(4); }
   @AfterClass void after() { if (e != null) e.shutdown(); }
 
   public SyncSubscriberTest() {
-    super(new TestEnvironment(DefaultTimeoutMillis));
+    super(new TestEnvironment());
   }
 
   @Override public Subscriber<Integer> createSubscriber() {

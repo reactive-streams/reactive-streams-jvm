@@ -33,12 +33,48 @@ import static org.testng.Assert.assertTrue;
  */
 public abstract class PublisherVerification<T> implements PublisherVerificationRules {
 
+  private static final String PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS_ENV = "PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS";
+  private static final long DEFAULT_PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS = 300L;
+
   private final TestEnvironment env;
   private final long publisherReferenceGCTimeoutMillis;
 
+  /**
+   * Constructs a new verification class using the given env and configuration.
+   *
+   * @param publisherReferenceGCTimeoutMillis used to determine after how much time a reference to a Subscriber should be already dropped by the Publisher.
+   */
   public PublisherVerification(TestEnvironment env, long publisherReferenceGCTimeoutMillis) {
     this.env = env;
     this.publisherReferenceGCTimeoutMillis = publisherReferenceGCTimeoutMillis;
+  }
+
+  /**
+   * Constructs a new verification class using the given env and configuration.
+   *
+   * The value for {@code publisherReferenceGCTimeoutMillis} will be obtained by using {@link PublisherVerification#envPublisherReferenceGCTimeoutMillis()}.
+   */
+  public PublisherVerification(TestEnvironment env) {
+    this.env = env;
+    this.publisherReferenceGCTimeoutMillis = envPublisherReferenceGCTimeoutMillis();
+  }
+
+  /**
+   * Tries to parse the env variable {@code PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS} as long and returns the value if present,
+   * OR its default value ({@link PublisherVerification#DEFAULT_PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS}).
+   *
+   * This value is used to determine after how much time a reference to a Subscriber should be already dropped by the Publisher.
+   *
+   * @throws java.lang.IllegalArgumentException when unable to parse the env variable
+   */
+  public static long envPublisherReferenceGCTimeoutMillis() {
+    final String envMillis = System.getenv(PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS_ENV);
+    if (envMillis == null) return DEFAULT_PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS;
+    else try {
+      return Long.parseLong(envMillis);
+    } catch(NumberFormatException ex) {
+      throw new IllegalArgumentException(String.format("Unable to parse %s env value [%s] as long!", PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS_ENV, envMillis), ex);
+    }
   }
 
   /**
@@ -86,6 +122,14 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
    */
   public long boundedDepthOfOnNextAndRequestRecursion() {
     return 1;
+  }
+
+  /**
+   * The amount of time after which a cancelled Subscriber reference should be dropped.
+   * See Rule 3.13 for details.
+   */
+  final public long publisherReferenceGCTimeoutMillis() {
+    return publisherReferenceGCTimeoutMillis;
   }
 
   ////////////////////// TEST ENV CLEANUP /////////////////////////////////////
@@ -298,20 +342,20 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
   public void optional_spec104_mustSignalOnErrorWhenFails() throws Throwable {
     try {
       whenHasErrorPublisherTest(new PublisherTestRun<T>() {
-          @Override
-          public void run(final Publisher<T> pub) throws InterruptedException {
-              final Latch latch = new Latch(env);
-              pub.subscribe(new TestEnvironment.TestSubscriber<T>(env) {
-                  @Override
-                  public void onError(Throwable cause) {
-                      latch.assertOpen(String.format("Error-state Publisher %s called `onError` twice on new Subscriber", pub));
-                      latch.close();
-                  }
-              });
+        @Override
+        public void run(final Publisher<T> pub) throws InterruptedException {
+          final Latch latch = new Latch(env);
+          pub.subscribe(new TestEnvironment.TestSubscriber<T>(env) {
+            @Override
+            public void onError(Throwable cause) {
+              latch.assertOpen(String.format("Error-state Publisher %s called `onError` twice on new Subscriber", pub));
+              latch.close();
+            }
+          });
 
-              latch.expectClose(String.format("Error-state Publisher %s did not call `onError` on new Subscriber", pub));
+          latch.expectClose(String.format("Error-state Publisher %s did not call `onError` on new Subscriber", pub));
 
-              env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
+          env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
           }
       });
     } catch (SkipException se) {
@@ -404,25 +448,25 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
   @Override @Test
   public void required_spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe() throws Throwable {
     whenHasErrorPublisherTest(new PublisherTestRun<T>() {
-        @Override
-        public void run(Publisher<T> pub) throws Throwable {
-            final Latch onErrorLatch = new Latch(env);
-            ManualSubscriberWithSubscriptionSupport<T> sub = new ManualSubscriberWithSubscriptionSupport<T>(env) {
-                @Override
-                public void onError(Throwable cause) {
-                    onErrorLatch.assertOpen("Only one onError call expected");
-                    onErrorLatch.close();
-                }
+      @Override
+      public void run(Publisher<T> pub) throws Throwable {
+        final Latch onErrorLatch = new Latch(env);
+        ManualSubscriberWithSubscriptionSupport<T> sub = new ManualSubscriberWithSubscriptionSupport<T>(env) {
+          @Override
+          public void onError(Throwable cause) {
+            onErrorLatch.assertOpen("Only one onError call expected");
+            onErrorLatch.close();
+          }
 
-                @Override
-                public void onSubscribe(Subscription subs) {
-                    env.flop("onSubscribe should not be called if Publisher is unable to subscribe a Subscriber");
-                }
-            };
-            pub.subscribe(sub);
-            onErrorLatch.assertClosed("Should have received onError");
+          @Override
+          public void onSubscribe(Subscription subs) {
+            env.flop("onSubscribe should not be called if Publisher is unable to subscribe a Subscriber");
+          }
+        };
+        pub.subscribe(sub);
+        onErrorLatch.assertClosed("Should have received onError");
 
-            env.verifyNoAsyncErrors();
+        env.verifyNoAsyncErrors();
         }
     });
   }

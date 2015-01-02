@@ -11,15 +11,13 @@ import java.util.concurrent.ExecutorService;
 
 @Test // Must be here for TestNG to find and run this, do not remove
 public class UnboundedIntegerIncrementPublisherTest extends PublisherVerification<Integer> {
-  final static long DefaultTimeoutMillis = 200;
-  final static long PublisherReferenceGCTimeoutMillis = 500;
 
   private ExecutorService e;
   @BeforeClass void before() { e = Executors.newFixedThreadPool(4); }
   @AfterClass void after() { if (e != null) e.shutdown(); }
 
   public UnboundedIntegerIncrementPublisherTest() {
-    super(new TestEnvironment(DefaultTimeoutMillis), PublisherReferenceGCTimeoutMillis);
+    super(new TestEnvironment());
   }
 
   @Override public Publisher<Integer> createPublisher(long elements) {

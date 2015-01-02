@@ -132,11 +132,8 @@ import org.reactivestreams.tck.TestEnvironment;
 
 public class RangePublisherTest extends PublisherVerification<Integer> {
 
-  public static final long DEFAULT_TIMEOUT_MILLIS = 300L;
-  public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 1000L;
-
   public RangePublisherTest() {
-    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS), PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS);
+    super(new TestEnvironment());
   }
 
   @Override
@@ -173,6 +170,39 @@ Notable configuration options include:
 * `maxElementsFromPublisher` – which should only be overridden in case the Publisher under test is not able to provide arbitrary length streams, e.g. it's wrapping a `Future<T>` and thus can only publish up to 1 element. In such case you should return `1` from this method. It will cause all tests which require more elements in order to validate a certain Rule to be skipped,
 * `boundedDepthOfOnNextAndRequestRecursion` – which should only be overridden in case of synchronous Publishers. This number will be used to validate if a
 `Subscription` actually solves the "unbounded recursion" problem (Rule 3.3).
+
+### Timeout configuration
+Publisher tests make use of two kinds of timeouts, one is the `defaultTimeoutMillis` which corresponds to all methods used
+within the TCK which await for something to happen. The other timeout is `publisherReferenceGCTimeoutMillis` which is only used in order to verify
+[Rule 3.13](https://github.com/reactive-streams/reactive-streams#3.13) which defines that subscriber references MUST be dropped
+by the Publisher.
+
+In order to configure these timeouts (for example when running on a slow continious integtation machine), you can either:
+
+**Use env variables** to set these timeouts, in which case the you can just:
+
+```bash
+export DEFAULT_TIMEOUT_MILLIS=300
+export PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS=500
+```
+
+Or **define the timeouts explicitly in code**:
+
+```java
+public class RangePublisherTest extends PublisherVerification<Integer> {
+
+  public static final long DEFAULT_TIMEOUT_MILLIS = 300L;
+  public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 500L;
+
+  public RangePublisherTest() {
+    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS), PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS);
+  }
+
+  // ...
+}
+```
+
+Note that hard-coded values *take precedence* over environment set values (!).
 
 ## Subscriber Verification
 
@@ -233,10 +263,8 @@ import org.reactivestreams.tck.TestEnvironment;
 
 public class MySubscriberBlackboxVerificationTest extends SubscriberBlackboxVerification<Integer> {
 
-  public static final long DEFAULT_TIMEOUT_MILLIS = 300L;
-
   public MySubscriberBlackboxVerificationTest() {
-    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS));
+    super(new TestEnvironment());
   }
 
   @Override
@@ -273,10 +301,8 @@ import org.reactivestreams.tck.TestEnvironment;
 
 public class MySubscriberWhiteboxVerificationTest extends SubscriberWhiteboxVerification<Integer> {
 
-  public static final long DEFAULT_TIMEOUT_MILLIS = 300L;
-
   public MySubscriberWhiteboxVerificationTest() {
-    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS));
+    super(new TestEnvironment());
   }
 
   @Override
@@ -330,6 +356,34 @@ public class MySubscriberWhiteboxVerificationTest extends SubscriberWhiteboxVeri
 
 }
 ```
+
+### Timeout configuration
+Similarily to `PublisherVerification`, it is possible to set the timeouts used by the TCK to validate subscriber behaviour.
+This can be set either by using env variables or hardcoded explicitly.
+
+**Use env variables** to set the timeout value to be used by the TCK:
+
+```bash
+export DEFAULT_TIMEOUT_MILLIS=300
+```
+
+Or **define the timeout explicitly in code**:
+
+```java
+public class MySubscriberTest extends BlackboxSubscriberVerification<Integer> {
+
+  public static final long DEFAULT_TIMEOUT_MILLIS = 300L;
+
+  public RangePublisherTest() {
+    super(new MySubscriberTest(DEFAULT_TIMEOUT_MILLIS));
+  }
+
+  // ...
+}
+```
+
+Note that hard-coded values *take precedence* over environment set values (!).
+
 
 ## Subscription Verification
 
