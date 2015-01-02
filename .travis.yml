@@ -1,6 +1,6 @@
 language: java
 script:
-  - ./gradlew check
+  - ./gradlew check --info
 cache:
   directories:
   - $HOME/.gradle
