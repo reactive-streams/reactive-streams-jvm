@@ -21,7 +21,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 */
 public class PublisherVerificationTest extends TCKVerificationSupport {
 
-  static final int DEFAULT_TIMEOUT_MILLIS = 100;
+  static final int DEFAULT_TIMEOUT_MILLIS = 500;
   static final int GC_TIMEOUT_MILLIS = 300;
 
   @Test

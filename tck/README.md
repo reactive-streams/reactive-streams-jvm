@@ -180,6 +180,44 @@ Subscriber rules Verification is split up into two files (styles) of tests.
 
 The Blackbox Verification tests do not require the implementation under test to be modified at all, yet they are *not* able to verify most rules. In Whitebox Verification, more control over `request()` calls etc. is required in order to validate rules more precisely.
 
+### createElement and Helper Publisher implementations
+Since testing a `Subscriber` is not possible without a corresponding `Publisher` the TCK Subscriber Verifications
+both provide a default "*helper publisher*" to drive its test and also alow to replace this Publisher with a custom implementation.
+The helper publisher is an asynchronous publisher by default - meaning that your subscriber can not blindly assume single threaded execution.
+
+While the `Publisher` implementation is provided, creating the signal elements is not – this is because a given Subscriber
+may for example only work with `HashedMessage` or some other specific kind of signal. The TCK is unable to generate such
+special messages automatically, so we provide the `T createElement(Integer id)` method to be implemented as part of
+Subscriber Verifications which should take the given ID and return an element of type `T` (where `T` is the type of
+elements flowing into the `Subscriber<T>`, as known thanks to `... extends WhiteboxSubscriberVerification<T>`) representing
+an element of the stream that will be passed on to the Subscriber.
+
+The simplest valid implemenation is to return the incoming `id` *as the element* in a verification using `Integer`s as element types:
+
+```java
+public class MySubscriberTest extends SubscriberBlackboxVerification<Integer> {
+
+  // ...
+
+  @Override
+  public Integer createElement(int element) { return element; }
+}
+```
+
+
+The `createElement` method MAY be called from multiple
+threads, so in case of more complicated implementations, please be aware of this fact.
+
+**Very Advanced**: While we do not expect many implementations having to do so, it is possible to take full control of the `Publisher`
+which will be driving the TCKs test. You can do this by implementing the `createHelperPublisher` method in which you can implement your
+own Publisher which will then be used by the TCK to drive your Subscriber tests:
+
+```java
+@Override public Publisher<Message> createHelperPublisher(long elements) {
+  return new Publisher<Message>() { /* IMPL HERE */ };
+}
+```
+
 ### Subscriber Blackbox Verification
 
 Blackbox Verification does not require any additional work except from providing a `Subscriber` and `Publisher` instances to the TCK:
@@ -207,8 +245,8 @@ public class MySubscriberBlackboxVerificationTest extends SubscriberBlackboxVeri
   }
 
   @Override
-  public Publisher<Integer> createHelperPublisher(long elements) {
-    return new MyRangePublisher<Integer>(1, elements);
+  public Integer createElement(int element) {
+    return element;
   }
 }
 ```
@@ -286,8 +324,8 @@ public class MySubscriberWhiteboxVerificationTest extends SubscriberWhiteboxVeri
   }
 
   @Override
-  public Publisher<Integer> createHelperPublisher(long elements) {
-    return new MyRangePublisher<Integer>(1, elements);
+  public Integer createElement(int element) {
+    return element;
   }
 
 }

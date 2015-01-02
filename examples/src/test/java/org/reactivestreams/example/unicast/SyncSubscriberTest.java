@@ -1,17 +1,14 @@
 package org.reactivestreams.example.unicast;
 
-import java.util.Collections;
-import java.util.Iterator;
-import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.tck.SubscriberBlackboxVerification;
 import org.reactivestreams.tck.TestEnvironment;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.AfterClass;
-import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 
 @Test // Must be here for TestNG to find and run this, do not remove
 public class SyncSubscriberTest extends SubscriberBlackboxVerification<Integer> {
@@ -39,9 +36,8 @@ public class SyncSubscriberTest extends SubscriberBlackboxVerification<Integer> 
       }
     };
   }
-  @SuppressWarnings("unchecked")
-  @Override public Publisher<Integer> createHelperPublisher(long elements) {
-    if (elements > Integer.MAX_VALUE) return new InfiniteIncrementNumberPublisher(e);
-    else return new NumberIterablePublisher(0, (int)elements, e);
+
+  @Override public Integer createElement(int element) {
+    return element;
   }
 }
