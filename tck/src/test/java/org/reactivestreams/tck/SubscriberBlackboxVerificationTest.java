@@ -16,8 +16,6 @@ import java.util.concurrent.Executors;
 */
 public class SubscriberBlackboxVerificationTest extends TCKVerificationSupport {
 
-  static final int DEFAULT_TIMEOUT_MILLIS = 100;
-
   private ExecutorService ex;
   @BeforeClass void before() { ex = Executors.newFixedThreadPool(4); }
   @AfterClass void after() { if (ex != null) ex.shutdown(); }
@@ -223,7 +221,7 @@ public class SubscriberBlackboxVerificationTest extends TCKVerificationSupport {
   }
 
   private TestEnvironment newTestEnvironment() {
-    return new TestEnvironment(DEFAULT_TIMEOUT_MILLIS);
+    return new TestEnvironment();
   }
 
 }

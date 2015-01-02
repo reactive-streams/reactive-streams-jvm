@@ -18,7 +18,7 @@ import java.util.concurrent.Executors;
 */
 public class IdentityProcessorVerificationTest extends TCKVerificationSupport {
 
-  static final int DEFAULT_TIMEOUT_MILLIS = 100;
+  static final long DEFAULT_TIMEOUT_MILLIS = TestEnvironment.envDefaultTimeoutMillis();
 
   private ExecutorService ex;
   @BeforeClass void before() { ex = Executors.newFixedThreadPool(4); }
