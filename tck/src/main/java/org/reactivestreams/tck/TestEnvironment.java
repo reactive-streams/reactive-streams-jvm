@@ -475,6 +475,9 @@ public class TestEnvironment {
       received.expectNone(withinMillis, errMsgPrefix);
     }
 
+    @Override public String toString() {
+      return "Reactive Streams TCK ManualSubscriber";
+    }
   }
 
   public static class ManualSubscriberWithSubscriptionSupport<T> extends ManualSubscriber<T> {
@@ -522,6 +525,10 @@ public class TestEnvironment {
         env.flop(cause, String.format("Subscriber::onError(%s) called before Subscriber::onSubscribe", cause));
       }
     }
+
+    @Override public String toString() {
+      return "Reactive Streams TCK ManualSubscriberWithSubscriptionSupport";
+    }
   }
 
   /**
@@ -552,6 +559,10 @@ public class TestEnvironment {
     @Override
     public List<T> nextElements(long elements, long timeoutMillis, String errorMsg) throws InterruptedException {
       throw new RuntimeException("Can not expect elements from BlackholeSubscriber, use ManualSubscriber instead!");
+    }
+
+    @Override public String toString() {
+      return "Reactive Streams TCK BlackholeSubscriberWithSubscriptionSupport";
     }
   }
 
@@ -591,6 +602,10 @@ public class TestEnvironment {
       } else {
         env.flop("Cannot cancel a subscription before having received it");
       }
+    }
+
+    @Override public String toString() {
+      return "Reactive Streams TCK TestSubscriber";
     }
   }
 
@@ -698,6 +713,10 @@ public class TestEnvironment {
 
     public void expectCancelling(long timeoutMillis) throws InterruptedException {
       cancelled.expectClose(timeoutMillis, "Did not receive expected cancelling of upstream subscription");
+    }
+
+    @Override public String toString() {
+      return "Reactive Streams TCK ManualPublisher";
     }
   }
 
@@ -836,14 +855,22 @@ public class TestEnvironment {
     public void add(T value) {
       completedLatch.assertOpen(String.format("Unexpected element %s received after stream completed", value));
 
-      abq.add(Optional.of(value));
+      try {
+        abq.add(Optional.of(value));
+      } catch(IllegalStateException ise) {
+        throw new IllegalStateException("Queue overflow when adding new value to Receptacle, queue was: " + abq.toString(), ise);
+      }
     }
 
     public void complete() {
       completedLatch.assertOpen("Unexpected additional complete signal received!");
       completedLatch.close();
 
-      abq.add(Optional.<T>empty());
+      try {
+        abq.add(Optional.<T>empty());
+      } catch(IllegalStateException ise) {
+        throw new IllegalStateException("Queue overflow when completing Receptacle, queue was: " + abq.toString(), ise);
+      }
     }
 
     public T next(long timeoutMillis, String errorMsg) throws InterruptedException {

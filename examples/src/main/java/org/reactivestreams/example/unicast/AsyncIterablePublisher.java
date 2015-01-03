@@ -80,9 +80,9 @@ public class AsyncIterablePublisher<T> implements Publisher<T> {
     // This method will register inbound demand from our `Subscriber` and validate it against rule 3.9 and rule 3.17
     private void doRequest(final long n) {
       if (n < 1)
-        terminateDueTo(new IllegalArgumentException(subscriber + " violated the Reactive Streams rule 3.9 by requesting a non-positive number of elements."));
+        terminateDueTo(new IllegalArgumentException("Subscriber [" + subscriber + "] violated the Reactive Streams rule 3.9 by requesting a non-positive number of elements."));
       else if (demand + n < 1)
-        terminateDueTo(new IllegalStateException(subscriber + " violated the Reactive Streams rule 3.17 by demanding more elements than Long.MAX_VALUE."));
+        terminateDueTo(new IllegalStateException("Subscriber [" + subscriber + "] violated the Reactive Streams rule 3.17 by demanding more elements than Long.MAX_VALUE."));
       else {
         demand += n; // Here we record the downstream demand
         doSend(); // Then we can proceed with sending data downstream
@@ -111,7 +111,7 @@ public class AsyncIterablePublisher<T> implements Publisher<T> {
         try {
           subscriber.onSubscribe(this);
         } catch(final Throwable t) { // Due diligence to obey 2.13
-          terminateDueTo(new IllegalStateException(subscriber + " violated the Reactive Streams rule 2.13 by throwing an exception from onSubscribe.", t));
+          terminateDueTo(new IllegalStateException("Subscriber [" + subscriber + "] violated the Reactive Streams rule 2.13 by throwing an exception from onSubscribe.", t));
         }
 
         // Deal with already complete iterators promptly
@@ -129,7 +129,7 @@ public class AsyncIterablePublisher<T> implements Publisher<T> {
             doCancel(); // Rule 1.6 says we need to consider the `Subscription` cancelled when `onComplete` is signalled
             subscriber.onComplete();
           } catch(final Throwable t) { // As per rule 2.13, `onComplete` is not allowed to throw exceptions, so we do what we can, and log this.
-            (new IllegalStateException(subscriber + " violated the Reactive Streams rule 2.13 by throwing an exception from onComplete.", t)).printStackTrace(System.err);
+            (new IllegalStateException("Subscriber [" + subscriber + "] violated the Reactive Streams rule 2.13 by throwing an exception from onComplete.", t)).printStackTrace(System.err);
           }
         }
       }
@@ -165,7 +165,7 @@ public class AsyncIterablePublisher<T> implements Publisher<T> {
       } catch(final Throwable t) {
         // We can only get here if `onNext` or `onComplete` threw, and they are not allowed to according to 2.13, so we can only cancel and log here.
         doCancel(); // Make sure that we are cancelled, since we cannot do anything else since the `Subscriber` is faulty.
-        (new IllegalStateException(subscriber + " violated the Reactive Streams rule 2.13 by throwing an exception from onNext or onComplete.", t)).printStackTrace(System.err);
+        (new IllegalStateException("Subscriber [" + subscriber + "] violated the Reactive Streams rule 2.13 by throwing an exception from onNext or onComplete.", t)).printStackTrace(System.err);
       }
     }
 
@@ -175,7 +175,7 @@ public class AsyncIterablePublisher<T> implements Publisher<T> {
       try {
         subscriber.onError(t); // Then we signal the error downstream, to the `Subscriber`
       } catch(final Throwable t2) { // If `onError` throws an exception, this is a spec violation according to rule 1.13, and all we can do is to log it.
-        (new IllegalStateException(subscriber + " violated the Reactive Streams rule 2.13 by throwing an exception from onError.", t2)).printStackTrace(System.err);
+        (new IllegalStateException("Subscriber [" + subscriber + "] violated the Reactive Streams rule 2.13 by throwing an exception from onError.", t2)).printStackTrace(System.err);
       }
     }
 
