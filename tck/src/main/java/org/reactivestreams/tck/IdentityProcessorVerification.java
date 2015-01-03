@@ -17,7 +17,8 @@ import org.testng.annotations.Test;
 import java.util.HashSet;
 import java.util.Set;
 
-public abstract class IdentityProcessorVerification<T> implements SubscriberWhiteboxVerificationRules, PublisherVerificationRules {
+public abstract class IdentityProcessorVerification<T> extends WithHelperPublisher<T> 
+  implements SubscriberWhiteboxVerificationRules, PublisherVerificationRules {
 
   private final TestEnvironment env;
 
@@ -40,22 +41,33 @@ public abstract class IdentityProcessorVerification<T> implements SubscriberWhit
    * shut itself down when the the last downstream {@code Subscription} is cancelled.
    *
    * The processor will be required to be able to buffer {@code TestEnvironment.TEST_BUFFER_SIZE} elements.
-   *
-   * @param publisherShutdownTimeoutMillis expected time which a processor requires to shut itself down
    */
   @SuppressWarnings("unused")
-  public IdentityProcessorVerification(final TestEnvironment env, long publisherShutdownTimeoutMillis) {
-    this(env, publisherShutdownTimeoutMillis, TestEnvironment.TEST_BUFFER_SIZE);
+  public IdentityProcessorVerification(final TestEnvironment env) {
+    this(env, PublisherVerification.envPublisherReferenceGCTimeoutMillis(), TestEnvironment.TEST_BUFFER_SIZE);
   }
 
   /**
    * Test class must specify the expected time it takes for the publisher to
    * shut itself down when the the last downstream {@code Subscription} is cancelled.
    *
-   * @param publisherShutdownTimeoutMillis expected time which a processor requires to shut itself down
+   * The processor will be required to be able to buffer {@code TestEnvironment.TEST_BUFFER_SIZE} elements.
+   *
+   * @param publisherReferenceGCTimeoutMillis used to determine after how much time a reference to a Subscriber should be already dropped by the Publisher.
+   */
+  @SuppressWarnings("unused")
+  public IdentityProcessorVerification(final TestEnvironment env, long publisherReferenceGCTimeoutMillis) {
+    this(env, publisherReferenceGCTimeoutMillis, TestEnvironment.TEST_BUFFER_SIZE);
+  }
+
+  /**
+   * Test class must specify the expected time it takes for the publisher to
+   * shut itself down when the the last downstream {@code Subscription} is cancelled.
+   *
+   * @param publisherReferenceGCTimeoutMillis used to determine after how much time a reference to a Subscriber should be already dropped by the Publisher.
    * @param processorBufferSize            number of elements the processor is required to be able to buffer.
    */
-  public IdentityProcessorVerification(final TestEnvironment env, long publisherShutdownTimeoutMillis, int processorBufferSize) {
+  public IdentityProcessorVerification(final TestEnvironment env, long publisherReferenceGCTimeoutMillis, int processorBufferSize) {
     this.env = env;
     this.processorBufferSize = processorBufferSize;
 
@@ -65,13 +77,17 @@ public abstract class IdentityProcessorVerification<T> implements SubscriberWhit
         return IdentityProcessorVerification.this.createSubscriber(probe);
       }
 
+      @Override public T createElement(int element) {
+        return IdentityProcessorVerification.this.createElement(element);
+      }
+
       @Override
       public Publisher<T> createHelperPublisher(long elements) {
         return IdentityProcessorVerification.this.createHelperPublisher(elements);
       }
     };
 
-    publisherVerification = new PublisherVerification<T>(env, publisherShutdownTimeoutMillis) {
+    publisherVerification = new PublisherVerification<T>(env, publisherReferenceGCTimeoutMillis) {
       @Override
       public Publisher<T> createPublisher(long elements) {
         return IdentityProcessorVerification.this.createPublisher(elements);
@@ -109,15 +125,24 @@ public abstract class IdentityProcessorVerification<T> implements SubscriberWhit
   public abstract Processor<T, T> createIdentityProcessor(int bufferSize);
 
   /**
-   * Helper method required for running the Publisher rules against a Publisher.
-   * It must create a Publisher for a stream with exactly the given number of elements.
-   * If {@code elements} is {@code Long.MAX_VALUE} the produced stream must be infinite.
-   *
-   * The stream must not produce the same element twice (in case of an infinite stream this requirement
-   * is relaxed to only apply to the elements that are actually requested during all tests).
-   *
-   * @param elements exact number of elements this publisher should emit,
-   *                 unless equal to {@code Long.MAX_VALUE} in which case the stream should be effectively infinite
+   * Helper method required for creating the Publisher to which the tested Subscriber will be subscribed and tested against.
+   * <p>
+   * By default an <b>asynchronously signalling Publisher</b> is provided, which will use
+   * {@link org.reactivestreams.tck.SubscriberBlackboxVerification#createElement(int)} to generate elements type
+   * your Subscriber is able to consume.
+   * <p>
+   * Sometimes you may want to implement your own custom custom helper Publisher - to validate behaviour of a Subscriber
+   * when facing a synchronous Publisher for example. If you do, it MUST emit the exact number of elements asked for
+   * (via the {@code elements} parameter) and MUST also must treat the following numbers of elements in these specific ways:
+   * <ul>
+   *   <li>
+   *     If {@code elements} is {@code Long.MAX_VALUE} the produced stream must be infinite.
+   *   </li>
+   *   <li>
+   *     If {@code elements} is {@code 0} the {@code Publisher} should signal {@code onComplete} immediatly.
+   *     In other words, it should represent a "completed stream".
+   *   </li>
+   * </ul>
    */
   public abstract Publisher<T> createHelperPublisher(long elements);
 

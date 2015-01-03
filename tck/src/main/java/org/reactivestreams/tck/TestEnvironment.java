@@ -6,6 +6,7 @@ import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.support.SubscriberBufferOverflowException;
 import org.reactivestreams.tck.support.Optional;
 
+import java.text.NumberFormat;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -18,6 +19,9 @@ import static org.testng.Assert.fail;
 
 public class TestEnvironment {
   public static final int TEST_BUFFER_SIZE = 16;
+
+  private static final String DEFAULT_TIMEOUT_MILLIS_ENV = "DEFAULT_TIMEOUT_MILLIS";
+  private static final long DEFAULT_TIMEOUT_MILLIS = 100;
 
   private final long defaultTimeoutMillis;
   private final boolean printlnDebug;
@@ -51,8 +55,52 @@ public class TestEnvironment {
     this(defaultTimeoutMillis, false);
   }
 
+  /**
+   * Tests must specify the timeout for expected outcome of asynchronous
+   * interactions. Longer timeout does not invalidate the correctness of
+   * the implementation, but can in some cases result in longer time to
+   * run the tests.
+   *
+   * The default timeout for all expect* methods will be obtained by either the env variable {@code DEFAULT_TIMEOUT_MILLIS}
+   * or the default value ({@see TestEnvironment#DEFAULT_TIMEOUT_MILLIS}) will be used.
+   *
+   * @param printlnDebug if true, signals such as OnNext / Request / OnComplete etc will be printed to standard output,
+   *                     often helpful to pinpoint simple race conditions etc.
+   */
+  public TestEnvironment(boolean printlnDebug) {
+    this(envDefaultTimeoutMillis(), printlnDebug);
+  }
+
+  /**
+   * Tests must specify the timeout for expected outcome of asynchronous
+   * interactions. Longer timeout does not invalidate the correctness of
+   * the implementation, but can in some cases result in longer time to
+   * run the tests.
+   *
+   * The default timeout for all expect* methods will be obtained by either the env variable {@code DEFAULT_TIMEOUT_MILLIS}
+   * or the default value ({@see TestEnvironment#DEFAULT_TIMEOUT_MILLIS}) will be used.
+   */
+  public TestEnvironment() {
+    this(envDefaultTimeoutMillis());
+  }
+
   public long defaultTimeoutMillis() {
     return defaultTimeoutMillis;
+  }
+
+  /**
+   * Tries to parse the env variable {@code DEFAULT_TIMEOUT_MILLIS} as long and returns the value if present OR its default value.
+   *
+   * @throws java.lang.IllegalArgumentException when unable to parse the env variable
+   */
+  public static long envDefaultTimeoutMillis() {
+    final String envMillis = System.getenv(DEFAULT_TIMEOUT_MILLIS_ENV);
+    if (envMillis == null) return DEFAULT_TIMEOUT_MILLIS;
+    else try {
+      return Long.parseLong(envMillis);
+    } catch(NumberFormatException ex) {
+      throw new IllegalArgumentException(String.format("Unable to parse %s env value [%s] as long!", DEFAULT_TIMEOUT_MILLIS_ENV, envMillis), ex);
+    }
   }
 
   /**
@@ -427,6 +475,9 @@ public class TestEnvironment {
       received.expectNone(withinMillis, errMsgPrefix);
     }
 
+    @Override public String toString() {
+      return "Reactive Streams TCK ManualSubscriber";
+    }
   }
 
   public static class ManualSubscriberWithSubscriptionSupport<T> extends ManualSubscriber<T> {
@@ -474,6 +525,10 @@ public class TestEnvironment {
         env.flop(cause, String.format("Subscriber::onError(%s) called before Subscriber::onSubscribe", cause));
       }
     }
+
+    @Override public String toString() {
+      return "Reactive Streams TCK ManualSubscriberWithSubscriptionSupport";
+    }
   }
 
   /**
@@ -504,6 +559,10 @@ public class TestEnvironment {
     @Override
     public List<T> nextElements(long elements, long timeoutMillis, String errorMsg) throws InterruptedException {
       throw new RuntimeException("Can not expect elements from BlackholeSubscriber, use ManualSubscriber instead!");
+    }
+
+    @Override public String toString() {
+      return "Reactive Streams TCK BlackholeSubscriberWithSubscriptionSupport";
     }
   }
 
@@ -543,6 +602,10 @@ public class TestEnvironment {
       } else {
         env.flop("Cannot cancel a subscription before having received it");
       }
+    }
+
+    @Override public String toString() {
+      return "Reactive Streams TCK TestSubscriber";
     }
   }
 
@@ -650,6 +713,10 @@ public class TestEnvironment {
 
     public void expectCancelling(long timeoutMillis) throws InterruptedException {
       cancelled.expectClose(timeoutMillis, "Did not receive expected cancelling of upstream subscription");
+    }
+
+    @Override public String toString() {
+      return "Reactive Streams TCK ManualPublisher";
     }
   }
 
@@ -788,14 +855,22 @@ public class TestEnvironment {
     public void add(T value) {
       completedLatch.assertOpen(String.format("Unexpected element %s received after stream completed", value));
 
-      abq.add(Optional.of(value));
+      try {
+        abq.add(Optional.of(value));
+      } catch(IllegalStateException ise) {
+        throw new IllegalStateException("Queue overflow when adding new value to Receptacle, queue was: " + abq.toString(), ise);
+      }
     }
 
     public void complete() {
       completedLatch.assertOpen("Unexpected additional complete signal received!");
       completedLatch.close();
 
-      abq.add(Optional.<T>empty());
+      try {
+        abq.add(Optional.<T>empty());
+      } catch(IllegalStateException ise) {
+        throw new IllegalStateException("Queue overflow when completing Receptacle, queue was: " + abq.toString(), ise);
+      }
     }
 
     public T next(long timeoutMillis, String errorMsg) throws InterruptedException {

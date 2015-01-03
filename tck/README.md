@@ -51,7 +51,7 @@ Specification rule abides the following naming convention: `spec###_DESC` where:
 ```
 
 The prefixes of the names of the test methods are used in order to signify the character of the test. For example, these are the kinds of prefixes you may find:
-"required_", "optional_", "stochastic_", "untested_".
+"`required_`", "`optional_`", "`stochastic_`", "`untested_`".
 
 Explanations:
 
@@ -132,11 +132,8 @@ import org.reactivestreams.tck.TestEnvironment;
 
 public class RangePublisherTest extends PublisherVerification<Integer> {
 
-  public static final long DEFAULT_TIMEOUT_MILLIS = 300L;
-  public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 1000L;
-
   public RangePublisherTest() {
-    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS), PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS);
+    super(new TestEnvironment());
   }
 
   @Override
@@ -174,11 +171,82 @@ Notable configuration options include:
 * `boundedDepthOfOnNextAndRequestRecursion` – which should only be overridden in case of synchronous Publishers. This number will be used to validate if a
 `Subscription` actually solves the "unbounded recursion" problem (Rule 3.3).
 
+### Timeout configuration
+Publisher tests make use of two kinds of timeouts, one is the `defaultTimeoutMillis` which corresponds to all methods used
+within the TCK which await for something to happen. The other timeout is `publisherReferenceGCTimeoutMillis` which is only used in order to verify
+[Rule 3.13](https://github.com/reactive-streams/reactive-streams#3.13) which defines that subscriber references MUST be dropped
+by the Publisher.
+
+In order to configure these timeouts (for example when running on a slow continious integtation machine), you can either:
+
+**Use env variables** to set these timeouts, in which case the you can just:
+
+```bash
+export DEFAULT_TIMEOUT_MILLIS=300
+export PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS=500
+```
+
+Or **define the timeouts explicitly in code**:
+
+```java
+public class RangePublisherTest extends PublisherVerification<Integer> {
+
+  public static final long DEFAULT_TIMEOUT_MILLIS = 300L;
+  public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 500L;
+
+  public RangePublisherTest() {
+    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS), PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS);
+  }
+
+  // ...
+}
+```
+
+Note that hard-coded values *take precedence* over environment set values (!).
+
 ## Subscriber Verification
 
 Subscriber rules Verification is split up into two files (styles) of tests.
 
 The Blackbox Verification tests do not require the implementation under test to be modified at all, yet they are *not* able to verify most rules. In Whitebox Verification, more control over `request()` calls etc. is required in order to validate rules more precisely.
+
+### createElement and Helper Publisher implementations
+Since testing a `Subscriber` is not possible without a corresponding `Publisher` the TCK Subscriber Verifications
+both provide a default "*helper publisher*" to drive its test and also alow to replace this Publisher with a custom implementation.
+The helper publisher is an asynchronous publisher by default - meaning that your subscriber can not blindly assume single threaded execution.
+
+While the `Publisher` implementation is provided, creating the signal elements is not – this is because a given Subscriber
+may for example only work with `HashedMessage` or some other specific kind of signal. The TCK is unable to generate such
+special messages automatically, so we provide the `T createElement(Integer id)` method to be implemented as part of
+Subscriber Verifications which should take the given ID and return an element of type `T` (where `T` is the type of
+elements flowing into the `Subscriber<T>`, as known thanks to `... extends WhiteboxSubscriberVerification<T>`) representing
+an element of the stream that will be passed on to the Subscriber.
+
+The simplest valid implemenation is to return the incoming `id` *as the element* in a verification using `Integer`s as element types:
+
+```java
+public class MySubscriberTest extends SubscriberBlackboxVerification<Integer> {
+
+  // ...
+
+  @Override
+  public Integer createElement(int element) { return element; }
+}
+```
+
+
+The `createElement` method MAY be called from multiple
+threads, so in case of more complicated implementations, please be aware of this fact.
+
+**Very Advanced**: While we do not expect many implementations having to do so, it is possible to take full control of the `Publisher`
+which will be driving the TCKs test. You can do this by implementing the `createHelperPublisher` method in which you can implement your
+own Publisher which will then be used by the TCK to drive your Subscriber tests:
+
+```java
+@Override public Publisher<Message> createHelperPublisher(long elements) {
+  return new Publisher<Message>() { /* IMPL HERE */ };
+}
+```
 
 ### Subscriber Blackbox Verification
 
@@ -195,10 +263,8 @@ import org.reactivestreams.tck.TestEnvironment;
 
 public class MySubscriberBlackboxVerificationTest extends SubscriberBlackboxVerification<Integer> {
 
-  public static final long DEFAULT_TIMEOUT_MILLIS = 300L;
-
   public MySubscriberBlackboxVerificationTest() {
-    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS));
+    super(new TestEnvironment());
   }
 
   @Override
@@ -207,8 +273,8 @@ public class MySubscriberBlackboxVerificationTest extends SubscriberBlackboxVeri
   }
 
   @Override
-  public Publisher<Integer> createHelperPublisher(long elements) {
-    return new MyRangePublisher<Integer>(1, elements);
+  public Integer createElement(int element) {
+    return element;
   }
 }
 ```
@@ -235,10 +301,8 @@ import org.reactivestreams.tck.TestEnvironment;
 
 public class MySubscriberWhiteboxVerificationTest extends SubscriberWhiteboxVerification<Integer> {
 
-  public static final long DEFAULT_TIMEOUT_MILLIS = 300L;
-
   public MySubscriberWhiteboxVerificationTest() {
-    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS));
+    super(new TestEnvironment());
   }
 
   @Override
@@ -286,12 +350,40 @@ public class MySubscriberWhiteboxVerificationTest extends SubscriberWhiteboxVeri
   }
 
   @Override
-  public Publisher<Integer> createHelperPublisher(long elements) {
-    return new MyRangePublisher<Integer>(1, elements);
+  public Integer createElement(int element) {
+    return element;
   }
 
 }
 ```
+
+### Timeout configuration
+Similarily to `PublisherVerification`, it is possible to set the timeouts used by the TCK to validate subscriber behaviour.
+This can be set either by using env variables or hardcoded explicitly.
+
+**Use env variables** to set the timeout value to be used by the TCK:
+
+```bash
+export DEFAULT_TIMEOUT_MILLIS=300
+```
+
+Or **define the timeout explicitly in code**:
+
+```java
+public class MySubscriberTest extends BlackboxSubscriberVerification<Integer> {
+
+  public static final long DEFAULT_TIMEOUT_MILLIS = 300L;
+
+  public RangePublisherTest() {
+    super(new MySubscriberTest(DEFAULT_TIMEOUT_MILLIS));
+  }
+
+  // ...
+}
+```
+
+Note that hard-coded values *take precedence* over environment set values (!).
+
 
 ## Subscription Verification
 
