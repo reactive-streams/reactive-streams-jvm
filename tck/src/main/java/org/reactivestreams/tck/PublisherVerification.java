@@ -637,18 +637,33 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
           }
         };
 
+        final Latch runCompleted = new Latch(env);
+
         final ManualSubscriber<T> sub = new ManualSubscriberWithSubscriptionSupport<T>(env) {
+          // counts the number of signals received, used to break out from possibly infinite request/onNext loops
+          long signalsReceived = 0L;
+
           @Override
           public void onNext(T element) {
-            stackDepthCounter.set(stackDepthCounter.get() + 1);
-            super.onNext(element);
+            // NOT calling super.onNext as this test only cares about stack depths, not the actual values of elements
+            // which also simplifies this test as we do not have to drain the test buffer, which would otherwise be in danger of overflowing
 
-            final Long callsUntilNow = stackDepthCounter.get();
+            signalsReceived += 1;
+            stackDepthCounter.set(stackDepthCounter.get() + 1);
+            env.debug(String.format("%s(recursion depth: %d)::onNext(%s)", this, stackDepthCounter.get(), element));
+
+            final long callsUntilNow = stackDepthCounter.get();
             if (callsUntilNow > boundedDepthOfOnNextAndRequestRecursion()) {
               env.flop(String.format("Got %d onNext calls within thread: %s, yet expected recursive bound was %d",
                                      callsUntilNow, Thread.currentThread(), boundedDepthOfOnNextAndRequestRecursion()));
 
               // stop the recursive call chain
+              runCompleted.close();
+              return;
+            } else if (signalsReceived >= oneMoreThanBoundedLimit) {
+              // since max number of signals reached, and recursion depth not exceeded, we judge this as a success and
+              // stop the recursive call chain
+              runCompleted.close();
               return;
             }
 
@@ -657,14 +672,35 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
 
             stackDepthCounter.set(stackDepthCounter.get() - 1);
           }
+
+          @Override
+          public void onComplete() {
+            super.onComplete();
+            runCompleted.close();
+          }
+
+          @Override
+          public void onError(Throwable cause) {
+            super.onError(cause);
+            runCompleted.close();
+          }
         };
 
-        env.subscribe(pub, sub);
+        try {
+          env.subscribe(pub, sub);
 
-        sub.request(1); // kick-off the `request -> onNext -> request -> onNext -> ...`
+          sub.request(1); // kick-off the `request -> onNext -> request -> onNext -> ...`
 
-        sub.nextElementOrEndOfStream();
-        env.verifyNoAsyncErrors();
+          final String msg = String.format("Unable to validate call stack depth safety, " +
+                                               "awaited at-most %s signals (`maxOnNextSignalsInRecursionTest()`) or completion",
+                                           oneMoreThanBoundedLimit);
+          runCompleted.expectClose(env.defaultTimeoutMillis(), msg);
+          env.verifyNoAsyncErrors();
+        } finally {
+          // since the request/onNext recursive calls may keep the publisher running "forever",
+          // we MUST cancel it manually before exiting this test case
+          sub.cancel();
+        }
       }
     });
   }

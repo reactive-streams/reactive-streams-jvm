@@ -38,9 +38,8 @@ public abstract class WithHelperPublisher<T> {
   /**
    * Helper method required for creating the Publisher to which the tested Subscriber will be subscribed and tested against.
    * <p>
-   * By default an <b>asynchronously signalling Publisher</b> is provided, which will use
-   * {@link org.reactivestreams.tck.SubscriberBlackboxVerification#createElement(int)} to generate elements type
-   * your Subscriber is able to consume.
+   * By default an <b>asynchronously signalling Publisher</b> is provided, which will use {@link #createElement(int)}
+   * to generate elements type your Subscriber is able to consume.
    * <p>
    * Sometimes you may want to implement your own custom custom helper Publisher - to validate behaviour of a Subscriber
    * when facing a synchronous Publisher for example. If you do, it MUST emit the exact number of elements asked for

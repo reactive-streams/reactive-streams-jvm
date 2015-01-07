@@ -60,7 +60,4 @@ public class AsyncSubscriberTest extends SubscriberBlackboxVerification<Integer>
     return element;
   }
 
-  @Override public Publisher<Integer> createHelperPublisher(long elements) {
-    return super.createHelperPublisher(elements);
-  }
 }

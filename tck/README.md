@@ -202,7 +202,7 @@ public class RangePublisherTest extends PublisherVerification<Integer> {
 }
 ```
 
-Note that hard-coded values *take precedence* over environment set values (!).
+Note that explicitly passed in values take precedence over values provided by the environment
 
 ## Subscriber Verification
 

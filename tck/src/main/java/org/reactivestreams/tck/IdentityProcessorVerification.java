@@ -125,28 +125,6 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
   public abstract Processor<T, T> createIdentityProcessor(int bufferSize);
 
   /**
-   * Helper method required for creating the Publisher to which the tested Subscriber will be subscribed and tested against.
-   * <p>
-   * By default an <b>asynchronously signalling Publisher</b> is provided, which will use
-   * {@link org.reactivestreams.tck.SubscriberBlackboxVerification#createElement(int)} to generate elements type
-   * your Subscriber is able to consume.
-   * <p>
-   * Sometimes you may want to implement your own custom custom helper Publisher - to validate behaviour of a Subscriber
-   * when facing a synchronous Publisher for example. If you do, it MUST emit the exact number of elements asked for
-   * (via the {@code elements} parameter) and MUST also must treat the following numbers of elements in these specific ways:
-   * <ul>
-   *   <li>
-   *     If {@code elements} is {@code Long.MAX_VALUE} the produced stream must be infinite.
-   *   </li>
-   *   <li>
-   *     If {@code elements} is {@code 0} the {@code Publisher} should signal {@code onComplete} immediatly.
-   *     In other words, it should represent a "completed stream".
-   *   </li>
-   * </ul>
-   */
-  public abstract Publisher<T> createHelperPublisher(long elements);
-
-  /**
    * Return a Publisher that immediately signals {@code onError} to incoming subscriptions,
    * or {@code null} in order to skip them.
    */
