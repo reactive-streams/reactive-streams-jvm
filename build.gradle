@@ -25,6 +25,13 @@ subprojects {
         }
     }
 
+    tasks.withType(Test) {
+      testLogging {
+        exceptionFormat "full"
+        events "failed", "started"
+      }
+    }
+
     repositories {
         mavenCentral()
     }
