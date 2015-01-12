@@ -1,7 +1,6 @@
 package org.reactivestreams.tck.support;
 
 
-
 /**
  * Internal TCK use only.
  * Add / Remove tests for PublisherVerification here to make sure that they arre added/removed in the other places.
@@ -16,6 +15,7 @@ public interface PublisherVerificationRules {
   void stochastic_spec103_mustSignalOnMethodsSequentially() throws Throwable;
   void optional_spec104_mustSignalOnErrorWhenFails() throws Throwable;
   void required_spec105_mustSignalOnCompleteWhenFiniteStreamTerminates() throws Throwable;
+  void optional_spec105_emptyStreamMustTerminateBySignallingOnComplete() throws Throwable;
   void untested_spec106_mustConsiderSubscriptionCancelledAfterOnErrorOrOnCompleteHasBeenCalled() throws Throwable;
   void required_spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled() throws Throwable;
   void untested_spec107_mustNotEmitFurtherSignalsOnceOnErrorHasBeenSignalled() throws Throwable;

@@ -185,6 +185,35 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
   }
 
   @Test
+  public void optional_spec105_emptyStreamMustTerminateBySignallingOnComplete_shouldNotAllowEagerOnComplete() throws Throwable {
+    final Publisher<Integer> illegalEmptyEagerOnCompletePublisher = new Publisher<Integer>() {
+      @Override public void subscribe(final Subscriber<? super Integer> s) {
+        s.onComplete();
+      }
+    };
+
+    requireTestFailure(new ThrowingRunnable() {
+      @Override public void run() throws Throwable {
+        PublisherVerification<Integer> verification = new PublisherVerification<Integer>(newTestEnvironment()) {
+          @Override public Publisher<Integer> createPublisher(long elements) {
+            return illegalEmptyEagerOnCompletePublisher;
+          }
+
+          @Override public long maxElementsFromPublisher() {
+            return 0; // it is an "empty" Publisher
+          }
+
+          @Override public Publisher<Integer> createErrorStatePublisher() {
+            return null;
+          }
+        };
+
+        verification.optional_spec105_emptyStreamMustTerminateBySignallingOnComplete();
+      }
+    }, "Subscriber::onComplete() called before Subscriber::onSubscribe");
+  }
+
+  @Test
   public void required_spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled_shouldFailForNotCompletingPublisher() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {

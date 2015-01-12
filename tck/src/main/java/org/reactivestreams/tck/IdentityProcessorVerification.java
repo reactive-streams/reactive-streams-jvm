@@ -242,6 +242,11 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
   }
 
   @Override @Test
+  public void optional_spec105_emptyStreamMustTerminateBySignallingOnComplete() throws Throwable {
+    publisherVerification.optional_spec105_emptyStreamMustTerminateBySignallingOnComplete();
+  }
+
+  @Override @Test
   public void untested_spec106_mustConsiderSubscriptionCancelledAfterOnErrorOrOnCompleteHasBeenCalled() throws Throwable {
     publisherVerification.untested_spec106_mustConsiderSubscriptionCancelledAfterOnErrorOrOnCompleteHasBeenCalled();
   }

@@ -179,7 +179,7 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
 
   @Override @Test
   public void required_validate_maxElementsFromPublisher() throws Exception {
-    assertTrue(maxElementsFromPublisher() > 0, "maxElementsFromPublisher MUST return a number > 0");
+    assertTrue(maxElementsFromPublisher() >= 0, "maxElementsFromPublisher MUST return a number >= 0");
   }
 
   @Override @Test
@@ -378,6 +378,20 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
         sub.requestNextElement();
         sub.requestNextElement();
         sub.requestEndOfStream();
+        sub.expectNone();
+      }
+    });
+  }
+
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.5
+  @Override @Test
+  public void optional_spec105_emptyStreamMustTerminateBySignallingOnComplete() throws Throwable {
+    optionalActivePublisherTest(0, true, new PublisherTestRun<T>() {
+      @Override
+      public void run(Publisher<T> pub) throws Throwable {
+        ManualSubscriber<T> sub = env.newManualSubscriber(pub);
+        sub.request(1);
+        sub.expectCompletion();
         sub.expectNone();
       }
     });
