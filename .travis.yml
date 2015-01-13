@@ -1,11 +1,13 @@
 language: java
 script:
-- ./gradlew check
+  - ./gradlew check
 cache:
   directories:
   - $HOME/.gradle
 jdk:
-- openjdk6
+  - openjdk6
 env:
   global:
   - TERM=dumb
+  - DEFAULT_TIMEOUT_MILLIS=300
+  - PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS=300

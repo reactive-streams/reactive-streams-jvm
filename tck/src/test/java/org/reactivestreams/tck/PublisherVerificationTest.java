@@ -21,9 +21,6 @@ import java.util.concurrent.atomic.AtomicInteger;
 */
 public class PublisherVerificationTest extends TCKVerificationSupport {
 
-  static final int DEFAULT_TIMEOUT_MILLIS = 100;
-  static final int GC_TIMEOUT_MILLIS = 300;
-
   @Test
   public void required_spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements_shouldFailBy_ExpectingOnError() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
@@ -527,7 +524,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
    * Skips the error state publisher tests.
    */
   final PublisherVerification<Integer> noopPublisherVerification() {
-    return new PublisherVerification<Integer>(newTestEnvironment(), GC_TIMEOUT_MILLIS) {
+    return new PublisherVerification<Integer>(newTestEnvironment()) {
       @Override public Publisher<Integer> createPublisher(long elements) {
 
         return new Publisher<Integer>() {
@@ -548,7 +545,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
    * Verification using a Publisher that never publishes any element
    */
   final PublisherVerification<Integer> onErroringPublisherVerification() {
-    return new PublisherVerification<Integer>(newTestEnvironment(), GC_TIMEOUT_MILLIS) {
+    return new PublisherVerification<Integer>(newTestEnvironment()) {
       @Override public Publisher<Integer> createPublisher(long elements) {
 
         return new Publisher<Integer>() {
@@ -580,7 +577,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
    * Custom Verification using given Publishers
    */
   final PublisherVerification<Integer> customPublisherVerification(final Publisher<Integer> pub, final Publisher<Integer> errorPub) {
-    return new PublisherVerification<Integer>(newTestEnvironment(), GC_TIMEOUT_MILLIS) {
+    return new PublisherVerification<Integer>(newTestEnvironment()) {
       @Override public Publisher<Integer> createPublisher(long elements) {
         return pub;
       }
@@ -595,7 +592,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
    * Verification using a Publisher that publishes elements even with no demand available
    */
   final PublisherVerification<Integer> demandIgnoringSynchronousPublisherVerification() {
-    return new PublisherVerification<Integer>(newTestEnvironment(), GC_TIMEOUT_MILLIS) {
+    return new PublisherVerification<Integer>(newTestEnvironment()) {
       @Override public Publisher<Integer> createPublisher(long elements) {
 
         return new Publisher<Integer>() {
@@ -639,7 +636,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
 
     final AtomicBoolean concurrentAccessCaused = new AtomicBoolean(false);
 
-    return new PublisherVerification<Integer>(newTestEnvironment(), GC_TIMEOUT_MILLIS) {
+    return new PublisherVerification<Integer>(newTestEnvironment()) {
       @Override public Publisher<Integer> createPublisher(long elements) {
 
         return new Publisher<Integer>() {
@@ -709,7 +706,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
   }
 
   private TestEnvironment newTestEnvironment() {
-    return new TestEnvironment(DEFAULT_TIMEOUT_MILLIS);
+    return new TestEnvironment();
   }
 
 

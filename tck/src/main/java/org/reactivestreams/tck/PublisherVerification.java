@@ -33,12 +33,48 @@ import static org.testng.Assert.assertTrue;
  */
 public abstract class PublisherVerification<T> implements PublisherVerificationRules {
 
+  private static final String PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS_ENV = "PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS";
+  private static final long DEFAULT_PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS = 300L;
+
   private final TestEnvironment env;
   private final long publisherReferenceGCTimeoutMillis;
 
+  /**
+   * Constructs a new verification class using the given env and configuration.
+   *
+   * @param publisherReferenceGCTimeoutMillis used to determine after how much time a reference to a Subscriber should be already dropped by the Publisher.
+   */
   public PublisherVerification(TestEnvironment env, long publisherReferenceGCTimeoutMillis) {
     this.env = env;
     this.publisherReferenceGCTimeoutMillis = publisherReferenceGCTimeoutMillis;
+  }
+
+  /**
+   * Constructs a new verification class using the given env and configuration.
+   *
+   * The value for {@code publisherReferenceGCTimeoutMillis} will be obtained by using {@link PublisherVerification#envPublisherReferenceGCTimeoutMillis()}.
+   */
+  public PublisherVerification(TestEnvironment env) {
+    this.env = env;
+    this.publisherReferenceGCTimeoutMillis = envPublisherReferenceGCTimeoutMillis();
+  }
+
+  /**
+   * Tries to parse the env variable {@code PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS} as long and returns the value if present,
+   * OR its default value ({@link PublisherVerification#DEFAULT_PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS}).
+   *
+   * This value is used to determine after how much time a reference to a Subscriber should be already dropped by the Publisher.
+   *
+   * @throws java.lang.IllegalArgumentException when unable to parse the env variable
+   */
+  public static long envPublisherReferenceGCTimeoutMillis() {
+    final String envMillis = System.getenv(PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS_ENV);
+    if (envMillis == null) return DEFAULT_PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS;
+    else try {
+      return Long.parseLong(envMillis);
+    } catch(NumberFormatException ex) {
+      throw new IllegalArgumentException(String.format("Unable to parse %s env value [%s] as long!", PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS_ENV, envMillis), ex);
+    }
   }
 
   /**
@@ -86,6 +122,14 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
    */
   public long boundedDepthOfOnNextAndRequestRecursion() {
     return 1;
+  }
+
+  /**
+   * The amount of time after which a cancelled Subscriber reference should be dropped.
+   * See Rule 3.13 for details.
+   */
+  final public long publisherReferenceGCTimeoutMillis() {
+    return publisherReferenceGCTimeoutMillis;
   }
 
   ////////////////////// TEST ENV CLEANUP /////////////////////////////////////
@@ -298,20 +342,20 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
   public void optional_spec104_mustSignalOnErrorWhenFails() throws Throwable {
     try {
       whenHasErrorPublisherTest(new PublisherTestRun<T>() {
-          @Override
-          public void run(final Publisher<T> pub) throws InterruptedException {
-              final Latch latch = new Latch(env);
-              pub.subscribe(new TestEnvironment.TestSubscriber<T>(env) {
-                  @Override
-                  public void onError(Throwable cause) {
-                      latch.assertOpen(String.format("Error-state Publisher %s called `onError` twice on new Subscriber", pub));
-                      latch.close();
-                  }
-              });
+        @Override
+        public void run(final Publisher<T> pub) throws InterruptedException {
+          final Latch latch = new Latch(env);
+          pub.subscribe(new TestEnvironment.TestSubscriber<T>(env) {
+            @Override
+            public void onError(Throwable cause) {
+              latch.assertOpen(String.format("Error-state Publisher %s called `onError` twice on new Subscriber", pub));
+              latch.close();
+            }
+          });
 
-              latch.expectClose(String.format("Error-state Publisher %s did not call `onError` on new Subscriber", pub));
+          latch.expectClose(String.format("Error-state Publisher %s did not call `onError` on new Subscriber", pub));
 
-              env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
+          env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
           }
       });
     } catch (SkipException se) {
@@ -404,25 +448,25 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
   @Override @Test
   public void required_spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe() throws Throwable {
     whenHasErrorPublisherTest(new PublisherTestRun<T>() {
-        @Override
-        public void run(Publisher<T> pub) throws Throwable {
-            final Latch onErrorLatch = new Latch(env);
-            ManualSubscriberWithSubscriptionSupport<T> sub = new ManualSubscriberWithSubscriptionSupport<T>(env) {
-                @Override
-                public void onError(Throwable cause) {
-                    onErrorLatch.assertOpen("Only one onError call expected");
-                    onErrorLatch.close();
-                }
+      @Override
+      public void run(Publisher<T> pub) throws Throwable {
+        final Latch onErrorLatch = new Latch(env);
+        ManualSubscriberWithSubscriptionSupport<T> sub = new ManualSubscriberWithSubscriptionSupport<T>(env) {
+          @Override
+          public void onError(Throwable cause) {
+            onErrorLatch.assertOpen("Only one onError call expected");
+            onErrorLatch.close();
+          }
 
-                @Override
-                public void onSubscribe(Subscription subs) {
-                    env.flop("onSubscribe should not be called if Publisher is unable to subscribe a Subscriber");
-                }
-            };
-            pub.subscribe(sub);
-            onErrorLatch.assertClosed("Should have received onError");
+          @Override
+          public void onSubscribe(Subscription subs) {
+            env.flop("onSubscribe should not be called if Publisher is unable to subscribe a Subscriber");
+          }
+        };
+        pub.subscribe(sub);
+        onErrorLatch.assertClosed("Should have received onError");
 
-            env.verifyNoAsyncErrors();
+        env.verifyNoAsyncErrors();
         }
     });
   }
@@ -593,18 +637,33 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
           }
         };
 
+        final Latch runCompleted = new Latch(env);
+
         final ManualSubscriber<T> sub = new ManualSubscriberWithSubscriptionSupport<T>(env) {
+          // counts the number of signals received, used to break out from possibly infinite request/onNext loops
+          long signalsReceived = 0L;
+
           @Override
           public void onNext(T element) {
-            stackDepthCounter.set(stackDepthCounter.get() + 1);
-            super.onNext(element);
+            // NOT calling super.onNext as this test only cares about stack depths, not the actual values of elements
+            // which also simplifies this test as we do not have to drain the test buffer, which would otherwise be in danger of overflowing
 
-            final Long callsUntilNow = stackDepthCounter.get();
+            signalsReceived += 1;
+            stackDepthCounter.set(stackDepthCounter.get() + 1);
+            env.debug(String.format("%s(recursion depth: %d)::onNext(%s)", this, stackDepthCounter.get(), element));
+
+            final long callsUntilNow = stackDepthCounter.get();
             if (callsUntilNow > boundedDepthOfOnNextAndRequestRecursion()) {
               env.flop(String.format("Got %d onNext calls within thread: %s, yet expected recursive bound was %d",
                                      callsUntilNow, Thread.currentThread(), boundedDepthOfOnNextAndRequestRecursion()));
 
               // stop the recursive call chain
+              runCompleted.close();
+              return;
+            } else if (signalsReceived >= oneMoreThanBoundedLimit) {
+              // since max number of signals reached, and recursion depth not exceeded, we judge this as a success and
+              // stop the recursive call chain
+              runCompleted.close();
               return;
             }
 
@@ -613,14 +672,35 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
 
             stackDepthCounter.set(stackDepthCounter.get() - 1);
           }
+
+          @Override
+          public void onComplete() {
+            super.onComplete();
+            runCompleted.close();
+          }
+
+          @Override
+          public void onError(Throwable cause) {
+            super.onError(cause);
+            runCompleted.close();
+          }
         };
 
-        env.subscribe(pub, sub);
+        try {
+          env.subscribe(pub, sub);
 
-        sub.request(1); // kick-off the `request -> onNext -> request -> onNext -> ...`
+          sub.request(1); // kick-off the `request -> onNext -> request -> onNext -> ...`
 
-        sub.nextElementOrEndOfStream();
-        env.verifyNoAsyncErrors();
+          final String msg = String.format("Unable to validate call stack depth safety, " +
+                                               "awaited at-most %s signals (`maxOnNextSignalsInRecursionTest()`) or completion",
+                                           oneMoreThanBoundedLimit);
+          runCompleted.expectClose(env.defaultTimeoutMillis(), msg);
+          env.verifyNoAsyncErrors();
+        } finally {
+          // since the request/onNext recursive calls may keep the publisher running "forever",
+          // we MUST cancel it manually before exiting this test case
+          sub.cancel();
+        }
       }
     });
   }
