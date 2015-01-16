@@ -940,7 +940,7 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
     activePublisherTest(totalElements, true, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
-        ManualSubscriber<T> sub = env.newManualSubscriber(pub);
+        final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
         sub.request(Long.MAX_VALUE / 2); // pending = Long.MAX_VALUE / 2
         sub.request(Long.MAX_VALUE / 2); // pending = Long.MAX_VALUE - 1
         sub.request(1); // pending = Long.MAX_VALUE
@@ -948,17 +948,22 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
         sub.nextElements(totalElements);
         sub.expectCompletion();
 
-        env.verifyNoAsyncErrors();
+        try {
+          env.verifyNoAsyncErrors();
+        } finally {
+          sub.cancel();
+        }
+        
       }
     });
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#3.17
   @Override @Test
-  public void required_spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable {
+  public void required_spec317_mustNotSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable {
     activePublisherTest(Integer.MAX_VALUE, false, new PublisherTestRun<T>() {
       @Override public void run(Publisher<T> pub) throws Throwable {
-        ManualSubscriberWithSubscriptionSupport<T> sub = new BlackholeSubscriberWithSubscriptionSupport<T>(env) {
+        final ManualSubscriberWithSubscriptionSupport<T> sub = new BlackholeSubscriberWithSubscriptionSupport<T>(env) {
            // arbitrarily set limit on nuber of request calls signalled, we expect overflow after already 2 calls,
            // so 10 is relatively high and safe even if arbitrarily chosen
           int callsCounter = 10;
@@ -982,10 +987,12 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
         // we're pretty sure to overflow from those
         sub.request(1);
 
-        sub.expectErrorWithMessage(IllegalStateException.class, "3.17");
-
-        // onError must be signalled only once, even with in-flight other request() messages that would trigger overflow again
-        env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
+        // no onError should be signalled
+        try {
+          env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
+        } finally {
+          sub.cancel();
+        }
       }
     });
   }

@@ -81,9 +81,11 @@ public class AsyncIterablePublisher<T> implements Publisher<T> {
     private void doRequest(final long n) {
       if (n < 1)
         terminateDueTo(new IllegalArgumentException(subscriber + " violated the Reactive Streams rule 3.9 by requesting a non-positive number of elements."));
-      else if (demand + n < 1)
-        terminateDueTo(new IllegalStateException(subscriber + " violated the Reactive Streams rule 3.17 by demanding more elements than Long.MAX_VALUE."));
-      else {
+      else if (demand + n < 1) {
+        // As governed by rule 3.17, when demand overflows `Long.MAX_VALUE` we treat the signalled demand as "effectively unbounded"
+        demand = Long.MAX_VALUE;  // Here we protect from the overflow and treat it as "effectively unbounded"
+        doSend(); // Then we proceed with sending data downstream
+      } else {
         demand += n; // Here we record the downstream demand
         doSend(); // Then we can proceed with sending data downstream
       }

@@ -362,8 +362,8 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
   }
 
   @Override @Test
-  public void required_spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable {
-    publisherVerification.required_spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue();
+  public void required_spec317_mustNotSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable {
+    publisherVerification.required_spec317_mustNotSignalOnErrorWhenPendingAboveLongMaxValue();
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.4
