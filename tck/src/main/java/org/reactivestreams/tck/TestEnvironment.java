@@ -62,7 +62,7 @@ public class TestEnvironment {
    * run the tests.
    *
    * The default timeout for all expect* methods will be obtained by either the env variable {@code DEFAULT_TIMEOUT_MILLIS}
-   * or the default value ({@see TestEnvironment#DEFAULT_TIMEOUT_MILLIS}) will be used.
+   * or the default value ({@link TestEnvironment#DEFAULT_TIMEOUT_MILLIS}) will be used.
    *
    * @param printlnDebug if true, signals such as OnNext / Request / OnComplete etc will be printed to standard output,
    *                     often helpful to pinpoint simple race conditions etc.
@@ -78,7 +78,7 @@ public class TestEnvironment {
    * run the tests.
    *
    * The default timeout for all expect* methods will be obtained by either the env variable {@code DEFAULT_TIMEOUT_MILLIS}
-   * or the default value ({@see TestEnvironment#DEFAULT_TIMEOUT_MILLIS}) will be used.
+   * or the default value ({@link TestEnvironment#DEFAULT_TIMEOUT_MILLIS}) will be used.
    */
   public TestEnvironment() {
     this(envDefaultTimeoutMillis());
