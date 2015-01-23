@@ -473,17 +473,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
   }
 
   @Test
-  public void required_spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue_shouldFail_onAsynchDemandIgnoringPublisher() throws Throwable {
-    final ExecutorService signallersPool = Executors.newFixedThreadPool(2);
-    requireTestFailure(new ThrowingRunnable() {
-      @Override public void run() throws Throwable {
-        demandIgnoringAsynchronousPublisherVerification(signallersPool).required_spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue();
-      }
-    }, "Expected onError(java.lang.IllegalStateException)");
-  }
-
-  @Test
-  public void required_spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue_shouldFail_onSynchDemandIgnoringPublisher() throws Throwable {
+  public void required_spec317_mustNotSignalOnErrorWhenPendingAboveLongMaxValue_shouldFail_onSynchOverflowingPublisher() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customPublisherVerification(new Publisher<Integer>() {
@@ -494,6 +484,12 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
               @Override public void request(long n) {
                 // it does not protect from demand overflow!
                 demand += n;
+                if (demand < 0) {
+                  // overflow
+                  s.onError(new IllegalStateException("Illegally signalling onError (violates rule 3.17)")); // Illegally signal error
+                } else {
+                  s.onNext(0);
+                }
               }
 
               @Override public void cancel() {
@@ -501,13 +497,13 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
               }
             });
           }
-        }).required_spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue();
+        }).required_spec317_mustNotSignalOnErrorWhenPendingAboveLongMaxValue();
       }
-    }, "Expected onError(java.lang.IllegalStateException)");
+    }, "Async error during test execution: Illegally signalling onError (violates rule 3.17)");
   }
 
   @Test
-  public void required_spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue_shouldFail_overflowingDemand() throws Throwable {
+  public void required_spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue_shouldFailWhenErrorSignalledOnceMaxValueReached() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customPublisherVerification(new Publisher<Integer>() {
@@ -520,7 +516,8 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
 
                 // this is a mistake, it should still be able to accumulate such demand
                 if (demand == Long.MAX_VALUE)
-                  s.onError(new IllegalStateException("I'm signalling onError too soon! Cumulative demand equal to Long.MAX_VALUE is OK by the spec."));
+                  s.onError(new IllegalStateException("Illegally signalling onError too soon! " +
+                                                          "Cumulative demand equal to Long.MAX_VALUE is legal."));
 
                 s.onNext(0);
               }
@@ -528,7 +525,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
           }
         }).required_spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue();
       }
-    }, "Async error during test execution: I'm signalling onError too soon!");
+    }, "Async error during test execution: Illegally signalling onError too soon!");
   }
 
 

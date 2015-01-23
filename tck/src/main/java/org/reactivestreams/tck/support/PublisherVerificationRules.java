@@ -39,5 +39,5 @@ public interface PublisherVerificationRules {
   void required_spec313_cancelMustMakeThePublisherEventuallyDropAllReferencesToTheSubscriber() throws Throwable;
   void required_spec317_mustSupportAPendingElementCountUpToLongMaxValue() throws Throwable;
   void required_spec317_mustSupportACumulativePendingElementCountUpToLongMaxValue() throws Throwable;
-  void required_spec317_mustSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable;
+  void required_spec317_mustNotSignalOnErrorWhenPendingAboveLongMaxValue() throws Throwable;
 }
