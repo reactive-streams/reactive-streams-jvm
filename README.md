@@ -76,8 +76,8 @@ public interface Publisher<T> {
 }
 ````
 
-| ID                        | Rule                                                                                                  . |
-| ------------------------- | ------------------------------------------------------------------------------------------------------. |
+| ID                        | Rule                                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------ |
 | <a name="1.1">1</a>       | The total number of `onNext` signals sent by a `Publisher` to a `Subscriber` MUST be less than or equal to the total number of elements requested by that `Subscriber`´s `Subscription` at all times. |
 | <a name="1.2">2</a>       | A `Publisher` MAY signal less `onNext` than requested and terminate the `Subscription` by calling `onComplete` or `onError`. |
 | <a name="1.3">3</a>       | `onSubscribe`, `onNext`, `onError` and `onComplete` signaled to a `Subscriber` MUST be signaled sequentially (no concurrent notifications). |
@@ -105,8 +105,8 @@ public interface Subscriber<T> {
 }
 ````
 
-| ID                        | Rule                                                                                                  . |
-| ------------------------- | ------------------------------------------------------------------------------------------------------. |
+| ID                        | Rule                                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------ |
 | <a name="2.1">1</a>       | A `Subscriber` MUST signal demand via `Subscription.request(long n)` to receive `onNext` signals. |
 | <a name="2.2">2</a>       | If a `Subscriber` suspects that its processing of signals will negatively impact its `Publisher`'s responsivity, it is RECOMMENDED that it asynchronously dispatches its signals. |
 | <a name="2.3">3</a>       | `Subscriber.onComplete()` and `Subscriber.onError(Throwable t)` MUST NOT call any methods on the `Subscription` or the `Publisher`. |
@@ -132,8 +132,8 @@ public interface Subscription {
 }
 ````
 
-| ID                        | Rule                                                                                                  . |
-| ------------------------- | ------------------------------------------------------------------------------------------------------. |
+| ID                        | Rule                                                                                                   |
+| ------------------------- | ------------------------------------------------------------------------------------------------------ |
 | <a name="3.1">1</a>       | `Subscription.request` and `Subscription.cancel` MUST only be called inside of its `Subscriber` context. A `Subscription` represents the unique relationship between a `Subscriber` and a `Publisher` [see [2.12](#2.12)]. |
 | <a name="3.2">2</a>       | The `Subscription` MUST allow the `Subscriber` to call `Subscription.request` synchronously from within `onNext` or `onSubscribe`. |
 | <a name="3.3">3</a>       | `Subscription.request` MUST place an upper bound on possible synchronous recursion between `Publisher` and `Subscriber`[[1](#footnote-3-1)]. |
@@ -167,8 +167,8 @@ public interface Processor<T, R> extends Subscriber<T>, Publisher<R> {
 }
 ````
 
-| ID                       | Rule                                                                                                  . |
-| ------------------------ | ------------------------------------------------------------------------------------------------------. |
+| ID                       | Rule                                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------------------------ |
 | <a name="4.1">1</a>      | A `Processor` represents a processing stage—which is both a `Subscriber` and a `Publisher` and MUST obey the contracts of both. |
 | <a name="4.2">2</a>      | A `Processor` MAY choose to recover an `onError` signal. If it chooses to do so, it MUST consider the `Subscription` cancelled, otherwise it MUST propagate the `onError` signal to its Subscribers immediately. |
 
