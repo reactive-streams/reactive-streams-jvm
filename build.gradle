@@ -1,6 +1,8 @@
 subprojects {
     apply plugin: "java"
     apply plugin: "osgi"
+    apply plugin: "idea"
+    apply plugin: "eclipse"
 
     group = "org.reactivestreams"
     version = "1.0.0.RC1"
