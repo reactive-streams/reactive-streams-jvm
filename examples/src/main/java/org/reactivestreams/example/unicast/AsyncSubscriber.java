@@ -143,15 +143,23 @@ public abstract class AsyncSubscriber<T> implements Subscriber<T>, Runnable {
   // We implement the OnX methods on `Subscriber` to send Signals that we will process asycnhronously, but only one at a time
 
   @Override public final void onSubscribe(final Subscription s) {
+    // As per rule 2.13, we need to throw a `java.lang.NullPointerException` if the `Subscription` is `null`
+    if (s == null) throw null;
     signal(new OnSubscribe(s));
   }
 
   @Override public final void onNext(final T element) {
+    // As per rule 2.13, we need to throw a `java.lang.NullPointerException` if the `element` is `null`
+    if (element == null) throw null;
+
     signal(new OnNext<T>(element));
   }
 
   @Override public final void onError(final Throwable t) {
-     signal(new OnError(t));
+    // As per rule 2.13, we need to throw a `java.lang.NullPointerException` if the `Throwable` is `null`
+    if (t == null) throw null;
+
+    signal(new OnError(t));
   }
 
   @Override public final void onComplete() {

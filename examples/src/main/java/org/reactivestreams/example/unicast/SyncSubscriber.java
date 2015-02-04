@@ -15,6 +15,9 @@ public abstract class SyncSubscriber<T> implements Subscriber<T> {
   private boolean done = false;
 
   @Override public void onSubscribe(final Subscription s) {
+    // As per rule 2.13, we need to throw a `java.lang.NullPointerException` if the `Subscription` is `null`
+    if (s == null) throw null;
+
     if (subscription != null) { // If someone has made a mistake and added this Subscriber multiple times, let's handle it gracefully
       try {
         s.cancel(); // Cancel the additional subscription
@@ -38,6 +41,9 @@ public abstract class SyncSubscriber<T> implements Subscriber<T> {
   }
 
   @Override public void onNext(final T element) {
+    // As per rule 2.13, we need to throw a `java.lang.NullPointerException` if the `element` is `null`
+    if (element == null) throw null;
+
     if (!done) { // If we aren't already done
       try {
         if (foreach(element)) {
@@ -80,6 +86,8 @@ public abstract class SyncSubscriber<T> implements Subscriber<T> {
   protected abstract boolean foreach(final T element);
 
   @Override public void onError(final Throwable t) {
+    // As per rule 2.13, we need to throw a `java.lang.NullPointerException` if the `Throwable` is `null`
+    if (t == null) throw null;
      // Here we are not allowed to call any methods on the `Subscription` or the `Publisher`, as per rule 2.3
      // And anyway, the `Subscription` is considered to be cancelled if this method gets called, as per rule 2.4
   }

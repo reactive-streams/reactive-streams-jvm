@@ -133,6 +133,39 @@ public class SubscriberBlackboxVerificationTest extends TCKVerificationSupport {
     }, "Test Exception: Boom!"); // checks that the expected exception was delivered to onError, we don't expect anyone to implement onError so weirdly
   }
 
+  @Test
+  public void required_spec213_blackbox_mustThrowNullPointerExceptionWhenParametersAreNull_mustFailOnIgnoredNull_onSubscribe() throws Throwable {
+    requireTestFailure(new ThrowingRunnable() {
+      @Override public void run() throws Throwable {
+
+        customSubscriberVerification(new NoopSubscriber())
+          .required_spec213_blackbox_onSubscribe_mustThrowNullPointerExceptionWhenParametersAreNull();
+      }
+    }, "onSubscribe(null) did not throw NullPointerException");
+  }
+  
+  @Test
+  public void required_spec213_blackbox_mustThrowNullPointerExceptionWhenParametersAreNull_mustFailOnIgnoredNull_onNext() throws Throwable {
+    requireTestFailure(new ThrowingRunnable() {
+      @Override public void run() throws Throwable {
+
+        customSubscriberVerification(new NoopSubscriber())
+          .required_spec213_blackbox_onNext_mustThrowNullPointerExceptionWhenParametersAreNull();
+      }
+    }, "onNext(null) did not throw NullPointerException");
+  }
+  
+  @Test
+  public void required_spec213_blackbox_mustThrowNullPointerExceptionWhenParametersAreNull_mustFailOnIgnoredNull_onError() throws Throwable {
+    requireTestFailure(new ThrowingRunnable() {
+      @Override public void run() throws Throwable {
+
+        customSubscriberVerification(new NoopSubscriber())
+          .required_spec213_blackbox_onError_mustThrowNullPointerExceptionWhenParametersAreNull();
+      }
+    }, "onError(null) did not throw NullPointerException");
+  }
+
   // FAILING IMPLEMENTATIONS //
 
   /**

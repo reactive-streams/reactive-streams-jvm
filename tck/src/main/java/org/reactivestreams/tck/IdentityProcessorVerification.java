@@ -272,6 +272,11 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
   }
 
   @Override @Test
+  public void required_spec109_subscribeThrowNPEOnNullSubscriber() throws Throwable {
+    publisherVerification.required_spec109_subscribeThrowNPEOnNullSubscriber();
+  }
+
+  @Override @Test
   public void untested_spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice() throws Throwable {
     publisherVerification.untested_spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice();
   }
@@ -556,6 +561,19 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
   @Override @Test
   public void untested_spec213_failingOnSignalInvocation() throws Exception {
     subscriberVerification.untested_spec213_failingOnSignalInvocation();
+  }
+
+  @Override @Test
+  public void required_spec213_onSubscribe_mustThrowNullPointerExceptionWhenParametersAreNull() throws Throwable {
+    subscriberVerification.required_spec213_onSubscribe_mustThrowNullPointerExceptionWhenParametersAreNull();
+  }
+  @Override @Test
+  public void required_spec213_onNext_mustThrowNullPointerExceptionWhenParametersAreNull() throws Throwable {
+    subscriberVerification.required_spec213_onNext_mustThrowNullPointerExceptionWhenParametersAreNull();
+  }
+  @Override @Test
+  public void required_spec213_onError_mustThrowNullPointerExceptionWhenParametersAreNull() throws Throwable {
+    subscriberVerification.required_spec213_onError_mustThrowNullPointerExceptionWhenParametersAreNull();
   }
 
   @Override @Test
