@@ -65,6 +65,7 @@ onError | (onSubscribe onNext* (onError | onComplete)?)
 - The specifications below use binding words in capital letters from https://www.ietf.org/rfc/rfc2119.txt
 - The terms `emit`, `signal` or `send` are interchangeable. The specifications below will use `signal`.
 - The terms `synchronously` or `synchronous` refer to executing in the calling `Thread`.
+- The term "return normally" means "only throws exceptions that are explicitly allowed by the rule".
 
 ### SPECIFICATION
 
@@ -86,7 +87,7 @@ public interface Publisher<T> {
 | <a name="1.6">6</a>       | If a `Publisher` signals either `onError` or `onComplete` on a `Subscriber`, that `Subscriber`’s `Subscription` MUST be considered cancelled. |
 | <a name="1.7">7</a>       | Once a terminal state has been signaled (`onError`, `onComplete`) it is REQUIRED that no further signals occur. |
 | <a name="1.8">8</a>       | If a `Subscription` is cancelled its `Subscriber` MUST eventually stop being signaled. |
-| <a name="1.9">9</a>       | Calling `Publisher.subscribe` MUST return normally. The only legal way to signal failure (or reject a `Subscriber`) is via the `onError` method. |
+| <a name="1.9">9</a>       | Calling `Publisher.subscribe` MUST return normally except when the provided `Subscriber` is `null` in which case it MUST throw a `java.lang.NullPointerException` to the caller, for all other situations the only legal way to signal failure (or reject a `Subscriber`) is via the `onError` method. |
 | <a name="1.10">10</a>     | `Publisher.subscribe` MAY be called as many times as wanted but MUST be with a different `Subscriber` each time [see [2.12](#2.12)]. |
 | <a name="1.11">11</a>     | A `Publisher` MAY support multi-subscribe and choose whether each `Subscription` is unicast or multicast. |
 | <a name="1.12">12</a>     | A `Publisher` MAY reject calls to its `subscribe` method if it is unable or unwilling to serve them [[1](#footnote-1-1)]. If rejecting it MUST do this by calling `onError` on the `Subscriber` passed to `Publisher.subscribe` instead of calling `onSubscribe`. |
@@ -119,7 +120,7 @@ public interface Subscriber<T> {
 | <a name="2.10">10</a>     | A `Subscriber` MUST be prepared to receive an `onError` signal with or without a preceding `Subscription.request(long n)` call. |
 | <a name="2.11">11</a>     | A `Subscriber` MUST make sure that all calls on its `onXXX` methods happen-before [[1]](#footnote-2-1) the processing of the respective signals. I.e. the Subscriber must take care of properly publishing the signal to its processing logic. |
 | <a name="2.12">12</a>     | `Subscriber.onSubscribe` MUST be called at most once for a given `Subscriber` (based on object equality). |
-| <a name="2.13">13</a>     | Calling `onSubscribe`, `onNext`, `onError` or `onComplete` MUST return normally. The only legal way for a `Subscriber` to signal failure is by cancelling its `Subscription`. In the case that this rule is violated, any associated `Subscription` to the `Subscriber` MUST be considered as cancelled, and the caller MUST raise this error condition in a fashion that is adequate for the runtime environment. |
+| <a name="2.13">13</a>     | Calling `onSubscribe`, `onNext`, `onError` or `onComplete` MUST return normally except when any provided parameter is `null` in which case it MUST throw a `java.lang.NullPointerException` to the caller, for all other situations the only legal way for a `Subscriber` to signal failure is by cancelling its `Subscription`. In the case that this rule is violated, any associated `Subscription` to the `Subscriber` MUST be considered as cancelled, and the caller MUST raise this error condition in a fashion that is adequate for the runtime environment. |
 
 [<a name="footnote-2-1">1</a>] : See JMM definition of Happen-Before in section 17.4.5. on http://docs.oracle.com/javase/specs/jls/se7/html/jls-17.html
 

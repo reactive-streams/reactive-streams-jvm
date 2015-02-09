@@ -22,6 +22,9 @@ public interface SubscriberWhiteboxVerificationRules {
   void untested_spec211_mustMakeSureThatAllCallsOnItsMethodsHappenBeforeTheProcessingOfTheRespectiveEvents() throws Exception;
   void untested_spec212_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality_specViolation() throws Throwable;
   void untested_spec213_failingOnSignalInvocation() throws Exception;
+  void required_spec213_onSubscribe_mustThrowNullPointerExceptionWhenParametersAreNull() throws Throwable;
+  void required_spec213_onNext_mustThrowNullPointerExceptionWhenParametersAreNull() throws Throwable;
+  void required_spec213_onError_mustThrowNullPointerExceptionWhenParametersAreNull() throws Throwable;
   void untested_spec301_mustNotBeCalledOutsideSubscriberContext() throws Exception;
   void required_spec308_requestMustRegisterGivenNumberElementsToBeProduced() throws Throwable;
   void untested_spec310_requestMaySynchronouslyCallOnNextOnSubscriber() throws Exception;

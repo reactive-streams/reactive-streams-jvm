@@ -20,6 +20,9 @@ public interface SubscriberBlackboxVerificationRules {
   void untested_spec211_blackbox_mustMakeSureThatAllCallsOnItsMethodsHappenBeforeTheProcessingOfTheRespectiveEvents() throws Exception;
   void untested_spec212_blackbox_mustNotCallOnSubscribeMoreThanOnceBasedOnObjectEquality() throws Throwable;
   void untested_spec213_blackbox_failingOnSignalInvocation() throws Exception;
+  void required_spec213_blackbox_onSubscribe_mustThrowNullPointerExceptionWhenParametersAreNull() throws Throwable;
+  void required_spec213_blackbox_onNext_mustThrowNullPointerExceptionWhenParametersAreNull() throws Throwable;
+  void required_spec213_blackbox_onError_mustThrowNullPointerExceptionWhenParametersAreNull() throws Throwable;
   void untested_spec301_blackbox_mustNotBeCalledOutsideSubscriberContext() throws Exception;
   void required_spec308_blackbox_requestMustRegisterGivenNumberElementsToBeProduced() throws Throwable;
   void untested_spec310_blackbox_requestMaySynchronouslyCallOnNextOnSubscriber() throws Exception;

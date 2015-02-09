@@ -66,6 +66,7 @@ public class AsyncIterablePublisher<T> implements Publisher<T> {
     private Iterator<T> iterator; // This is our cursor into the data stream, which we will send to the `Subscriber`
 
     SubscriptionImpl(final Subscriber<? super T> subscriber) {
+      // As per rule 1.09, we need to throw a `java.lang.NullPointerException` if the `Subscriber` is `null`
       if (subscriber == null) throw null;
       this.subscriber = subscriber;
     }
