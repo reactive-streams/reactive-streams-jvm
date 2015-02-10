@@ -453,6 +453,33 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
     });
   }
 
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.09
+  @Override @Test
+  public void required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe() throws Throwable {
+    whenHasErrorPublisherTest(new PublisherTestRun<T>() {
+      @Override
+      public void run(Publisher<T> pub) throws Throwable {
+        final Latch onErrorLatch = new Latch(env);
+        ManualSubscriberWithSubscriptionSupport<T> sub = new ManualSubscriberWithSubscriptionSupport<T>(env) {
+          @Override
+          public void onError(Throwable cause) {
+            onErrorLatch.assertOpen("Only one onError call expected");
+            onErrorLatch.close();
+          }
+
+          @Override
+          public void onSubscribe(Subscription subs) {
+            env.flop("onSubscribe should not be called if Publisher is unable to subscribe a Subscriber");
+          }
+        };
+        pub.subscribe(sub);
+        onErrorLatch.assertClosed("Should have received onError");
+
+        env.verifyNoAsyncErrors();
+      }
+    });
+  }
+
     // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.10
   @Override @Test
   public void untested_spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice() throws Throwable {
@@ -475,34 +502,7 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.12
   @Override @Test
-  public void required_spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe() throws Throwable {
-    whenHasErrorPublisherTest(new PublisherTestRun<T>() {
-      @Override
-      public void run(Publisher<T> pub) throws Throwable {
-        final Latch onErrorLatch = new Latch(env);
-        ManualSubscriberWithSubscriptionSupport<T> sub = new ManualSubscriberWithSubscriptionSupport<T>(env) {
-          @Override
-          public void onError(Throwable cause) {
-            onErrorLatch.assertOpen("Only one onError call expected");
-            onErrorLatch.close();
-          }
-
-          @Override
-          public void onSubscribe(Subscription subs) {
-            env.flop("onSubscribe should not be called if Publisher is unable to subscribe a Subscriber");
-          }
-        };
-        pub.subscribe(sub);
-        onErrorLatch.assertClosed("Should have received onError");
-
-        env.verifyNoAsyncErrors();
-        }
-    });
-  }
-
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.13
-  @Override @Test
-  public void required_spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingOneByOne() throws Throwable {
+  public void required_spec112_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingOneByOne() throws Throwable {
     optionalActivePublisherTest(5, true, new PublisherTestRun<T>() { // This test is skipped if the publisher is unbounded (never sends onComplete)
       @Override
       public void run(Publisher<T> pub) throws InterruptedException {
@@ -551,9 +551,9 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
     });
   }
 
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.13
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.12
   @Override @Test
-  public void required_spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront() throws Throwable {
+  public void required_spec112_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront() throws Throwable {
     optionalActivePublisherTest(3, false, new PublisherTestRun<T>() { // This test is skipped if the publisher cannot produce enough elements
       @Override
       public void run(Publisher<T> pub) throws Throwable {
@@ -584,9 +584,9 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
     });
   }
 
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.13
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.12
   @Override @Test
-  public void required_spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfrontAndCompleteAsExpected() throws Throwable {
+  public void required_spec112_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfrontAndCompleteAsExpected() throws Throwable {
     optionalActivePublisherTest(3, true, new PublisherTestRun<T>() { // This test is skipped if the publisher is unbounded (never sends onComplete)
       @Override
       public void run(Publisher<T> pub) throws Throwable {

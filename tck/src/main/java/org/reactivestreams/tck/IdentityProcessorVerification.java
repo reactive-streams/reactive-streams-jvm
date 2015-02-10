@@ -17,7 +17,7 @@ import org.testng.annotations.Test;
 import java.util.HashSet;
 import java.util.Set;
 
-public abstract class IdentityProcessorVerification<T> extends WithHelperPublisher<T> 
+public abstract class IdentityProcessorVerification<T> extends WithHelperPublisher<T>
   implements SubscriberWhiteboxVerificationRules, PublisherVerificationRules {
 
   private final TestEnvironment env;
@@ -277,6 +277,11 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
   }
 
   @Override @Test
+  public void required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe() throws Throwable {
+    publisherVerification.required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
+  }
+
+  @Override @Test
   public void untested_spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice() throws Throwable {
     publisherVerification.untested_spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice();
   }
@@ -287,23 +292,18 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
   }
 
   @Override @Test
-  public void required_spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe() throws Throwable {
-    publisherVerification.required_spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
+  public void required_spec112_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingOneByOne() throws Throwable {
+    publisherVerification.required_spec112_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingOneByOne();
   }
 
   @Override @Test
-  public void required_spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingOneByOne() throws Throwable {
-    publisherVerification.required_spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingOneByOne();
+  public void required_spec112_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront() throws Throwable {
+    publisherVerification.required_spec112_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront();
   }
 
   @Override @Test
-  public void required_spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront() throws Throwable {
-    publisherVerification.required_spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront();
-  }
-
-  @Override @Test
-  public void required_spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfrontAndCompleteAsExpected() throws Throwable {
-    publisherVerification.required_spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfrontAndCompleteAsExpected();
+  public void required_spec112_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfrontAndCompleteAsExpected() throws Throwable {
+    publisherVerification.required_spec112_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfrontAndCompleteAsExpected();
   }
 
   @Override @Test
@@ -373,7 +373,7 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.4
   // for multiple subscribers
-  @Test 
+  @Test
   public void required_spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError() throws Throwable {
     optionalMultipleSubscribersTest(2, new Function<Long,TestSetup>() {
       @Override

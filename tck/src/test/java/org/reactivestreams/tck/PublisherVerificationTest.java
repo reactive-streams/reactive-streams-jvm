@@ -251,6 +251,36 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
   }
 
   @Test
+  public void optional_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe_actuallyPass() throws Throwable {
+    customPublisherVerification(SKIP, new Publisher<Integer>() {
+      @Override public void subscribe(Subscriber<? super Integer> s) {
+        s.onError(new RuntimeException("Sorry, I'm busy now. Call me later."));
+      }
+    }).required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
+  }
+
+  @Test
+  public void optional_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe_shouldFail() throws Throwable {
+    requireTestFailure(new ThrowingRunnable() {
+      @Override public void run() throws Throwable {
+        customPublisherVerification(SKIP, new Publisher<Integer>() {
+          @Override public void subscribe(Subscriber<? super Integer> s) {
+          }
+        }).required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
+      }
+    }, "Should have received onError");
+  }
+
+  @Test
+  public void required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe_beSkippedForNoGivenErrorPublisher() throws Throwable {
+    requireTestSkip(new ThrowingRunnable() {
+      @Override public void run() throws Throwable {
+        noopPublisherVerification().required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
+      }
+    }, PublisherVerification.SKIPPING_NO_ERROR_PUBLISHER_AVAILABLE);
+  }
+
+  @Test
   public void untested_spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice_shouldFailBy_skippingSinceOptional() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
@@ -265,37 +295,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
   }
 
   @Test
-  public void optional_spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe_shouldFail() throws Throwable {
-    requireTestFailure(new ThrowingRunnable() {
-      @Override public void run() throws Throwable {
-        customPublisherVerification(SKIP, new Publisher<Integer>() {
-          @Override public void subscribe(Subscriber<? super Integer> s) {
-          }
-        }).required_spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
-      }
-    }, "Should have received onError");
-  }
-
-  @Test
-  public void optional_spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe_actuallyPass() throws Throwable {
-    customPublisherVerification(SKIP, new Publisher<Integer>() {
-      @Override public void subscribe(Subscriber<? super Integer> s) {
-        s.onError(new RuntimeException("Sorry, I'm busy now. Call me later."));
-      }
-    }).required_spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
-  }
-
-  @Test
-  public void required_spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe_beSkippedForNoGivenErrorPublisher() throws Throwable {
-    requireTestSkip(new ThrowingRunnable() {
-      @Override public void run() throws Throwable {
-        noopPublisherVerification().required_spec112_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
-      }
-    }, PublisherVerification.SKIPPING_NO_ERROR_PUBLISHER_AVAILABLE);
-  }
-
-  @Test
-  public void required_spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront_shouldFailBy_expectingOnError() throws Throwable {
+  public void required_spec112_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront_shouldFailBy_expectingOnError() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customPublisherVerification(new Publisher<Integer>() {
@@ -313,7 +313,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
               }
             });
           }
-        }).required_spec113_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront();
+        }).required_spec112_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront();
       }
     }, "Expected elements to be signaled in the same sequence to 1st and 2nd subscribers: Lists differ at element ");
   }
