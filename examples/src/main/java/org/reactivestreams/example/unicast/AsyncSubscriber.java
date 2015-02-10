@@ -101,8 +101,9 @@ public abstract class AsyncSubscriber<T> implements Subscriber<T>, Runnable {
 
   private final void handleOnNext(final T element) {
     if (!done) { // If we aren't already done
-      if(subscription == null) { // Check for spec violation of 2.1
-        (new IllegalStateException("Someone violated the Reactive Streams rule 2.1 by signalling OnNext before `Subscription.request`. (no Subscription)")).printStackTrace(System.err);
+      if(subscription == null) { // Technically this check is not needed, since we are expecting Publishers to conform to the spec
+        // Check for spec violation of 2.1 and 1.09
+        (new IllegalStateException("Someone violated the Reactive Streams rule 1.09 and 2.1 by signalling OnNext before `Subscription.request`. (no Subscription)")).printStackTrace(System.err);
       } else {
         try {
           if (whenNext(element)) {
@@ -116,7 +117,7 @@ public abstract class AsyncSubscriber<T> implements Subscriber<T>, Runnable {
             done(); // This is legal according to rule 2.6
           }
         } catch(final Throwable t) {
-           done(); 
+          done();
           try {  
             onError(t);
           } catch(final Throwable t2) {
@@ -130,14 +131,24 @@ public abstract class AsyncSubscriber<T> implements Subscriber<T>, Runnable {
 
   // Here it is important that we do not violate 2.2 and 2.3 by calling methods on the `Subscription` or `Publisher`
   private void handleOnComplete() {
-    done = true; // Obey rule 2.4
-    whenComplete();
+    if (subscription == null) { // Technically this check is not needed, since we are expecting Publishers to conform to the spec
+      // Publisher is not allowed to signal onComplete before onSubscribe according to rule 1.09
+      (new IllegalStateException("Publisher violated the Reactive Streams rule 1.09 signalling onComplete prior to onSubscribe.")).printStackTrace(System.err);
+    } else {
+      done = true; // Obey rule 2.4
+      whenComplete();
+    }
   }
 
   // Here it is important that we do not violate 2.2 and 2.3 by calling methods on the `Subscription` or `Publisher`
   private void handleOnError(final Throwable error) {
-    done = true; // Obey rule 2.4
-    whenError(error);
+    if (subscription == null) { // Technically this check is not needed, since we are expecting Publishers to conform to the spec
+      // Publisher is not allowed to signal onError before onSubscribe according to rule 1.09
+      (new IllegalStateException("Publisher violated the Reactive Streams rule 1.09 signalling onError prior to onSubscribe.")).printStackTrace(System.err);
+    } else {
+      done = true; // Obey rule 2.4
+      whenError(error);
+    }
   }
 
   // We implement the OnX methods on `Subscriber` to send Signals that we will process asycnhronously, but only one at a time
@@ -145,6 +156,7 @@ public abstract class AsyncSubscriber<T> implements Subscriber<T>, Runnable {
   @Override public final void onSubscribe(final Subscription s) {
     // As per rule 2.13, we need to throw a `java.lang.NullPointerException` if the `Subscription` is `null`
     if (s == null) throw null;
+
     signal(new OnSubscribe(s));
   }
 
@@ -180,7 +192,6 @@ public abstract class AsyncSubscriber<T> implements Subscriber<T>, Runnable {
       try {
         final Signal s = inboundSignals.poll(); // We take a signal off the queue
         if (!done) { // If we're done, we shouldn't process any more signals, obeying rule 2.8
-
           // Below we simply unpack the `Signal`s and invoke the corresponding methods
           if (s instanceof OnNext<?>)
             handleOnNext(((OnNext<T>)s).next);

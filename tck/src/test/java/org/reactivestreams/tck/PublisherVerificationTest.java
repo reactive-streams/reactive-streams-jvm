@@ -251,31 +251,88 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
   }
 
   @Test
-  public void optional_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe_actuallyPass() throws Throwable {
-    customPublisherVerification(SKIP, new Publisher<Integer>() {
-      @Override public void subscribe(Subscriber<? super Integer> s) {
-        s.onError(new RuntimeException("Sorry, I'm busy now. Call me later."));
+  public void required_spec109_subscribeThrowNPEOnNullSubscriber_shouldFailIfDoesntThrowNPE() throws Throwable {
+    requireTestFailure(new ThrowingRunnable() {
+      @Override public void run() throws Throwable {
+        customPublisherVerification(new Publisher<Integer>() {
+          @Override public void subscribe(final Subscriber<? super Integer> s) {
+
+          }
+        }).required_spec109_subscribeThrowNPEOnNullSubscriber();
       }
-    }).required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
+    }, "Publisher did not throw a NullPointerException when given a null Subscribe in subscribe");
   }
 
   @Test
-  public void optional_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe_shouldFail() throws Throwable {
+  public void optional_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorAfterOnSubscribe_actuallyPass() throws Throwable {
+    customPublisherVerification(SKIP, new Publisher<Integer>() {
+      @Override public void subscribe(Subscriber<? super Integer> s) {
+        s.onSubscribe(new NoopSubscription());
+        s.onError(new RuntimeException("Sorry, I'm busy now. Call me later."));
+      }
+    }).required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorAfterOnSubscribe();
+  }
+
+  @Test
+  public void required_spec109_mustIssueOnSubscribeForNonNullSubscriber_mustFailIfOnCompleteHappensFirst() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        customPublisherVerification(SKIP, new Publisher<Integer>() {
-          @Override public void subscribe(Subscriber<? super Integer> s) {
+        customPublisherVerification(new Publisher<Integer>() {
+          @Override
+          public void subscribe(Subscriber<? super Integer> s) {
+            s.onComplete();
           }
-        }).required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
+        }).required_spec109_mustIssueOnSubscribeForNonNullSubscriber();
+      }
+    }, "onSubscribe should be called prior to onComplete always");
+  }
+
+  @Test
+  public void required_spec109_mustIssueOnSubscribeForNonNullSubscriber_mustFailIfOnNextHappensFirst() throws Throwable {
+    requireTestFailure(new ThrowingRunnable() {
+      @Override public void run() throws Throwable {
+        customPublisherVerification(new Publisher<Integer>() {
+          @Override public void subscribe(Subscriber<? super Integer> s) {
+            s.onNext(1337);
+          }
+        }).required_spec109_mustIssueOnSubscribeForNonNullSubscriber();
+      }
+    }, "onSubscribe should be called prior to onNext always");
+  }
+
+  @Test
+  public void required_spec109_mustIssueOnSubscribeForNonNullSubscriber_mustFailIfOnErrorHappensFirst() throws Throwable {
+    requireTestFailure(new ThrowingRunnable() {
+      @Override public void run() throws Throwable {
+        customPublisherVerification(new Publisher<Integer>() {
+          @Override public void subscribe(Subscriber<? super Integer> s) {
+            s.onError(new TestException());
+          }
+        }).required_spec109_mustIssueOnSubscribeForNonNullSubscriber();
+      }
+    }, "onSubscribe should be called prior to onError always");
+  }
+
+  @Test
+  public void required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorAfterOnSubscribe_shouldFail() throws Throwable {
+    requireTestFailure(new ThrowingRunnable() {
+      @Override
+      public void run() throws Throwable {
+        customPublisherVerification(SKIP, new Publisher<Integer>() {
+          @Override
+          public void subscribe(Subscriber<? super Integer> s) {
+            s.onSubscribe(new NoopSubscription());
+          }
+        }).required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorAfterOnSubscribe();
       }
     }, "Should have received onError");
   }
 
   @Test
-  public void required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe_beSkippedForNoGivenErrorPublisher() throws Throwable {
+  public void required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorAfterOnSubscribe_beSkippedForNoGivenErrorPublisher() throws Throwable {
     requireTestSkip(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        noopPublisherVerification().required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
+        noopPublisherVerification().required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorAfterOnSubscribe();
       }
     }, PublisherVerification.SKIPPING_NO_ERROR_PUBLISHER_AVAILABLE);
   }

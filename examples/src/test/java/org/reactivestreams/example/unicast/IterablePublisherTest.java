@@ -1,5 +1,6 @@
 package org.reactivestreams.example.unicast;
 
+import java.lang.Override;
 import java.util.Collections;
 import java.util.Iterator;
 import org.reactivestreams.Publisher;
@@ -30,7 +31,11 @@ public class IterablePublisherTest extends PublisherVerification<Integer> {
   }
 
   @Override public Publisher<Integer> createErrorStatePublisher() {
-    return null;
+    return new AsyncIterablePublisher<Integer>(new Iterable<Integer>() {
+      @Override public Iterator<Integer> iterator() {
+        throw new RuntimeException("Error state signal!");
+      }
+    }, e);
   }
 
   @Override public long maxElementsFromPublisher() {

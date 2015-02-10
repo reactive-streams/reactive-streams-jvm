@@ -277,8 +277,13 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
   }
 
   @Override @Test
-  public void required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe() throws Throwable {
-    publisherVerification.required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe();
+  public void required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorAfterOnSubscribe() throws Throwable {
+    publisherVerification.required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorAfterOnSubscribe();
+  }
+
+  @Override @Test
+  public void required_spec109_mustIssueOnSubscribeForNonNullSubscriber() throws Throwable {
+    publisherVerification.required_spec109_mustIssueOnSubscribeForNonNullSubscriber();
   }
 
   @Override @Test
