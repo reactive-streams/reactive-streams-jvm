@@ -14,6 +14,7 @@ import org.testng.SkipException;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
+import java.lang.Override;
 import java.lang.ref.ReferenceQueue;
 import java.lang.ref.WeakReference;
 import java.util.ArrayList;
@@ -344,16 +345,24 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
       whenHasErrorPublisherTest(new PublisherTestRun<T>() {
         @Override
         public void run(final Publisher<T> pub) throws InterruptedException {
-          final Latch latch = new Latch(env);
+          final Latch onErrorlatch = new Latch(env);
+          final Latch onSubscribeLatch = new Latch(env);
           pub.subscribe(new TestEnvironment.TestSubscriber<T>(env) {
             @Override
+            public void onSubscribe(Subscription subs) {
+              onSubscribeLatch.assertOpen("Only one onSubscribe call expected");
+              onSubscribeLatch.close();
+            }
+            @Override
             public void onError(Throwable cause) {
-              latch.assertOpen(String.format("Error-state Publisher %s called `onError` twice on new Subscriber", pub));
-              latch.close();
+              onSubscribeLatch.assertClosed("onSubscribe should be called prior to onError always");
+              onErrorlatch.assertOpen(String.format("Error-state Publisher %s called `onError` twice on new Subscriber", pub));
+              onErrorlatch.close();
             }
           });
 
-          latch.expectClose(String.format("Error-state Publisher %s did not call `onError` on new Subscriber", pub));
+          onSubscribeLatch.expectClose("Should have received onSubscribe");
+          onErrorlatch.expectClose(String.format("Error-state Publisher %s did not call `onError` on new Subscriber", pub));
 
           env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
           }
@@ -432,6 +441,7 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
     notVerified(); // can we meaningfully test this?
   }
 
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.9
   @Override @Test
   public void untested_spec109_subscribeShouldNotThrowNonFatalThrowable() throws Throwable {
     notVerified(); // can we meaningfully test this?
@@ -440,40 +450,79 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.9
   @Override @Test
   public void required_spec109_subscribeThrowNPEOnNullSubscriber() throws Throwable {
-      activePublisherTest(0, false, new PublisherTestRun<T>() {
-        @Override
-        public void run(Publisher<T> pub) throws Throwable {
-            try {
-                pub.subscribe(null);
-                env.flop(String.format("Publisher (%s) did not throw a NullPointerException when given a null Subscribe in subscribe", pub));
-            } catch (NullPointerException npe) {
-            }
-            env.verifyNoAsyncErrors();
+    activePublisherTest(0, false, new PublisherTestRun<T>() {
+      @Override
+      public void run(Publisher<T> pub) throws Throwable {
+        try {
+            pub.subscribe(null);
+            env.flop("Publisher did not throw a NullPointerException when given a null Subscribe in subscribe");
+        } catch (NullPointerException npe) {
         }
+        env.verifyNoAsyncErrors();
+      }
     });
   }
 
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.09
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.9
   @Override @Test
-  public void required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe() throws Throwable {
+  public void required_spec109_mustIssueOnSubscribeForNonNullSubscriber() throws Throwable {
+    activePublisherTest(0, false, new PublisherTestRun<T>() {
+      @Override
+      public void run(Publisher<T> pub) throws Throwable {
+        final Latch onSubscribeLatch = new Latch(env);
+        pub.subscribe(new Subscriber<T>() {
+          @Override
+          public void onError(Throwable cause) {
+            onSubscribeLatch.assertClosed("onSubscribe should be called prior to onError always");
+          }
+
+          @Override
+          public void onSubscribe(Subscription subs) {
+            onSubscribeLatch.assertOpen("Only one onSubscribe call expected");
+            onSubscribeLatch.close();
+          }
+
+          @Override
+          public void onNext(T elem) {
+            onSubscribeLatch.assertClosed("onSubscribe should be called prior to onNext always");
+          }
+
+          @Override
+          public void onComplete() {
+            onSubscribeLatch.assertClosed("onSubscribe should be called prior to onComplete always");
+          }
+        });
+        onSubscribeLatch.expectClose("Should have received onSubscribe");
+        env.verifyNoAsyncErrors();
+      }
+    });
+  }
+
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.9
+  @Override @Test
+  public void required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorAfterOnSubscribe() throws Throwable {
     whenHasErrorPublisherTest(new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         final Latch onErrorLatch = new Latch(env);
+        final Latch onSubscribeLatch = new Latch(env);
         ManualSubscriberWithSubscriptionSupport<T> sub = new ManualSubscriberWithSubscriptionSupport<T>(env) {
           @Override
           public void onError(Throwable cause) {
+            onSubscribeLatch.assertClosed("onSubscribe should be called prior to onError always");
             onErrorLatch.assertOpen("Only one onError call expected");
             onErrorLatch.close();
           }
 
           @Override
           public void onSubscribe(Subscription subs) {
-            env.flop("onSubscribe should not be called if Publisher is unable to subscribe a Subscriber");
+            onSubscribeLatch.assertOpen("Only one onSubscribe call expected");
+            onSubscribeLatch.close();
           }
         };
         pub.subscribe(sub);
-        onErrorLatch.assertClosed("Should have received onError");
+        onSubscribeLatch.expectClose("Should have received onSubscribe");
+        onErrorLatch.expectClose("Should have received onError");
 
         env.verifyNoAsyncErrors();
       }

@@ -8,6 +8,7 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.AfterClass;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
+import java.util.Iterator;
 
 @Test // Must be here for TestNG to find and run this, do not remove
 public class UnboundedIntegerIncrementPublisherTest extends PublisherVerification<Integer> {
@@ -25,7 +26,11 @@ public class UnboundedIntegerIncrementPublisherTest extends PublisherVerificatio
   }
 
   @Override public Publisher<Integer> createErrorStatePublisher() {
-    return null;
+    return new AsyncIterablePublisher<Integer>(new Iterable<Integer>() {
+      @Override public Iterator<Integer> iterator() {
+        throw new RuntimeException("Error state signal!");
+      }
+    }, e);
   }
 
   @Override public long maxElementsFromPublisher() {

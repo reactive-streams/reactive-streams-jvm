@@ -20,9 +20,10 @@ public interface PublisherVerificationRules {
   void required_spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled() throws Throwable;
   void untested_spec107_mustNotEmitFurtherSignalsOnceOnErrorHasBeenSignalled() throws Throwable;
   void untested_spec108_possiblyCanceledSubscriptionShouldNotReceiveOnErrorOrOnCompleteSignals() throws Throwable;
+  void required_spec109_mustIssueOnSubscribeForNonNullSubscriber() throws Throwable;
   void untested_spec109_subscribeShouldNotThrowNonFatalThrowable() throws Throwable;
   void required_spec109_subscribeThrowNPEOnNullSubscriber() throws Throwable;
-  void required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorInsteadOfOnSubscribe() throws Throwable;
+  void required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorAfterOnSubscribe() throws Throwable;
   void untested_spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice() throws Throwable;
   void optional_spec111_maySupportMultiSubscribe() throws Throwable;
   void required_spec112_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingOneByOne() throws Throwable;

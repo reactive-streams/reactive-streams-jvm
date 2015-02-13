@@ -41,28 +41,32 @@ public abstract class SyncSubscriber<T> implements Subscriber<T> {
   }
 
   @Override public void onNext(final T element) {
-    // As per rule 2.13, we need to throw a `java.lang.NullPointerException` if the `element` is `null`
-    if (element == null) throw null;
+    if (subscription == null) { // Technically this check is not needed, since we are expecting Publishers to conform to the spec
+      (new IllegalStateException("Publisher violated the Reactive Streams rule 1.09 signalling onNext prior to onSubscribe.")).printStackTrace(System.err);
+    } else {
+      // As per rule 2.13, we need to throw a `java.lang.NullPointerException` if the `element` is `null`
+      if (element == null) throw null;
 
-    if (!done) { // If we aren't already done
-      try {
-        if (foreach(element)) {
-          try {
-            subscription.request(1); // Our Subscriber is unbuffered and modest, it requests one element at a time
-          } catch(final Throwable t) {
-            // Subscription.request is not allowed to throw according to rule 3.16
-            (new IllegalStateException(subscription + " violated the Reactive Streams rule 3.16 by throwing an exception from cancel.", t)).printStackTrace(System.err);
+      if (!done) { // If we aren't already done
+        try {
+          if (foreach(element)) {
+            try {
+              subscription.request(1); // Our Subscriber is unbuffered and modest, it requests one element at a time
+            } catch (final Throwable t) {
+              // Subscription.request is not allowed to throw according to rule 3.16
+              (new IllegalStateException(subscription + " violated the Reactive Streams rule 3.16 by throwing an exception from cancel.", t)).printStackTrace(System.err);
+            }
+          } else {
+            done();
           }
-        } else {
+        } catch (final Throwable t) {
           done();
-        }
-      } catch(final Throwable t) {
-         done(); 
-        try {  
-          onError(t);
-        } catch(final Throwable t2) {
-          //Subscriber.onError is not allowed to throw an exception, according to rule 2.13
-          (new IllegalStateException(this + " violated the Reactive Streams rule 2.13 by throwing an exception from onError.", t2)).printStackTrace(System.err);
+          try {
+            onError(t);
+          } catch (final Throwable t2) {
+            //Subscriber.onError is not allowed to throw an exception, according to rule 2.13
+            (new IllegalStateException(this + " violated the Reactive Streams rule 2.13 by throwing an exception from onError.", t2)).printStackTrace(System.err);
+          }
         }
       }
     }
@@ -86,14 +90,22 @@ public abstract class SyncSubscriber<T> implements Subscriber<T> {
   protected abstract boolean foreach(final T element);
 
   @Override public void onError(final Throwable t) {
-    // As per rule 2.13, we need to throw a `java.lang.NullPointerException` if the `Throwable` is `null`
-    if (t == null) throw null;
-     // Here we are not allowed to call any methods on the `Subscription` or the `Publisher`, as per rule 2.3
-     // And anyway, the `Subscription` is considered to be cancelled if this method gets called, as per rule 2.4
+    if (subscription == null) { // Technically this check is not needed, since we are expecting Publishers to conform to the spec
+      (new IllegalStateException("Publisher violated the Reactive Streams rule 1.09 signalling onError prior to onSubscribe.")).printStackTrace(System.err);
+    } else {
+      // As per rule 2.13, we need to throw a `java.lang.NullPointerException` if the `Throwable` is `null`
+      if (t == null) throw null;
+      // Here we are not allowed to call any methods on the `Subscription` or the `Publisher`, as per rule 2.3
+      // And anyway, the `Subscription` is considered to be cancelled if this method gets called, as per rule 2.4
+    }
   }
 
   @Override public void onComplete() {
-     // Here we are not allowed to call any methods on the `Subscription` or the `Publisher`, as per rule 2.3
-     // And anyway, the `Subscription` is considered to be cancelled if this method gets called, as per rule 2.4
+    if (subscription == null) { // Technically this check is not needed, since we are expecting Publishers to conform to the spec
+      (new IllegalStateException("Publisher violated the Reactive Streams rule 1.09 signalling onComplete prior to onSubscribe.")).printStackTrace(System.err);
+    } else {
+      // Here we are not allowed to call any methods on the `Subscription` or the `Publisher`, as per rule 2.3
+      // And anyway, the `Subscription` is considered to be cancelled if this method gets called, as per rule 2.4
+    }
   }
 }
