@@ -3,7 +3,7 @@ subprojects {
     apply plugin: "osgi"
 
     group = "org.reactivestreams"
-    version = "1.0.0.RC1"
+    version = "1.0.0.RC2"
 
     sourceCompatibility = 1.6
     targetCompatibility = 1.6
