@@ -264,7 +264,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
   }
 
   @Test
-  public void optional_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorAfterOnSubscribe_actuallyPass() throws Throwable {
+  public void required_spec109_mayRejectCallsToSubscribeIfPublisherIsUnableOrUnwillingToServeThemRejectionMustTriggerOnErrorAfterOnSubscribe_actuallyPass() throws Throwable {
     customPublisherVerification(SKIP, new Publisher<Integer>() {
       @Override public void subscribe(Subscriber<? super Integer> s) {
         s.onSubscribe(new NoopSubscription());
