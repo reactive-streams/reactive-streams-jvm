@@ -44,7 +44,7 @@ subprojects {
         }
     }
 
-    if (name in ["reactive-streams", "reactive-streams-tck"]) {
+    if (name in ["reactive-streams", "reactive-streams-tck", "reactive-streams-examples"]) {
         apply plugin: "maven"
         apply plugin: "signing"
 
