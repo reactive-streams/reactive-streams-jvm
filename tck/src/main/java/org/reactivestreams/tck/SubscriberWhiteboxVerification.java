@@ -344,7 +344,7 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.13
   @Override @Test
   public void required_spec213_onSubscribe_mustThrowNullPointerExceptionWhenParametersAreNull() throws Throwable {
-    subscriberTest(new TestStageTestRun() {
+    subscriberTestWithoutSetup(new TestStageTestRun() {
       @Override
       public void run(WhiteboxTestStage stage) throws Throwable {
 
@@ -365,13 +365,18 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
   }// Verifies rule: https://github.com/reactive-streams/reactive-streams#2.13
   @Override @Test
   public void required_spec213_onNext_mustThrowNullPointerExceptionWhenParametersAreNull() throws Throwable {
-    subscriberTest(new TestStageTestRun() {
+    subscriberTestWithoutSetup(new TestStageTestRun() {
       @Override
       public void run(WhiteboxTestStage stage) throws Throwable {
 
         final Subscription subscription = new Subscription() {
-          @Override public void request(final long elements) {}
-          @Override public void cancel() {}
+          @Override
+          public void request(final long elements) {
+          }
+
+          @Override
+          public void cancel() {
+          }
         };
 
         {
@@ -380,7 +385,7 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
           sub.onSubscribe(subscription);
           try {
             sub.onNext(null);
-          } catch(final NullPointerException expected) {
+          } catch (final NullPointerException expected) {
             gotNPE = true;
           }
           assertTrue(gotNPE, "onNext(null) did not throw NullPointerException");
@@ -394,13 +399,18 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.13
   @Override @Test
   public void required_spec213_onError_mustThrowNullPointerExceptionWhenParametersAreNull() throws Throwable {
-    subscriberTest(new TestStageTestRun() {
+    subscriberTestWithoutSetup(new TestStageTestRun() {
       @Override
       public void run(WhiteboxTestStage stage) throws Throwable {
 
         final Subscription subscription = new Subscription() {
-          @Override public void request(final long elements) {}
-          @Override public void cancel() {}
+          @Override
+          public void request(final long elements) {
+          }
+
+          @Override
+          public void cancel() {
+          }
         };
 
         {
@@ -409,7 +419,7 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
           sub.onSubscribe(subscription);
           try {
             sub.onError(null);
-          } catch(final NullPointerException expected) {
+          } catch (final NullPointerException expected) {
             gotNPE = true;
           }
           assertTrue(gotNPE, "onError(null) did not throw NullPointerException");
