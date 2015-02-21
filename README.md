@@ -153,7 +153,7 @@ public interface Subscription {
 | <a name="3.14">14</a>     | While the `Subscription` is not cancelled, calling `Subscription.cancel` MAY cause the `Publisher`, if stateful, to transition into the `shut-down` state if no other `Subscription` exists at this point [see [1.9](#1.9)].
 | <a name="3.15">15</a>     | Calling `Subscription.cancel` MUST return normally. The only legal way to signal failure to a `Subscriber` is via the `onError` method. |
 | <a name="3.16">16</a>     | Calling `Subscription.request` MUST return normally. The only legal way to signal failure to a `Subscriber` is via the `onError` method. |
-| <a name="3.17">17</a>     | A `Subscription` MUST support an unbounded number of calls to request and MUST support a demand (sum requested - sum delivered) up to 2^63-1 (`java.lang.Long.MAX_VALUE`). A demand equal or greater than 2^63-1 (`java.lang.Long.MAX_VALUE`) MAY be considered by the `Publisher` as “effectively unbounded”[[1](#footnote-3-1)]. |
+| <a name="3.17">17</a>     | A `Subscription` MUST support an unbounded number of calls to request and MUST support a demand (sum requested - sum delivered) up to 2^63-1 (`java.lang.Long.MAX_VALUE`). A demand equal or greater than 2^63-1 (`java.lang.Long.MAX_VALUE`) MAY be considered by the `Publisher` as “effectively unbounded”[[3](#footnote-3-3)]. |
 
 [<a name="footnote-3-1">1</a>] : An example for undesirable synchronous, open recursion would be `Subscriber.onNext` -> `Subscription.request` -> `Subscriber.onNext` -> …, as it very quickly would result in blowing the calling Thread´s stack.
 
