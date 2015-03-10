@@ -12,7 +12,7 @@ waiver with respect to the entirety of my contributions.
 
 The text of the copyright statement is included in the COPYING file at the root
 of the reactive-streams repository at
-https://github.com/reactive-streams/reactive-streams/blob/master/COPYING.
+https://github.com/reactive-streams/reactive-streams-jvm/blob/master/COPYING.
 
 Underwriting parties:
 

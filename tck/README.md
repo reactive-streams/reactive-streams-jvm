@@ -1,7 +1,7 @@
 # Reactive Streams TCK #
 
 The purpose of the *Reactive Streams Technology Compatibility Kit* (from here on referred to as: *the TCK*) is to guide
-and help Reactive Streams library implementers to validate their implementations against the rules defined in [the Specification](https://github.com/reactive-streams/reactive-streams).
+and help Reactive Streams library implementers to validate their implementations against the rules defined in [the Specification](https://github.com/reactive-streams/reactive-streams-jvm).
 
 The TCK is implemented using **plain Java (1.6)** and **TestNG** tests, and should be possible to use from other languages and testing libraries (such as Scala, Groovy, JRuby or others).
 
@@ -30,7 +30,7 @@ The TCK is provided as binary artifact on [Maven Central](http://search.maven.or
 </dependency>
 ```
 
-Please refer to the [Reactive Streams Specification](https://github.com/reactive-streams/reactive-streams) for the current latest version number. Make sure that the API and TCK dependency versions are equal.
+Please refer to the [Reactive Streams Specification](https://github.com/reactive-streams/reactive-streams-jvm) for the current latest version number. Make sure that the API and TCK dependency versions are equal.
 
 ### Types of tests
 
@@ -44,7 +44,7 @@ Specification rule abides the following naming convention: `spec###_DESC` where:
 * `DESC` is a short explanation of what exactly is being tested in this test case, as sometimes one Rule may have multiple test cases in order to cover the entire Rule.
 
 ```java
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.1
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams-jvm#1.1
   @Test public void required_spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements() throws Throwable
     // ...
   }
@@ -195,7 +195,7 @@ Notable configuration options include:
 ### Timeout configuration
 Publisher tests make use of two kinds of timeouts, one is the `defaultTimeoutMillis` which corresponds to all methods used
 within the TCK which await for something to happen. The other timeout is `publisherReferenceGCTimeoutMillis` which is only used in order to verify
-[Rule 3.13](https://github.com/reactive-streams/reactive-streams#3.13) which defines that subscriber references MUST be dropped
+[Rule 3.13](https://github.com/reactive-streams/reactive-streams-jvm#3.13) which defines that subscriber references MUST be dropped
 by the Publisher.
 
 In order to configure these timeouts (for example when running on a slow continious integtation machine), you can either:
@@ -505,7 +505,7 @@ public class SkippingIdentityProcessorTest extends IdentityProcessorVerification
 
 ## Upgrade story
 
-**TODO** - What is our story about updating the TCK? How do we make sure that implementations don't accidentally miss some change in the spec, if the TCK is unable to fail verify the new behavior? Comments are very welcome, discussion about this is under-way in [Issue #99 – TCK Upgrade Story](https://github.com/reactive-streams/reactive-streams/issues/99).
+**TODO** - What is our story about updating the TCK? How do we make sure that implementations don't accidentally miss some change in the spec, if the TCK is unable to fail verify the new behavior? Comments are very welcome, discussion about this is under-way in [Issue #99 – TCK Upgrade Story](https://github.com/reactive-streams/reactive-streams-jvm/issues/99).
 
 ## Using the TCK from other languages
 

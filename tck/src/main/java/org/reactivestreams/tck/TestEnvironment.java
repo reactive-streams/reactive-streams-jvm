@@ -6,7 +6,6 @@ import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.support.SubscriberBufferOverflowException;
 import org.reactivestreams.tck.support.Optional;
 
-import java.text.NumberFormat;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -107,7 +106,7 @@ public class TestEnvironment {
    * To flop means to "fail asynchronously", either by onErroring or by failing some TCK check triggered asynchronously.
    * This method does *NOT* fail the test - it's up to inspections of the error to fail the test if required.
    *
-   * Use {@code env.verifyNoAsyncErrors()} at the end of your TCK tests to verify there no flops called during it's execution.
+   * Use {@code env.verifyNoAsyncErrorsNoDelay()} at the end of your TCK tests to verify there no flops called during it's execution.
    * To check investigate asyncErrors more closely you can use {@code expectError} methods or collect the error directly
    * from the environment using {@code env.dropAsyncError()}.
    *
@@ -127,7 +126,7 @@ public class TestEnvironment {
    *
    * This overload keeps the passed in throwable as the asyncError, instead of creating an AssertionError for this.
    *
-   * Use {@code env.verifyNoAsyncErrors()} at the end of your TCK tests to verify there no flops called during it's execution.
+   * Use {@code env.verifyNoAsyncErrorsNoDelay()} at the end of your TCK tests to verify there no flops called during it's execution.
    * To check investigate asyncErrors more closely you can use {@code expectError} methods or collect the error directly
    * from the environment using {@code env.dropAsyncError()}.
    *
@@ -147,7 +146,7 @@ public class TestEnvironment {
    *
    * This overload keeps the passed in throwable as the asyncError, instead of creating an AssertionError for this.
    *
-   * Use {@code env.verifyNoAsyncErrors()} at the end of your TCK tests to verify there no flops called during it's execution.
+   * Use {@code env.verifyNoAsyncErrorsNoDelay()} at the end of your TCK tests to verify there no flops called during it's execution.
    * To check investigate asyncErrors more closely you can use {@code expectError} methods or collect the error directly
    * from the environment using {@code env.dropAsyncError()}.
    *
@@ -167,7 +166,7 @@ public class TestEnvironment {
    * This method DOES fail the test right away (it tries to, by throwing an AssertionException),
    * in such it is different from {@link org.reactivestreams.tck.TestEnvironment#flop} which only records the error.
    *
-   * Use {@code env.verifyNoAsyncErrors()} at the end of your TCK tests to verify there no flops called during it's execution.
+   * Use {@code env.verifyNoAsyncErrorsNoDelay()} at the end of your TCK tests to verify there no flops called during it's execution.
    * To check investigate asyncErrors more closely you can use {@code expectError} methods or collect the error directly
    * from the environment using {@code env.dropAsyncError()}.
    *
@@ -192,7 +191,7 @@ public class TestEnvironment {
   public <T> void subscribe(Publisher<T> pub, TestSubscriber<T> sub, long timeoutMillis) throws InterruptedException {
     pub.subscribe(sub);
     sub.subscription.expectCompletion(timeoutMillis, String.format("Could not subscribe %s to Publisher %s", sub, pub));
-    verifyNoAsyncErrors();
+    verifyNoAsyncErrorsNoDelay();
   }
 
   public <T> ManualSubscriber<T> newBlackholeSubscriber(Publisher<T> pub) throws InterruptedException {
@@ -223,16 +222,39 @@ public class TestEnvironment {
     }
   }
 
+  /**
+   * Waits for {@link TestEnvironment#defaultTimeoutMillis()} and then verifies that no asynchronous errors
+   * were signalled pior to, or during that time (by calling {@code flop()}).
+   */
+  public void verifyNoAsyncErrors() {
+    verifyNoAsyncErrors(defaultTimeoutMillis());
+  }
+
+  /**
+   * This version of {@code verifyNoAsyncErrors} should be used when errors still could be signalled
+   * asynchronously during {@link TestEnvironment#defaultTimeoutMillis()} time.
+   * <p></p>
+   * It will immediatly check if any async errors were signaled (using {@link TestEnvironment#flop(String)},
+   * and if no errors encountered wait for another default timeout as the errors may yet be signalled.
+   * The initial check is performed in order to fail-fast in case of an already failed test.
+   */
   public void verifyNoAsyncErrors(long delay) {
     try {
+      verifyNoAsyncErrorsNoDelay();
+
       Thread.sleep(delay);
-      verifyNoAsyncErrors();
+      verifyNoAsyncErrorsNoDelay();
     } catch (InterruptedException e) {
       throw new RuntimeException(e);
     }
   }
 
-  public void verifyNoAsyncErrors() {
+  /**
+   * Verifies that no asynchronous errors were signalled pior to calling this method (by calling {@code flop()}).
+   * This version of verifyNoAsyncError <b>does not wait before checking for asynchronous errors</b>, and is to be used
+   * for example in tight loops etc.
+   */
+  public void verifyNoAsyncErrorsNoDelay() {
     for (Throwable e : asyncErrors) {
       if (e instanceof AssertionError) {
         throw (AssertionError) e;
@@ -267,6 +289,9 @@ public class TestEnvironment {
 
   // ---- classes ----
 
+  /**
+   * {@link Subscriber} implementation which can be steered by test code and asserted on.
+   */
   public static class ManualSubscriber<T> extends TestSubscriber<T> {
     Receptacle<T> received;
 

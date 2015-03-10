@@ -4,7 +4,7 @@ The Reactive Streams project welcomes contributions from anybody who wants to pa
 
 ## Copyright Statement
 
-The aforementioned waiver of copyrights and other rights is represented by the addition of a line to the file [CopyrightWaivers.txt](https://github.com/reactive-streams/reactive-streams/blob/master/CopyrightWaivers.txt). For a pull request to be considered every contributor must have signed the copyright statement in this way; this may be included within that same pull request.
+The aforementioned waiver of copyrights and other rights is represented by the addition of a line to the file [CopyrightWaivers.txt](https://github.com/reactive-streams/reactive-streams-jvm/blob/master/CopyrightWaivers.txt). For a pull request to be considered every contributor must have signed the copyright statement in this way; this may be included within that same pull request.
 
 ## Gatekeepers
 
