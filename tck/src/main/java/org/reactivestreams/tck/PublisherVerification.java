@@ -86,10 +86,14 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
   public abstract Publisher<T> createPublisher(long elements);
 
   /**
-   * Return a Publisher in {@code error} state in order to run additional tests on it,
-   * or {@code null} in order to skip them.
+   * By implementing this method, additional TCK tests concerning a "failed" publishers will be run.
+   *
+   * The expected behaviour of the {@link Publisher} returned by this method is hand out a subscription,
+   * followed by signalling {@code onError} on it, as specified by Rule 1.9.
+   *
+   * If you ignore these additional tests, return {@code null} from this method.
    */
-  public abstract Publisher<T> createErrorStatePublisher();
+  public abstract Publisher<T> createFailedPublisher();
 
 
   /**
@@ -1121,7 +1125,7 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
 
   public static final String SKIPPING_NO_ERROR_PUBLISHER_AVAILABLE =
     "Skipping because no error state Publisher provided, and the test requires it. " +
-          "Please implement PublisherVerification#createErrorStatePublisher to run this test.";
+          "Please implement PublisherVerification#createFailedPublisher to run this test.";
 
   public static final String SKIPPING_OPTIONAL_TEST_FAILED =
     "Skipping, because provided Publisher does not pass this *additional* verification.";
@@ -1129,7 +1133,7 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
    * Additional test for Publisher in error state
    */
   public void whenHasErrorPublisherTest(PublisherTestRun<T> body) throws Throwable {
-    potentiallyPendingTest(createErrorStatePublisher(), body, SKIPPING_NO_ERROR_PUBLISHER_AVAILABLE);
+    potentiallyPendingTest(createFailedPublisher(), body, SKIPPING_NO_ERROR_PUBLISHER_AVAILABLE);
   }
 
   public void potentiallyPendingTest(Publisher<T> pub, PublisherTestRun<T> body) throws Throwable {

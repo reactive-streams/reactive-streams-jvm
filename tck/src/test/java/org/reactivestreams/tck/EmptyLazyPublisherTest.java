@@ -31,7 +31,7 @@ public class EmptyLazyPublisherTest extends PublisherVerification<Integer> {
   }
 
   @Override
-  public Publisher<Integer> createErrorStatePublisher() {
+  public Publisher<Integer> createFailedPublisher() {
     return null;
   }
 

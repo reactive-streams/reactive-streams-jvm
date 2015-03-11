@@ -66,7 +66,7 @@ Explanations:
 @Test public void optional_spec104_mustSignalOnErrorWhenFails() throws Throwable
 ```
 
-... means that this test case is optional, it covers a *MAY* or *SHOULD* Rule of the Specification. This prefix is also used if more configuration is needed in order to run it, e.g. `@Additional(implement = "createErrorStatePublisher") @Test` signals the implementer that in order to include this test case in his test runs, (s)he must implement the `Publisher<T> createErrorStatePublisher()` method.
+... means that this test case is optional, it covers a *MAY* or *SHOULD* Rule of the Specification.
 
 ```java
 @Test public void stochastic_spec103_mustSignalOnMethodsSequentially() throws Throwable
@@ -116,6 +116,27 @@ In order to inform the TCK that your Publiher is not able to signal completion, 
 }
 ```
 
+### Testing a "failed" Publisher
+The Reactive Streams spec mandates certain behaviours for Publishers which are "failed",
+e.g. it was unable to initialize a connection it needs to emit elements.
+It may be useful to specifically such known to be failed Publisher using the TCK.
+
+In order to run additional tests on your failed publisher you can implement the `createFailedPublisher` method.
+The expected behaviour from the returned implementation is to follow Rule 1.4 and Rule 1.9 - which are concerned
+with the order of emiting the Subscription and signaling the failure.
+
+```java
+@Override public Publisher<T> createFailedPublisher() {
+  final String invalidData = "this input string is known it to be failed";
+  return new MyPublisher(invalidData);
+}
+```
+
+In case you don't really have a known up-front error state you can put your Publisher into,
+you can easily ignore these tests by returning `null` from the `createFailedPublisher` method.
+It is important to remember that it is **illegal** to signal `onNext / onComplete / onError` before
+you signal the `Subscription`, for details on this rule refer to the Reactive Streams specification.
+
 ## Publisher Verification
 
 `PublisherVerification` tests verify Publisher as well as some Subscription Rules of the Specification.
@@ -142,7 +163,7 @@ public class RangePublisherTest extends PublisherVerification<Integer> {
   }
 
   @Override
-  public Publisher<Integer> createErrorStatePublisher() {
+  public Publisher<Integer> createFailedPublisher() {
     return new Publisher<Integer>() {
       @Override
       public void subscribe(Subscriber<Integer> s) {
@@ -427,8 +448,7 @@ public class MyIdentityProcessorVerificationTest extends IdentityProcessorVerifi
   // ENABLE ADDITIONAL TESTS
 
   @Override
-  public Publisher<Integer> createErrorStatePublisher() {
-    // return error state Publisher instead of null to run additional tests
+  public Publisher<Integer> createFailedPublisher() {
     return null;
   }
 
@@ -504,7 +524,7 @@ class IterablePublisherTest(env: TestEnvironment, publisherShutdownTimeout: Long
   def createPublisher(elements: Long): Publisher[Int] = ???
 
   // example error state publisher implementation
-  override def createErrorStatePublisher(): Publisher[Int] =
+  override def createFailedPublisher(): Publisher[Int] =
     new Publisher[Int] {
       override def subscribe(s: Subscriber[Int]): Unit = {
         s.onError(new Exception("Unable to serve subscribers right now!"))

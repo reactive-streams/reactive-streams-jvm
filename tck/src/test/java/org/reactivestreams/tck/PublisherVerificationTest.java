@@ -203,7 +203,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
             return 0; // it is an "empty" Publisher
           }
 
-          @Override public Publisher<Integer> createErrorStatePublisher() {
+          @Override public Publisher<Integer> createFailedPublisher() {
             return null;
           }
         };
@@ -618,7 +618,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
 
       }
 
-      @Override public Publisher<Integer> createErrorStatePublisher() {
+      @Override public Publisher<Integer> createFailedPublisher() {
         return SKIP;
       }
     };
@@ -643,7 +643,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
 
       }
 
-      @Override public Publisher<Integer> createErrorStatePublisher() {
+      @Override public Publisher<Integer> createFailedPublisher() {
         return SKIP;
       }
     };
@@ -665,7 +665,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
         return pub;
       }
 
-      @Override public Publisher<Integer> createErrorStatePublisher() {
+      @Override public Publisher<Integer> createFailedPublisher() {
         return errorPub;
       }
     };
@@ -694,7 +694,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
 
       }
 
-      @Override public Publisher<Integer> createErrorStatePublisher() {
+      @Override public Publisher<Integer> createFailedPublisher() {
         return SKIP;
       }
     };
@@ -782,7 +782,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
 
       }
 
-      @Override public Publisher<Integer> createErrorStatePublisher() {
+      @Override public Publisher<Integer> createFailedPublisher() {
         return SKIP;
       }
     };
