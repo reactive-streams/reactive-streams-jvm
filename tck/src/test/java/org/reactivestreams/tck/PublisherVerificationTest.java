@@ -352,7 +352,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
   }
 
   @Test
-  public void required_spec112_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront_shouldFailBy_expectingOnError() throws Throwable {
+  public void optional_spec111_multicast_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront_shouldFailBy_expectingOnError() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
         customPublisherVerification(new Publisher<Integer>() {
@@ -370,7 +370,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
               }
             });
           }
-        }).required_spec112_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront();
+        }).optional_spec111_multicast_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront();
       }
     }, "Expected elements to be signaled in the same sequence to 1st and 2nd subscribers: Lists differ at element ");
   }

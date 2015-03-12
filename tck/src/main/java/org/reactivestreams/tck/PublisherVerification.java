@@ -549,9 +549,9 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
     });
   }
 
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.12
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.11
   @Override @Test
-  public void required_spec112_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingOneByOne() throws Throwable {
+  public void optional_spec111_multicast_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingOneByOne() throws Throwable {
     optionalActivePublisherTest(5, true, new PublisherTestRun<T>() { // This test is skipped if the publisher is unbounded (never sends onComplete)
       @Override
       public void run(Publisher<T> pub) throws InterruptedException {
@@ -600,9 +600,9 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
     });
   }
 
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.12
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.11
   @Override @Test
-  public void required_spec112_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront() throws Throwable {
+  public void optional_spec111_multicast_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfront() throws Throwable {
     optionalActivePublisherTest(3, false, new PublisherTestRun<T>() { // This test is skipped if the publisher cannot produce enough elements
       @Override
       public void run(Publisher<T> pub) throws Throwable {
@@ -633,9 +633,9 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
     });
   }
 
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.12
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.11
   @Override @Test
-  public void required_spec112_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfrontAndCompleteAsExpected() throws Throwable {
+  public void optional_spec111_multicast_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingManyUpfrontAndCompleteAsExpected() throws Throwable {
     optionalActivePublisherTest(3, true, new PublisherTestRun<T>() { // This test is skipped if the publisher is unbounded (never sends onComplete)
       @Override
       public void run(Publisher<T> pub) throws Throwable {
