@@ -35,7 +35,7 @@ public abstract class SyncSubscriber<T> implements Subscriber<T> {
         s.request(1); // Our Subscriber is unbuffered and modest, it requests one element at a time
       } catch(final Throwable t) {
         // Subscription.request is not allowed to throw according to rule 3.16
-        (new IllegalStateException(s + " violated the Reactive Streams rule 3.16 by throwing an exception from cancel.", t)).printStackTrace(System.err);
+        (new IllegalStateException(s + " violated the Reactive Streams rule 3.16 by throwing an exception from request.", t)).printStackTrace(System.err);
       }
     }
   }
@@ -54,7 +54,7 @@ public abstract class SyncSubscriber<T> implements Subscriber<T> {
               subscription.request(1); // Our Subscriber is unbuffered and modest, it requests one element at a time
             } catch (final Throwable t) {
               // Subscription.request is not allowed to throw according to rule 3.16
-              (new IllegalStateException(subscription + " violated the Reactive Streams rule 3.16 by throwing an exception from cancel.", t)).printStackTrace(System.err);
+              (new IllegalStateException(subscription + " violated the Reactive Streams rule 3.16 by throwing an exception from request.", t)).printStackTrace(System.err);
             }
           } else {
             done();
