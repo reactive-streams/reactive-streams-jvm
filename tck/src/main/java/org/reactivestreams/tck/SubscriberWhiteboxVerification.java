@@ -203,31 +203,35 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.5
   @Override @Test
-  public void required_spec205_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal() throws Exception {
-    new WhiteboxTestStage(env) {{
-      // try to subscribe another time, if the subscriber calls `probe.registerOnSubscribe` the test will fail
-      final Latch secondSubscriptionCancelled = new Latch(env);
-      sub().onSubscribe(
-          new Subscription() {
-            @Override
-            public void request(long elements) {
-              env.flop(String.format("Subscriber %s illegally called `subscription.request(%s)`", sub(), elements));
-            }
+  public void required_spec205_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal() throws Throwable {
+    subscriberTest(new TestStageTestRun() {
+      @Override
+      public void run(WhiteboxTestStage stage) throws Throwable {
+        // try to subscribe another time, if the subscriber calls `probe.registerOnSubscribe` the test will fail
+        final Latch secondSubscriptionCancelled = new Latch(env);
+        final Subscriber<? super T> sub = stage.sub();
+        final Subscription subscription = new Subscription() {
+          @Override
+          public void request(long elements) {
+            // ignore...
+          }
 
-            @Override
-            public void cancel() {
-              secondSubscriptionCancelled.close();
-            }
+          @Override
+          public void cancel() {
+            secondSubscriptionCancelled.close();
+          }
 
-            @Override
-            public String toString() {
-              return "SecondSubscription(should get cancelled)";
-            }
-          });
+          @Override
+          public String toString() {
+            return "SecondSubscription(should get cancelled)";
+          }
+        };
+        sub.onSubscribe(subscription);
 
-      secondSubscriptionCancelled.expectClose("Expected 2nd Subscription given to subscriber to be cancelled, but `Subscription.cancel()` was not called.");
-      env.verifyNoAsyncErrors();
-    }};
+        secondSubscriptionCancelled.expectClose("Expected 2nd Subscription given to subscriber to be cancelled, but `Subscription.cancel()` was not called");
+        env.verifyNoAsyncErrors();
+      }
+    });
   }
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.6
@@ -348,50 +352,38 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
       @Override
       public void run(WhiteboxTestStage stage) throws Throwable {
 
-        {
-          final Subscriber<? super T> sub = stage.sub();
-          boolean gotNPE = false;
-          try {
-            sub.onSubscribe(null);
-          } catch (final NullPointerException expected) {
-            gotNPE = true;
-          }
-          assertTrue(gotNPE, "onSubscribe(null) did not throw NullPointerException");
+        final Subscriber<? super T> sub = stage.sub();
+        boolean gotNPE = false;
+        try {
+          sub.onSubscribe(null);
+        } catch (final NullPointerException expected) {
+          gotNPE = true;
         }
+        assertTrue(gotNPE, "onSubscribe(null) did not throw NullPointerException");
 
-        env.verifyNoAsyncErrors();
+        env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
       }
     });
-  }// Verifies rule: https://github.com/reactive-streams/reactive-streams#2.13
+  }
+
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams#2.13
   @Override @Test
   public void required_spec213_onNext_mustThrowNullPointerExceptionWhenParametersAreNull() throws Throwable {
     subscriberTest(new TestStageTestRun() {
       @Override
       public void run(WhiteboxTestStage stage) throws Throwable {
 
-        final Subscription subscription = new Subscription() {
-          @Override
-          public void request(final long elements) {
-          }
-
-          @Override
-          public void cancel() {
-          }
-        };
-
-        {
-          final Subscriber<? super T> sub = stage.sub();
-          boolean gotNPE = false;
-          sub.onSubscribe(subscription);
-          try {
-            sub.onNext(null);
-          } catch (final NullPointerException expected) {
-            gotNPE = true;
-          }
+        final Subscriber<? super T> sub = stage.sub();
+        boolean gotNPE = false;
+        try {
+          sub.onNext(null);
+        } catch (final NullPointerException expected) {
+          gotNPE = true;
+        } finally {
           assertTrue(gotNPE, "onNext(null) did not throw NullPointerException");
         }
 
-        env.verifyNoAsyncErrors();
+        env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
       }
     });
   }
@@ -403,29 +395,17 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
       @Override
       public void run(WhiteboxTestStage stage) throws Throwable {
 
-        final Subscription subscription = new Subscription() {
-          @Override
-          public void request(final long elements) {
-          }
-
-          @Override
-          public void cancel() {
-          }
-        };
-
-        {
           final Subscriber<? super T> sub = stage.sub();
           boolean gotNPE = false;
-          sub.onSubscribe(subscription);
           try {
             sub.onError(null);
           } catch (final NullPointerException expected) {
             gotNPE = true;
+          } finally {
+            assertTrue(gotNPE, "onError(null) did not throw NullPointerException");
           }
-          assertTrue(gotNPE, "onError(null) did not throw NullPointerException");
-        }
 
-        env.verifyNoAsyncErrors();
+        env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
       }
     });
   }
@@ -495,11 +475,24 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
     public abstract void run(WhiteboxTestStage stage) throws Throwable;
   }
 
+  /**
+   * Prepares subscriber and publisher pair (by subscribing the first to the latter),
+   * and then hands over the tests {@link WhiteboxTestStage} over to the test.
+   *
+   * The test stage is, like in a puppet show, used to orchestrate what each participant should do.
+   * Since this is a whitebox test, this allows the stage to completely control when and how to signal / expect signals.
+   */
   public void subscriberTest(TestStageTestRun body) throws Throwable {
     WhiteboxTestStage stage = new WhiteboxTestStage(env, true);
     body.run(stage);
   }
 
+  /**
+   * Provides a {@link WhiteboxTestStage} without performing any additional setup,
+   * like the {@link org.reactivestreams.tck.SubscriberWhiteboxVerification#subscriberTest(TestStageTestRun)} would.
+   *
+   * Use this method to write tests in which you need full control over when and how the initial {@code subscribe} is signalled.
+   */
   public void subscriberTestWithoutSetup(TestStageTestRun body) throws Throwable {
     WhiteboxTestStage stage = new WhiteboxTestStage(env, false);
     body.run(stage);
@@ -559,7 +552,10 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
     }
 
     public T signalNext() throws InterruptedException {
-      T element = nextT();
+      return signalNext(nextT());
+    }
+
+    private T signalNext(T element) throws InterruptedException {
       sendNext(element);
       return element;
     }
@@ -577,7 +573,7 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
   /**
    * This class is intented to be used as {@code Subscriber} decorator and should be used in {@code pub.subscriber(...)} calls,
    * in order to allow intercepting calls on the underlying {@code Subscriber}.
-   * This delegation allows the proxy to implement {@link org.reactivestreams.tck.SubscriberWhiteboxVerification.BlackboxProbe} assertions.
+   * This delegation allows the proxy to implement {@link BlackboxProbe} assertions.
    */
   public static class BlackboxSubscriberProxy<T> extends BlackboxProbe<T> implements Subscriber<T> {
 
@@ -741,8 +737,6 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
     public void registerOnSubscribe(SubscriberPuppet p) {
       if (!puppet.isCompleted()) {
         puppet.complete(p);
-      } else {
-        env.flop(String.format("Subscriber %s illegally accepted a second Subscription", sub()));
       }
     }
 
