@@ -112,10 +112,11 @@ In order to inform the TCK your Publisher is only able to signal up to `2` eleme
 }
 ```
 
-The TCK also supports Publishers which are not able to signal completion. For example you might have a Publisher being backed by a timer.
-Such Publisher does not have a natural way to "complete" after some number of ticks. It would be possible to implement a Processor which would
-"take n elements from the TickPublisher and then signal completion to the downstream", but this adds a layer of indirection between the TCK and the
-Publisher we initially wanted to test. We suggest testing such unbouded Publishers either way - using a "TakeNElementsProcessor" or by informing the TCK
+The TCK also supports Publishers which are not able to signal completion. For example you might have a Publisher being
+backed by a timer. Such Publisher does not have a natural way to "complete" after some number of ticks. It would be
+possible to implement a Processor which would "take n elements from the TickPublisher and then signal completion to the
+downstream", but this adds a layer of indirection between the TCK and the Publisher one initially wanted to test.
+It is suggested to test such unbouded Publishers either way - using a "TakeNElementsProcessor" or by informing the TCK
 that the publisher is not able to signal completion. The TCK will then skip all tests which require `onComplete` signals to be emitted.
 
 In order to inform the TCK that your Publiher is not able to signal completion, override the `maxElementsFromPublisher` method like this:
@@ -261,12 +262,13 @@ In case an implementation needs to work on a specific type, the verification cla
 
 While the `Publisher` implementation is provided, creating the signal elements is not – this is because a given Subscriber
 may for example only work with `HashedMessage` or some other specific kind of signal. The TCK is unable to generate such
-special messages automatically, so we provide the `T createElement(Integer id)` method to be implemented as part of
+special messages automatically, so the TCK provides the `T createElement(Integer id)` method to be implemented as part of
 Subscriber Verifications which should take the given ID and return an element of type `T` (where `T` is the type of
 elements flowing into the `Subscriber<T>`, as known thanks to `... extends SubscriberWhiteboxVerification<T>`) representing
 an element of the stream that will be passed on to the Subscriber.
 
-The simplest valid implemenation is to return the incoming `id` *as the element* in a verification using `Integer`s as element types:
+The simplest valid implemenation is to return the incoming `id` *as the element* in a verification using `Integer`s as
+element types:
 
 ```java
 public class MySubscriberTest extends SubscriberBlackboxVerification<Integer> {
@@ -282,13 +284,13 @@ public class MySubscriberTest extends SubscriberBlackboxVerification<Integer> {
 The `createElement` method MAY be called concurrently from multiple threads,
 so in case of more complicated implementations, please be aware of this fact.
 
-**Very Advanced**: While we do not expect many implementations having to do so, it is possible to take full control of the `Publisher`
-which will be driving the TCKs test. This can be achieved by implementing the `createHelperPublisher` method in which you can implement your
-own Publisher which will then be used by the TCK to drive your Subscriber tests:
+**Very Advanced**: While it is not expected for many implementations having to do so, it is possible to take full
+which will be driving the TCKs test. This can be achieved by implementing the `createHelperPublisher` method in which one can implement the
+`createHelperPublisher` method by returning a custom Publisher implementation which will then be used by the TCK to drive your Subscriber tests:
 
 ```java
 @Override public Publisher<Message> createHelperPublisher(long elements) {
-  return new Publisher<Message>() { /* IMPL HERE */ };
+  return new Publisher<Message>() { /* CUSTOM IMPL HERE */ };
 }
 ```
 
@@ -439,11 +441,14 @@ Note that hard-coded values *take precedence* over environment set values (!).
 
 ## Subscription Verification
 
-Please note that while `Subscription` does **not** have it's own test class, it's rules are validated inside of the `Publisher` and `Subscriber` tests – depending if the Rule demands specific action to be taken by the publishing, or subscribing side of the subscription contract.
+Please note that while `Subscription` does **not** have it's own test class, it's rules are validated inside of the
+`Publisher` and `Subscriber` tests – depending if the Rule demands specific action to be taken by the publishing, or
+subscribing side of the subscription contract.
 
 ## Identity Processor Verification
 
-An `IdentityProcessorVerification` tests the given `Processor` for all `Subscriber`, `Publisher` as well as `Subscription` rules. Internally the `WhiteboxSubscriberVerification` is used for `Subscriber` rules.
+An `IdentityProcessorVerification` tests the given `Processor` for all `Subscriber`, `Publisher` as well as
+`Subscription` rules. Internally the `WhiteboxSubscriberVerification` is used for `Subscriber` rules.
 
 ```java
 package com.example.streams;
@@ -502,12 +507,14 @@ public class MyIdentityProcessorVerificationTest extends IdentityProcessorVerifi
 
 The additional configuration options reflect the options available in the Subscriber and Publisher Verifications.
 
-The `IdentityProcessorVerification` also runs additional sanity verifications, which are not directly mapped to Specification rules, but help to verify that a Processor won't "get stuck" or face similar problems. Please refer to the sources for details on the tests included.
+The `IdentityProcessorVerification` also runs additional sanity verifications, which are not directly mapped to
+Specification rules, but help to verify that a Processor won't "get stuck" or face similar problems. Please refer to the
+sources for details on the tests included.
 
 ## Ignoring tests
-Since you inherit these tests instead of defining them yourself it's not possible to use the usual `@Ignore` annotations to skip certain tests
-(which may be perfectly reasonable if your implementation has some know constraints on what it cannot implement). We recommend the below pattern
-to skip tests inherited from the TCK's base classes:
+Since you inherit these tests instead of defining them yourself it's not possible to use the usual `@Ignore` annotations
+to skip certain tests (which may be perfectly reasonable if your implementation has some know constraints on what it
+cannot implement). We recommend the below pattern to skip tests inherited from the TCK's base classes:
 
 ```java
 package com.example.streams;
@@ -560,6 +567,22 @@ public class MyIdentityProcessorTest extends IdentityProcessorVerification<Integ
 
 }
 ```
+
+## Which verifications must be implemented by a compliant implementation?
+In order to be considered an Reactive Streams compliant require implementations to cover their
+Publishers and Subscribers with TCK verifications. If a library is only including
+Subscribers, it does not have to implement Publisher tests. The same applies to `IdentityProcessorVerification` -
+you do not need to implement it if the library does not contain Processors.
+
+In the case of Subscriber Verification are two styles of verifications to available: Blackbox or Whitebox.
+It is *strongly* recommend to test `Subscriber` implementations with the `SubscriberWhiteboxVerification` as it is able to
+verify most of the specification. The `SubscriberBlackboxVerification` should only be used as a fallback,
+once you are sure implementing the whitebox version will not be possible for your implementation - if that happens
+feel free to open a ticket on the [reactive-streams-jvm](https://github.com/reactive-streams/reactive-streams-jvm) project explaining what stopped you from
+implementing the whitebox verification.
+
+In summary: implementations are required to use Verifications for the parts of the specification that they implement,
+and suggest using the whitebox verification over blackbox for the subscriber whenever possible.
 
 ## Upgrading the TCK to newer versions
 While we do not expect the Reactive Streams specification to change in the forseeable future,
