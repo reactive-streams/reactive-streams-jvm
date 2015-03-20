@@ -309,7 +309,8 @@ Based on experiences so far implementing the `SubscriberPuppet` is non-trivial a
 We keep the whitebox verification, as it is tremendously useful in the `ProcessorVerification`, where the Puppet is implemented within the TCK and injected to the tests.
 We do not expect all implementations to make use of the plain `SubscriberWhiteboxVerification`, using the `SubscriberBlackboxVerification` instead.
 
-A simple synchronous `Subscriber` implementation would look similar to following example:
+For the simplest possible (and most common) `Subscriber` implementation using the whitebox verification boils down to
+exteding (or delegating to) your implementation with additionally signalling and registering the test probe, as shown in the below example:
 
 ```java
 package com.example.streams;
@@ -326,21 +327,24 @@ public class MySubscriberWhiteboxVerificationTest extends SubscriberWhiteboxVeri
     super(new TestEnvironment());
   }
 
+  // The implementation under test is "SyncSubscriber":
+  // class SyncSubscriber<T> extends Subscriber<T> { /* ... */ }
+
   @Override
   public Subscriber<Integer> createSubscriber(final WhiteboxSubscriberProbe<Integer> probe) {
-
-    // return YOUR subscriber under-test, with additional WhiteboxSubscriberProbe instrumentation
-    return new Subscriber<Integer>() {
-
+    // in order to test the SyncSubscriber we must instrument it by extending it,
+    // and calling the WhiteboxSubscriberProbe in all of the Subscribers methods:
+    return new SyncSubscriber<Integer>() {
       @Override
       public void onSubscribe(final Subscription s) {
-        // in addition to normal Subscriber work that you're testing,
-        // register a SubscriberPuppet, to give the TCK control over demand generation and cancelling
-        probe.registerOnSubscribe(new SubscriberPuppet() {
+        super.onSubscribe(s);
 
+        // register a successful subscription, and create a Puppet,
+        // for the WhiteboxVerification to be able to drive its tests:
+        probe.registerOnSubscribe(new SubscriberPuppet() {
           @Override
-          public void triggerRequest(long n) {
-            s.request(n);
+          public void triggerRequest(long elements) {
+            s.request(elements);
           }
 
           @Override
@@ -351,20 +355,20 @@ public class MySubscriberWhiteboxVerificationTest extends SubscriberWhiteboxVeri
       }
 
       @Override
-      public void onNext(Integer value) {
-        // in addition to normal Subscriber work that you're testing, register onNext with the probe
-        probe.registerOnNext(value);
+      public void onNext(Integer element) {
+        super.onNext(element);
+        probe.registerOnNext(element);
       }
 
       @Override
       public void onError(Throwable cause) {
-        // in addition to normal Subscriber work that you're testing, register onError with the probe
+        super.onError(cause);
         probe.registerOnError(cause);
       }
 
       @Override
       public void onComplete() {
-        // in addition to normal Subscriber work that you're testing, register onComplete with the probe
+        super.onComplete();
         probe.registerOnComplete();
       }
     };

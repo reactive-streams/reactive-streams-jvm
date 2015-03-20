@@ -162,7 +162,7 @@ public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
           }
         }).required_spec205_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal();
       }
-    }, "illegally accepted a second Subscription");
+    }, "Expected 2nd Subscription given to subscriber to be cancelled");
   }
 
   @Test
