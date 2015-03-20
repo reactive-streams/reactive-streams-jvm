@@ -25,7 +25,7 @@ public class UnboundedIntegerIncrementPublisherTest extends PublisherVerificatio
     return new InfiniteIncrementNumberPublisher(e);
   }
 
-  @Override public Publisher<Integer> createErrorStatePublisher() {
+  @Override public Publisher<Integer> createFailedPublisher() {
     return new AsyncIterablePublisher<Integer>(new Iterable<Integer>() {
       @Override public Iterator<Integer> iterator() {
         throw new RuntimeException("Error state signal!");

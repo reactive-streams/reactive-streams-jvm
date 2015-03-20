@@ -41,7 +41,7 @@ public class IdentityProcessorVerificationTest extends TCKVerificationSupport {
             return SKIP;
           }
 
-          @Override public Publisher<Integer> createErrorStatePublisher() {
+          @Override public Publisher<Integer> createFailedPublisher() {
             return SKIP;
           }
 
@@ -107,7 +107,7 @@ public class IdentityProcessorVerificationTest extends TCKVerificationSupport {
             };
           }
 
-          @Override public Publisher<Integer> createErrorStatePublisher() {
+          @Override public Publisher<Integer> createFailedPublisher() {
             return SKIP;
           }
         }.required_spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError();

@@ -30,7 +30,7 @@ public class IterablePublisherTest extends PublisherVerification<Integer> {
     return new NumberIterablePublisher(0, (int)elements, e);
   }
 
-  @Override public Publisher<Integer> createErrorStatePublisher() {
+  @Override public Publisher<Integer> createFailedPublisher() {
     return new AsyncIterablePublisher<Integer>(new Iterable<Integer>() {
       @Override public Iterator<Integer> iterator() {
         throw new RuntimeException("Error state signal!");

@@ -94,8 +94,8 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
       }
 
       @Override
-      public Publisher<T> createErrorStatePublisher() {
-        return IdentityProcessorVerification.this.createErrorStatePublisher();
+      public Publisher<T> createFailedPublisher() {
+        return IdentityProcessorVerification.this.createFailedPublisher();
       }
 
       @Override
@@ -125,10 +125,14 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
   public abstract Processor<T, T> createIdentityProcessor(int bufferSize);
 
   /**
-   * Return a Publisher that immediately signals {@code onError} to incoming subscriptions,
-   * or {@code null} in order to skip them.
+   * By implementing this method, additional TCK tests concerning a "failed" publishers will be run.
+   *
+   * The expected behaviour of the {@link Publisher} returned by this method is hand out a subscription,
+   * followed by signalling {@code onError} on it, as specified by Rule 1.9.
+   *
+   * If you ignore these additional tests, return {@code null} from this method.
    */
-  public abstract Publisher<T> createErrorStatePublisher();
+  public abstract Publisher<T> createFailedPublisher();
 
   /**
    * Override and return lower value if your Publisher is only able to produce a known number of elements.
