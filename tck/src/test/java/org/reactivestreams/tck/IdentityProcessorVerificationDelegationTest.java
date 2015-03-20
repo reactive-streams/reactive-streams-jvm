@@ -1,11 +1,12 @@
 package org.reactivestreams.tck;
 
-import org.testng.AssertJUnit;
 import org.testng.annotations.Test;
 
 import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+
+import static org.testng.AssertJUnit.assertTrue;
 
 /**
  * The {@link org.reactivestreams.tck.IdentityProcessorVerification} must also run all tests from
@@ -52,7 +53,7 @@ public class IdentityProcessorVerificationDelegationTest {
           delegatingFrom,
           targetTest, targetClass.getSimpleName(), targetTest);
 
-      AssertJUnit.assertTrue(msg, testsInclude(allTests, targetTest));
+      assertTrue(msg, testsInclude(allTests, targetTest));
     }
   }
 
