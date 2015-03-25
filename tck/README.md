@@ -87,10 +87,8 @@ Usually this means that this test case can yield false positives ("be green") ev
 
 <a name="type-untested"></a>
 The `untested_` means that the test case is not implemented, either because it is inherently hard to verify (e.g. Rules which use
-the wording "*SHOULD consider X as Y*") or have not been implemented yet (though we hope we have implemented all we
-could!). Such tests will show up in your test runs as `SKIPPED`, with a message pointing out that the TCK is unable to
-validate this Rule. We would be delighted if you can figure out a way to deterministically test Rules, which have been
-marked with this prefix – pull requests are very welcome!
+the wording "*SHOULD consider X as Y*"). Such tests will show up in your test runs as `SKIPPED`, with a message pointing out that the TCK is unable to validate this Rule. If you figure out a way to deterministically test Rules which have been
+marked with this prefix – pull requests are encouraged!
 
 ### Test isolation
 
@@ -200,12 +198,11 @@ public class RangePublisherTest extends PublisherVerification<Integer> {
 
 Notable configuration options include:
 
-* `maxElementsFromPublisher` – which should only be overridden in case the Publisher under test is not able to provide
-  arbitrary length streams, e.g. it's wrapping a `Future<T>` and thus can only publish up to 1 element. In such case you
-  should return `1` from this method. It will cause all tests which require more elements in order to validate a certain
+* `maxElementsFromPublisher` – must be overridden in case the Publisher being tested is of bounded length, e.g. it's wrapping a `Future<T>` and thus can only publish up to 1 element, in which case you
+  would return `1` from this method. It will cause all tests which require more elements in order to validate a certain
   Rule to be skipped,
-* `boundedDepthOfOnNextAndRequestRecursion` – which should only be overridden in case of synchronous Publishers.
-  This number will be used to validate if a `Subscription` actually solves the "unbounded recursion" problem (Rule 3.3).
+* `boundedDepthOfOnNextAndRequestRecursion` – which must be overridden when verifying synchronous Publishers.
+  This number returned by this method will be used to validate if a `Subscription` adheres to Rule 3.3 and avoids "unbounded recursion".
 
 ### Timeout configuration
 Publisher tests make use of two kinds of timeouts, one is the `defaultTimeoutMillis` which corresponds to all methods used
@@ -215,7 +212,7 @@ by the Publisher.
 
 In order to configure these timeouts (for example when running on a slow continious integtation machine), you can either:
 
-**Use env variables** to set these timeouts, in which case the you can just:
+**Use env variables** to set these timeouts, in which case the you can do:
 
 ```bash
 export DEFAULT_TIMEOUT_MILLIS=300
@@ -472,7 +469,7 @@ public class MyIdentityProcessorVerificationTest extends IdentityProcessorVerifi
 
   @Override
   public Publisher<Integer> createFailedPublisher() {
-    // return Publisher that just signals onError instead of null to run additional tests
+    // return Publisher that only signals onError instead of null to run additional tests
     // see this methods JavaDocs for more details on how the returned Publisher should work.
     return null;
   }
