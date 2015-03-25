@@ -28,3 +28,4 @@ ouertani       | Slim Ouertani, ouertani@gmail.com
 2m             | Martynas Mickevičius, mmartynas@gmail.com, Typesafe Inc.
 ldaley         | Luke Daley, luke.daley@gradleware.com, Gradleware Inc.
 colinrgodsey   | Colin Godsey, crgodsey@gmail.com, MediaMath Inc.
+davidmoten     | Dave Moten, davidmoten@gmail.com
