@@ -10,11 +10,11 @@ The TCK is implemented using **plain Java (1.6)** and **TestNG** tests, and shou
 The TCK aims to cover all rules defined in the Specification, however for some rules outlined in the Specification it is
 not possible (or viable) to construct automated tests, thus the TCK does not claim to completely verify an implementation, however it is very helpful and is able to validate the most important rules.
 
-The TCK is split up into 4 files JUnit 4 test classes which should be extended by implementers, providing their `Publisher` / `Subscriber` implementations for the test harness to validate them. The tests are split in the following way:
+The TCK is split up into 4 TestNG test classes which should be extended by implementers, providing their `Publisher` / `Subscriber` implementations for the test harness to validate them. The tests are split in the following way:
 
 * `PublisherVerification`
-* `SubscriberBlackboxVerification`
 * `SubscriberWhiteboxVerification`
+* `SubscriberBlackboxVerification`
 * `IdentityProcessorVerification`
 
 The next sections include examples on how these can be used and describe the various configuration options.
@@ -32,53 +32,63 @@ The TCK is provided as binary artifact on [Maven Central](http://search.maven.or
 
 Please refer to the [Reactive Streams Specification](https://github.com/reactive-streams/reactive-streams-jvm) for the current latest version number. Make sure that the API and TCK dependency versions are equal.
 
-### Types of tests
+### Test method naming convention
 
 Since the TCK is aimed at Reactive Stream implementers, looking into the sources of the TCK is well expected,
 and should help during a libraries implementation cycle.
 
 In order to make mapping between test cases and Specification rules easier, each test case covering a specific
-Specification rule abides the following naming convention: `spec###_DESC` where:
+Specification rule abides the following naming convention: `TYPE_spec###_DESC` where:
 
+* `TYPE` is one of: [#type-required](required), [#type-optional](optional), [#type-stochastic](stochastic) or [#type-untested](untested) which describe if this test is covering a Rule that MUST or SHOULD be implemented. The specific words are explained in detail below.
 * `###` is the Rule number (`1.xx` Rules are about Publishers, `2.xx` Rules are about Subscribers etc.)
 * `DESC` is a short explanation of what exactly is being tested in this test case, as sometimes one Rule may have multiple test cases in order to cover the entire Rule.
 
+Here is an example test method signature:
+
 ```java
   // Verifies rule: https://github.com/reactive-streams/reactive-streams-jvm#1.1
-  @Test public void required_spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements() throws Throwable
+  @Test public void required_spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements() throws Throwable {
     // ...
   }
 ```
 
-The prefixes of the names of the test methods are used in order to signify the character of the test. For example, these are the kinds of prefixes you may find:
-"`required_`", "`optional_`", "`stochastic_`", "`untested_`".
-
-Explanations:
+#### Test types explained:
 
 ```java
 @Test public void required_spec101_subscriptionRequestMustResultInTheCorrectNumberOfProducedElements() throws Throwable
 ```
 
-... means that this test case is a hard requirement, it covers a *MUST* or *MUST NOT* Rule of the Specification.
+<a name="type-required"></a>
+The `required_` means that this test case is a hard requirement, it covers a *MUST* or *MUST NOT* Rule of the Specification.
 
 
 ```java
 @Test public void optional_spec104_mustSignalOnErrorWhenFails() throws Throwable
 ```
 
-... means that this test case is optional, it covers a *MAY* or *SHOULD* Rule of the Specification.
+<a name="type-optional"></a>
+The `optional_` means that this test case is optional, it covers a *MAY* or *SHOULD* Rule of the Specification.
+This prefix is also used if more configuration is needed in order to run it, e.g.
+`@Additional(implement = "createFailedPublisher") @Test` signals the implementer that in order to run this test
+one has to implement the `Publisher<T> createFailedPublisher()` method.
 
 ```java
 @Test public void stochastic_spec103_mustSignalOnMethodsSequentially() throws Throwable
 ```
 
-... means that the Rule is either racy, and/or inherently hard to verify without heavy modification of the tested implementation. Usually this means that this test case can yield false positives ("be green") even if for some case, the given implementation may violate the tested behaviour.
+<a name="type-stochastic"></a>
+The `stochastic_` means that the Rule is either racy, and/or inherently hard to verify without heavy modification of the tested implementation.
+Usually this means that this test case can yield false positives ("be green") even if for some case, the given implementation may violate the tested behaviour.
 
 ```java
 @Test public void untested_spec106_mustConsiderSubscriptionCancelledAfterOnErrorOrOnCompleteHasBeenCalled() throws Throwable
 ```
 
-... means that the test case is not implemented, either because it is inherently hard to verify (e.g. Rules which use the wording "*SHOULD consider X as Y*") or have not been implemented yet (though we hope we have implemented all we could!). Such tests will show up in your test runs as `SKIPPED`, with a message pointing out that the TCK is unable to validate this Rule. We would be delighted if you can figure out a way to deterministically test Rules, which have been marked with this prefix – pull requests are very welcome!
+<a name="type-untested"></a>
+The `untested_` means that the test case is not implemented, either because it is inherently hard to verify (e.g. Rules which use
+the wording "*SHOULD consider X as Y*"). Such tests will show up in your test runs as `SKIPPED`, with a message pointing out that the TCK is unable to validate this Rule. If you figure out a way to deterministically test Rules which have been
+marked with this prefix – pull requests are encouraged!
 
 ### Test isolation
 
@@ -188,9 +198,11 @@ public class RangePublisherTest extends PublisherVerification<Integer> {
 
 Notable configuration options include:
 
-* `maxElementsFromPublisher` – which should only be overridden in case the Publisher under test is not able to provide arbitrary length streams, e.g. it's wrapping a `Future<T>` and thus can only publish up to 1 element. In such case you should return `1` from this method. It will cause all tests which require more elements in order to validate a certain Rule to be skipped,
-* `boundedDepthOfOnNextAndRequestRecursion` – which should only be overridden in case of synchronous Publishers. This number will be used to validate if a
-`Subscription` actually solves the "unbounded recursion" problem (Rule 3.3).
+* `maxElementsFromPublisher` – must be overridden in case the Publisher being tested is of bounded length, e.g. it's wrapping a `Future<T>` and thus can only publish up to 1 element, in which case you
+  would return `1` from this method. It will cause all tests which require more elements in order to validate a certain
+  Rule to be skipped,
+* `boundedDepthOfOnNextAndRequestRecursion` – which must be overridden when verifying synchronous Publishers.
+  This number returned by this method will be used to validate if a `Subscription` adheres to Rule 3.3 and avoids "unbounded recursion".
 
 ### Timeout configuration
 Publisher tests make use of two kinds of timeouts, one is the `defaultTimeoutMillis` which corresponds to all methods used
@@ -200,7 +212,7 @@ by the Publisher.
 
 In order to configure these timeouts (for example when running on a slow continious integtation machine), you can either:
 
-**Use env variables** to set these timeouts, in which case the you can just:
+**Use env variables** to set these timeouts, in which case the you can do:
 
 ```bash
 export DEFAULT_TIMEOUT_MILLIS=300
@@ -260,7 +272,7 @@ The `createElement` method MAY be called from multiple
 threads, so in case of more complicated implementations, please be aware of this fact.
 
 **Very Advanced**: While we do not expect many implementations having to do so, it is possible to take full control of the `Publisher`
-which will be driving the TCKs test. You can do this by implementing the `createHelperPublisher` method in which you can implement your
+which will be driving the TCKs test. This can be achieved by implementing the `createHelperPublisher` method in which you can implement your
 own Publisher which will then be used by the TCK to drive your Subscriber tests:
 
 ```java
@@ -342,6 +354,7 @@ public class MySubscriberWhiteboxVerificationTest extends SubscriberWhiteboxVeri
         // register a successful subscription, and create a Puppet,
         // for the WhiteboxVerification to be able to drive its tests:
         probe.registerOnSubscribe(new SubscriberPuppet() {
+
           @Override
           public void triggerRequest(long elements) {
             s.request(elements);
@@ -356,18 +369,21 @@ public class MySubscriberWhiteboxVerificationTest extends SubscriberWhiteboxVeri
 
       @Override
       public void onNext(Integer element) {
+        // in addition to normal Subscriber work that you're testing, register onNext with the probe
         super.onNext(element);
         probe.registerOnNext(element);
       }
 
       @Override
       public void onError(Throwable cause) {
+        // in addition to normal Subscriber work that you're testing, register onError with the probe
         super.onError(cause);
         probe.registerOnError(cause);
       }
 
       @Override
       public void onComplete() {
+        // in addition to normal Subscriber work that you're testing, register onComplete with the probe
         super.onComplete();
         probe.registerOnComplete();
       }
@@ -400,7 +416,7 @@ public class MySubscriberTest extends BlackboxSubscriberVerification<Integer> {
   public static final long DEFAULT_TIMEOUT_MILLIS = 300L;
 
   public RangePublisherTest() {
-    super(new MySubscriberTest(DEFAULT_TIMEOUT_MILLIS));
+    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS));
   }
 
   // ...
@@ -453,10 +469,13 @@ public class MyIdentityProcessorVerificationTest extends IdentityProcessorVerifi
 
   @Override
   public Publisher<Integer> createFailedPublisher() {
+    // return Publisher that only signals onError instead of null to run additional tests
+    // see this methods JavaDocs for more details on how the returned Publisher should work.
     return null;
   }
 
   // OPTIONAL CONFIGURATION OVERRIDES
+  // override these only if you understand why you'd need to do so for your impl.
 
   @Override
   public long maxElementsFromPublisher() {
@@ -482,30 +501,63 @@ to skip tests inherited from the TCK's base classes:
 ```java
 package com.example.streams;
 
+import org.reactivestreams.Processor;
+import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.IdentityProcessorVerification;
+import org.reactivestreams.tck.TestEnvironment;
+import org.testng.annotations.AfterClass;
+import org.testng.annotations.BeforeClass;
 
-public class SkippingIdentityProcessorTest extends IdentityProcessorVerification<Integer> {
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+
+public class MyIdentityProcessorTest extends IdentityProcessorVerification<Integer> {
+
+  private ExecutorService e;
+
+  @BeforeClass
+  public void before() { e = Executors.newFixedThreadPool(4); }
+
+  @AfterClass
+  public void after() { if (e != null) e.shutdown(); }
 
   public SkippingIdentityProcessorTest() {
-    super(new TestEnvironment(500, true), 1000);
+    super(new TestEnvironment());
+  }
+
+  @Override
+  public ExecutorService publisherExecutorService() {
+    return e;
+  }
+
+  @Override
+  public Integer createElement(int element) {
+    return element;
   }
 
   @Override
   public Processor<Integer, Integer> createIdentityProcessor(int bufferSize) {
-    return /* ... */;
+    return new MyProcessor<Integer, Integer>(buffer Size); // return your implementation
   }
 
-  @Override // override the test method, and provide a reason on why you're doing so in the notVerified() message
-  public void spec999_mustDoVeryCrazyThings() throws Throwable {
-    notVerified("Unable to implement test because ...");
+  @Override
+  public Publisher<Integer> createFailedPublisher() {
+    return null; // returning null means that the tests validating a failed publisher will be skipped
   }
 
 }
 ```
 
-## Upgrade story
+## Upgrading the TCK to newer versions
+While we do not expect the Reactive Streams specification to change in the forseeable future,
+it *may happen* that some semantics may need to change at some point. In this case you should expect test
+methods being phased out in terms of deprecation or removal, new tests may also be added over time.
 
-**TODO** - What is our story about updating the TCK? How do we make sure that implementations don't accidentally miss some change in the spec, if the TCK is unable to fail verify the new behavior? Comments are very welcome, discussion about this is under-way in [Issue #99 – TCK Upgrade Story](https://github.com/reactive-streams/reactive-streams-jvm/issues/99).
+In general this should not be of much concern, unless overriding test methods in your test suite.
+We ask implementers who find the need of overriding provided test methods to reach out via opening tickets
+on the `reactive-streams/reactive-streams-jvm` project, so we can discuss the use case and, most likely, improve the TCK.
 
 ## Using the TCK from other languages
 
@@ -542,4 +594,4 @@ class IterablePublisherTest(env: TestEnvironment, publisherShutdownTimeout: Long
 
 Contributions to this document are very welcome!
 
-If you're implementing reactive streams using the TCK in some language, please feel free to share an example on how to best use it from your language of choice.
+When implementing Reactive Streams using the TCK in some language, please feel free to share an example on how to best use it from your language of choice.
