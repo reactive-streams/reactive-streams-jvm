@@ -4,7 +4,7 @@ package org.reactivestreams;
  * A {@link Publisher} is a provider of a potentially unbounded number of sequenced elements, publishing them according to
  * the demand received from its {@link Subscriber}(s).
  * <p>
- * A {@link Publisher} can serve multiple {@link Subscriber}s subscribed {@link #subscribe(Subscriber)}dynamically
+ * A {@link Publisher} can serve multiple {@link Subscriber}s subscribed {@link #subscribe(Subscriber)} dynamically
  * at various points in time.
  *
  * @param <T> the type of element signaled.
