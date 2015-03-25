@@ -152,7 +152,7 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
    * {@code Subscription} actually solves the "unbounded recursion" problem by not allowing the number of
    * recursive calls to exceed the number returned by this method.
    *
-   * @see <a href="https://github.com/reactive-streams/reactive-streams#3.3">reactive streams spec, rule 3.3</a>
+   * @see <a href="https://github.com/reactive-streams/reactive-streams-jvm#3.3">reactive streams spec, rule 3.3</a>
    * @see PublisherVerification#required_spec303_mustNotAllowUnboundedRecursion()
    */
   public long boundedDepthOfOnNextAndRequestRecursion() {
@@ -208,7 +208,7 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
   }
 
   /////////////////////// DELEGATED TESTS, A PROCESSOR "IS A" PUBLISHER //////////////////////
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#4.1
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams-jvm#4.1
 
   @Test
   public void required_createPublisher1MustProduceAStreamOfExactly1Element() throws Throwable {
@@ -380,7 +380,7 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
     publisherVerification.required_spec317_mustNotSignalOnErrorWhenPendingAboveLongMaxValue();
   }
 
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#1.4
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams-jvm#1.4
   // for multiple subscribers
   @Test
   public void required_spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError() throws Throwable {
@@ -408,14 +408,14 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
           sub1.expectError(ex);
           sub2.expectError(ex);
 
-          env.verifyNoAsyncErrors();
+          env.verifyNoAsyncErrorsNoDelay();
         }};
       }
     });
   }
 
   ////////////////////// SUBSCRIBER RULES VERIFICATION ///////////////////////////
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#4.1
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams-jvm#4.1
 
   // A Processor
   //   must obey all Subscriber rules on its consuming side
@@ -480,12 +480,12 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
       sendError(ex);
       sub.expectError(ex); // "immediately", i.e. without a preceding request
 
-      env.verifyNoAsyncErrors();
+      env.verifyNoAsyncErrorsNoDelay();
     }};
   }
 
   /////////////////////// DELEGATED TESTS, A PROCESSOR "IS A" SUBSCRIBER //////////////////////
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams#4.1
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams-jvm#4.1
 
   @Test
   public void required_exerciseWhiteboxHappyPath() throws Throwable {
@@ -668,7 +668,7 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
           sub1.expectCompletion(env.defaultTimeoutMillis());
           sub2.expectCompletion(env.defaultTimeoutMillis());
 
-          env.verifyNoAsyncErrors();
+          env.verifyNoAsyncErrorsNoDelay();
         }};
       }
     });
