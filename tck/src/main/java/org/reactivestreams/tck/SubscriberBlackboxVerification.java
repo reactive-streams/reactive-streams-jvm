@@ -48,6 +48,16 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
    */
   public abstract Subscriber<T> createSubscriber();
 
+  /**
+   * Override this method if the Subscriber implementation you are verifying
+   * needs an external signal before it signals demand to its Publisher.
+   *
+   * By default this method does nothing.
+   */
+  public void triggerRequest(final Subscriber<? super T> subscriber) {
+
+  }
+
   // ENV SETUP
 
   /**
@@ -74,6 +84,7 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
     blackboxSubscriberTest(new BlackboxTestStageTestRun() {
       @Override
       public void run(BlackboxTestStage stage) throws InterruptedException {
+        triggerRequest(stage.subProxy().sub());
         final long n = stage.expectRequest();// assuming subscriber wants to consume elements...
 
         // should cope with up to requested number of elements
@@ -248,6 +259,7 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
         final BlackboxSubscriberProxy<T> probe = stage.createBlackboxSubscriberProxy(env, sub);
 
         pub.subscribe(probe);
+        triggerRequest(sub);
         probe.expectCompletion();
         probe.expectNone();
 
