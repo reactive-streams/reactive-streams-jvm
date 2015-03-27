@@ -241,18 +241,29 @@ Note that explicitly passed in values take precedence over values provided by th
 
 Subscriber rules Verification is split up into two files (styles) of tests.
 
-The Blackbox Verification tests do not require the implementation under test to be modified at all, yet they are *not* able to verify most rules. In Whitebox Verification, more control over `request()` calls etc. is required in order to validate rules more precisely.
+The Blackbox Verification tests do not require the implementation under test to be modified at all, yet they are *not* able
+to verify most rules. In Whitebox Verification, more control over `request()` calls etc. is required in order to validate rules more precisely.
+
+It is highly recommended to implement the `SubscriberWhiteboxVerification<T>` instead of the blackbox one even if it is
+more work to do so, as it can test far more corner cases in implementations that would otherwise be left untested
+(if only blackbox tests would be used).
 
 ### createElement and Helper Publisher implementations
 Since testing a `Subscriber` is not possible without a corresponding `Publisher` the TCK Subscriber Verifications
 both provide a default "*helper publisher*" to drive its test and also alow to replace this Publisher with a custom implementation.
 The helper publisher is an asynchronous publisher by default - meaning that your subscriber can not blindly assume single threaded execution.
 
+When extending subscriber verification classes a type parameter representing the element type passed through the stream must be given.
+Implementations usually should not be sensitive to the type of element being signalled, but sometimes a Subscriber may be limited to only be able to work within a known set of types -
+like a `FileSubscriber extends Subscriber<String>` for example, that writes each element it receives as new line into a file.
+For element type agnostic Subscribers it is the simplest to parameterize the tests using `Integer` and in the `createElement(int idx)` method (explained below in futher detail), return the incoming `int`. 
+In case an implementation needs to work on a specific type, the verification class should be parameterized using that type (e.g. `class StringSubTest extends SubscriberWhiteboxVerification<String>`) and a `String` must be returned from the `createElement` method.
+
 While the `Publisher` implementation is provided, creating the signal elements is not – this is because a given Subscriber
 may for example only work with `HashedMessage` or some other specific kind of signal. The TCK is unable to generate such
 special messages automatically, so we provide the `T createElement(Integer id)` method to be implemented as part of
 Subscriber Verifications which should take the given ID and return an element of type `T` (where `T` is the type of
-elements flowing into the `Subscriber<T>`, as known thanks to `... extends WhiteboxSubscriberVerification<T>`) representing
+elements flowing into the `Subscriber<T>`, as known thanks to `... extends SubscriberWhiteboxVerification<T>`) representing
 an element of the stream that will be passed on to the Subscriber.
 
 The simplest valid implemenation is to return the incoming `id` *as the element* in a verification using `Integer`s as element types:
@@ -268,8 +279,8 @@ public class MySubscriberTest extends SubscriberBlackboxVerification<Integer> {
 ```
 
 
-The `createElement` method MAY be called from multiple
-threads, so in case of more complicated implementations, please be aware of this fact.
+The `createElement` method MAY be called concurrently from multiple threads,
+so in case of more complicated implementations, please be aware of this fact.
 
 **Very Advanced**: While we do not expect many implementations having to do so, it is possible to take full control of the `Publisher`
 which will be driving the TCKs test. This can be achieved by implementing the `createHelperPublisher` method in which you can implement your
