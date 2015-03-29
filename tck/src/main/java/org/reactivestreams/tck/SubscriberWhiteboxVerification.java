@@ -488,7 +488,7 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
 
   /**
    * Provides a {@link WhiteboxTestStage} without performing any additional setup,
-   * like the {@link org.reactivestreams.tck.SubscriberWhiteboxVerification#subscriberTest(TestStageTestRun)} would.
+   * like the {@link #subscriberTest(SubscriberWhiteboxVerification.TestStageTestRun)} would.
    *
    * Use this method to write tests in which you need full control over when and how the initial {@code subscribe} is signalled.
    */
