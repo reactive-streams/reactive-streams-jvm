@@ -8,12 +8,12 @@ The latest preview release is available on Maven Central as
 <dependency>
   <groupId>org.reactivestreams</groupId>
   <artifactId>reactive-streams</artifactId>
-  <version>1.0.0.RC3</version>
+  <version>1.0.0.RC4</version>
 </dependency>
 <dependency>
   <groupId>org.reactivestreams</groupId>
   <artifactId>reactive-streams-tck</artifactId>
-  <version>1.0.0.RC3</version>
+  <version>1.0.0.RC4</version>
   <scope>test</scope>
 </dependency>
 ```
@@ -72,7 +72,7 @@ followed by a possibly unbounded number of `onNext` signals (as requested by `Su
 
 ### SPECIFICATION
 
-#### 1. Publisher ([Code](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.0.RC3/api/src/main/java/org/reactivestreams/Publisher.java))
+#### 1. Publisher ([Code](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.0.RC4/api/src/main/java/org/reactivestreams/Publisher.java))
 
 ```java
 public interface Publisher<T> {
@@ -96,7 +96,7 @@ public interface Publisher<T> {
 
 [<a name="footnote-1-1">1</a>] :  A stateful Publisher can be overwhelmed, bounded by a finite number of underlying resources, exhausted, shut-down or in a failed state.
 
-#### 2. Subscriber ([Code](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.0.RC3/api/src/main/java/org/reactivestreams/Subscriber.java))
+#### 2. Subscriber ([Code](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.0.RC4/api/src/main/java/org/reactivestreams/Subscriber.java))
 
 ```java
 public interface Subscriber<T> {
@@ -125,7 +125,7 @@ public interface Subscriber<T> {
 
 [<a name="footnote-2-1">1</a>] : See JMM definition of Happen-Before in section 17.4.5. on http://docs.oracle.com/javase/specs/jls/se7/html/jls-17.html
 
-#### 3. Subscription ([Code](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.0.RC3/api/src/main/java/org/reactivestreams/Subscription.java))
+#### 3. Subscription ([Code](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.0.RC4/api/src/main/java/org/reactivestreams/Subscription.java))
 
 ```java
 public interface Subscription {
@@ -162,7 +162,7 @@ public interface Subscription {
 
 A `Subscription` is shared by exactly one `Publisher` and one `Subscriber` for the purpose of mediating the data exchange between this pair. This is the reason why the `subscribe()` method does not return the created `Subscription`, but instead returns `void`; the `Subscription` is only passed to the `Subscriber` via the `onSubscribe` callback.
 
-#### 4.Processor ([Code](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.0.RC3/api/src/main/java/org/reactivestreams/Processor.java))
+#### 4.Processor ([Code](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.0.RC4/api/src/main/java/org/reactivestreams/Processor.java))
 
 ```java
 public interface Processor<T, R> extends Subscriber<T>, Publisher<R> {
