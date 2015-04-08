@@ -5,6 +5,7 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.support.TCKVerificationSupport;
 import org.reactivestreams.tck.support.TestException;
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.util.Random;
@@ -585,6 +586,38 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
     }, "Async error during test execution: Illegally signalling onError too soon!");
   }
 
+  @Test
+  public void required_spec317_mustNotSignalOnErrorWhenPendingAboveLongMaxValue_forSynchronousPublisher() throws Throwable {
+    final AtomicInteger sent = new AtomicInteger();
+
+    customPublisherVerification(new Publisher<Integer>() {
+      @Override
+      public void subscribe(final Subscriber<? super Integer> downstream) {
+        downstream.onSubscribe(new Subscription() {
+          boolean started;
+          boolean cancelled;
+
+          @Override
+          public void request(long n) {
+            if (!started) {
+              started = true;
+              while (!cancelled) {
+                downstream.onNext(sent.getAndIncrement());
+              }
+            }
+          }
+
+          @Override
+          public void cancel() {
+            cancelled = true;
+          }
+        });
+      }
+    }).required_spec317_mustNotSignalOnErrorWhenPendingAboveLongMaxValue();
+
+    // 11 due to the implementation of this particular TCK test (see impl)
+    Assert.assertEquals(sent.get(), 11);
+  }
 
   // FAILING IMPLEMENTATIONS //
 
