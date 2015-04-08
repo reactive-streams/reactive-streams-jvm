@@ -1044,6 +1044,8 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
               if (callsCounter > 0) {
                 subscription.value().request(Long.MAX_VALUE - 1);
                 callsCounter--;
+              } else {
+                  subscription.value().cancel();
               }
             } else {
               env.flop(String.format("Subscriber::onNext(%s) called before Subscriber::onSubscribe", element));
