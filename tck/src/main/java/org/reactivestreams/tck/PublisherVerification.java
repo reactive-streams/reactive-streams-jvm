@@ -38,6 +38,11 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
   private static final long DEFAULT_PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS = 300L;
 
   private final TestEnvironment env;
+
+  /**
+   * The amount of time after which a cancelled Subscriber reference should be dropped.
+   * See Rule 3.13 for details.
+   */
   private final long publisherReferenceGCTimeoutMillis;
 
   /**
@@ -127,14 +132,6 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
    */
   public long boundedDepthOfOnNextAndRequestRecursion() {
     return 1;
-  }
-
-  /**
-   * The amount of time after which a cancelled Subscriber reference should be dropped.
-   * See Rule 3.13 for details.
-   */
-  final public long publisherReferenceGCTimeoutMillis() {
-    return publisherReferenceGCTimeoutMillis;
   }
 
   ////////////////////// TEST ENV CLEANUP /////////////////////////////////////
