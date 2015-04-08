@@ -412,7 +412,7 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams-jvm#3.8
   @Override @Test
-  public void required_spec308_blackbox_requestMustRegisterGivenNumberElementsToBeProduced() throws Throwable {
+  public void untested_spec308_blackbox_requestMustRegisterGivenNumberElementsToBeProduced() throws Throwable {
     notVerified(); // cannot be meaningfully tested as black box, or can it?
   }
 

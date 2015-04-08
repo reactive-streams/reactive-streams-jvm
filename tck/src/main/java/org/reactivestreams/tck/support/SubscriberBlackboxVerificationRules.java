@@ -24,7 +24,7 @@ public interface SubscriberBlackboxVerificationRules {
   void required_spec213_blackbox_onNext_mustThrowNullPointerExceptionWhenParametersAreNull() throws Throwable;
   void required_spec213_blackbox_onError_mustThrowNullPointerExceptionWhenParametersAreNull() throws Throwable;
   void untested_spec301_blackbox_mustNotBeCalledOutsideSubscriberContext() throws Exception;
-  void required_spec308_blackbox_requestMustRegisterGivenNumberElementsToBeProduced() throws Throwable;
+  void untested_spec308_blackbox_requestMustRegisterGivenNumberElementsToBeProduced() throws Throwable;
   void untested_spec310_blackbox_requestMaySynchronouslyCallOnNextOnSubscriber() throws Exception;
   void untested_spec311_blackbox_requestMaySynchronouslyCallOnCompleteOrOnError() throws Exception;
   void untested_spec314_blackbox_cancelMayCauseThePublisherToShutdownIfNoOtherSubscriptionExists() throws Exception;
