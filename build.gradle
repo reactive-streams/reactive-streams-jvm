@@ -136,7 +136,7 @@ subprojects {
 import org.gradle.plugins.signing.Sign
 
 gradle.taskGraph.whenReady { taskGraph ->
-    if (taskGraph.allTasks.any { it instanceof Sign }) {
+    if (taskGraph.allTasks.any { it instanceof Sign } && signing.required) {
         // Use Java 6's console to read from the console (no good for
         // a CI environment)
         Console console = System.console()
