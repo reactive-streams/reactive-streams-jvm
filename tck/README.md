@@ -27,7 +27,7 @@ The TCK is provided as binary artifact on [Maven Central](http://search.maven.or
 <dependency>
   <groupId>org.reactivestreams</groupId>
   <artifactId>reactive-streams-tck</artifactId>
-  <version>1.0.0.RC5</version>
+  <version>1.0.0</version>
   <scope>test</scope>
 </dependency>
 ```
