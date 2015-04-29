@@ -39,10 +39,10 @@ subprojects {
 
     jar {
         manifest {
-            instruction "Bundle-Vendor", "Reactive Streams SIG"
-            instruction "Bundle-Description", "Reactive Streams API"
-            instruction "Bundle-DocURL", "http://reactive-streams.org"
-            instruction "Bundle-Version", "1.0.0"
+            instructionReplace "Bundle-Vendor", "Reactive Streams SIG"
+            instructionReplace "Bundle-Description", "Reactive Streams API"
+            instructionReplace "Bundle-DocURL", "http://reactive-streams.org"
+            instructionReplace "Bundle-Version", "1.0.0"
         }
     }
 
