@@ -8,12 +8,12 @@ The latest preview release is available on Maven Central as
 <dependency>
   <groupId>org.reactivestreams</groupId>
   <artifactId>reactive-streams</artifactId>
-  <version>1.0.0.final</version>
+  <version>1.0.0</version>
 </dependency>
 <dependency>
   <groupId>org.reactivestreams</groupId>
   <artifactId>reactive-streams-tck</artifactId>
-  <version>1.0.0.final</version>
+  <version>1.0.0</version>
   <scope>test</scope>
 </dependency>
 ```

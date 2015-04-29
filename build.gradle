@@ -3,7 +3,7 @@ subprojects {
     apply plugin: "osgi"
 
     group = "org.reactivestreams"
-    version = "1.0.0.final"
+    version = "1.0.0"
 
     sourceCompatibility = 1.6
     targetCompatibility = 1.6
@@ -36,11 +36,13 @@ subprojects {
         mavenCentral()
     }
 
+
     jar {
         manifest {
             instruction "Bundle-Vendor", "Reactive Streams SIG"
             instruction "Bundle-Description", "Reactive Streams API"
             instruction "Bundle-DocURL", "http://reactive-streams.org"
+            instruction "Bundle-Version", "1.0.0"
         }
     }
 
