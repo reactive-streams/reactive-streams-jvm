@@ -26,7 +26,7 @@ The main goal of Reactive Streams is to govern the exchange of stream data acros
 
 It is the intention of this specification to allow the creation of many conforming implementations, which by virtue of abiding by the rules will be able to interoperate smoothly, preserving the aforementioned benefits and characteristics across the whole processing graph of a stream application.
 
-It should be noted that the precise nature of stream manipulations (transformation, splitting, merging, etc.) is not covered by this specification. Reactive Streams are only concerned with mediating the stream of data between different processing elements. In their development care has been taken to ensure that all basic ways of combining streams can be expressed.
+It should be noted that the precise nature of stream manipulations (transformation, splitting, merging, etc.) is not covered by this specification. Reactive Streams are only concerned with mediating the stream of data between different [API Components](#api-components). In their development care has been taken to ensure that all basic ways of combining streams can be expressed.
 
 In summary, Reactive Streams is a standard and specification for Stream-oriented libraries for the JVM that
 
