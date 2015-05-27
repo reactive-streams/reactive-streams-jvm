@@ -29,3 +29,4 @@ ouertani       | Slim Ouertani, ouertani@gmail.com
 ldaley         | Luke Daley, luke.daley@gradleware.com, Gradleware Inc.
 colinrgodsey   | Colin Godsey, crgodsey@gmail.com, MediaMath Inc.
 davidmoten     | Dave Moten, davidmoten@gmail.com
+briantopping   | Brian Topping, brian.topping@gmail.com, Mauswerks LLC
