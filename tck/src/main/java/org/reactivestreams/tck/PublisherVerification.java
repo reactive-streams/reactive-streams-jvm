@@ -22,6 +22,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Random;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.concurrent.atomic.AtomicReference;
 
 import static org.testng.Assert.assertEquals;
@@ -246,9 +247,9 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
           public void run(Publisher<T> pub) throws Throwable {
             final Latch completionLatch = new Latch(env);
 
+            final AtomicInteger gotElements = new AtomicInteger(0);
             pub.subscribe(new Subscriber<T>() {
               private Subscription subs;
-              private long gotElements = 0;
 
               private ConcurrentAccessBarrier concurrentAccessBarrier = new ConcurrentAccessBarrier();
 
@@ -302,8 +303,7 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
                 final String signal = String.format("onNext(%s)", ignore);
                 concurrentAccessBarrier.enterSignal(signal);
 
-                gotElements += 1;
-                if (gotElements <= elements) // requesting one more than we know are in the stream (some Publishers need this)
+                if (gotElements.incrementAndGet() <= elements) // requesting one more than we know are in the stream (some Publishers need this)
                   subs.request(1);
 
                 concurrentAccessBarrier.leaveSignal(signal);
@@ -331,7 +331,10 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
               }
             });
 
-            completionLatch.expectClose(elements * env.defaultTimeoutMillis(), "Expected 10 elements to be drained");
+            completionLatch.expectClose(
+              elements * env.defaultTimeoutMillis(),
+              String.format("Failed in iteration %d of %d. Expected completion signal after signalling %d elements (signalled %d), yet did not receive it",
+                            runNumber, iterations, elements, gotElements.get()));
           }
         });
         return null;
