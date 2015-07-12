@@ -11,6 +11,7 @@ import org.reactivestreams.tck.TestEnvironment.Promise;
 import org.reactivestreams.tck.support.Function;
 import org.reactivestreams.tck.support.SubscriberWhiteboxVerificationRules;
 import org.reactivestreams.tck.support.PublisherVerificationRules;
+import org.reactivestreams.tck.support.TestException;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
@@ -387,23 +388,29 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
     optionalMultipleSubscribersTest(2, new Function<Long,TestSetup>() {
       @Override
       public TestSetup apply(Long aLong) throws Throwable {
-        return new TestSetup(env, processorBufferSize) {{
+        return new TestSetup(env, processorBufferSize, false) {{
           final ManualSubscriberWithErrorCollection<T> sub1 = new ManualSubscriberWithErrorCollection<T>(env);
-          env.subscribe(processor, sub1);
-
           final ManualSubscriberWithErrorCollection<T> sub2 = new ManualSubscriberWithErrorCollection<T>(env);
-          env.subscribe(processor, sub2);
 
-          sub1.request(1);
+          // connect upstream
+          env.subscribe(this, processor);
+          // connect downstreams
+          env.subscribe(processor, sub1);
+          sub1.request(2);
+          env.subscribe(processor, sub2);
+          sub2.request(1);
+
+          // request bubbles up to upstream publisher:
           expectRequest();
           final T x = sendNextTFromUpstream();
           expectNextElement(sub1, x);
           sub1.request(1);
 
           // sub1 has received one element, and has one demand pending
-          // sub2 has not yet requested anything
+          // sub2 has received one element, and no more pending demand
 
-          final Exception ex = new RuntimeException("Test exception");
+          // if upstream fails, both should get the error signal
+          final Exception ex = new TestException();
           sendError(ex);
           sub1.expectError(ex);
           sub2.expectError(ex);
@@ -472,11 +479,11 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
   //   must immediately pass on `onError` events received from its upstream to its downstream
   @Test
   public void mustImmediatelyPassOnOnErrorEventsReceivedFromItsUpstreamToItsDownstream() throws Exception {
-    new TestSetup(env, processorBufferSize) {{
+    new TestSetup(env, processorBufferSize, true) {{
       final ManualSubscriberWithErrorCollection<T> sub = new ManualSubscriberWithErrorCollection<T>(env);
       env.subscribe(processor, sub);
 
-      final Exception ex = new RuntimeException("Test exception");
+      final Exception ex = new TestException();
       sendError(ex);
       sub.expectError(ex); // "immediately", i.e. without a preceding request
 
@@ -629,13 +636,13 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
     optionalMultipleSubscribersTest(2, new Function<Long,TestSetup>() {
       @Override
       public TestSetup apply(Long subscribers) throws Throwable {
-        return new TestSetup(env, processorBufferSize) {{
-          ManualSubscriber<T> sub1 = newSubscriber();
+        return new TestSetup(env, processorBufferSize, false) {{
+          final ManualSubscriber<T> sub1 = newSubscriber();
           sub1.request(20);
 
           long totalRequests = expectRequest();
           final T x = sendNextTFromUpstream();
-          expectNextElement(sub1, x);
+          expectNextElement(sub1, x); // correct, this is not valid in case of "wait for slowest"
 
           if (totalRequests == 1) {
             totalRequests += expectRequest();
@@ -700,11 +707,11 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
 
     final Processor<T, T> processor;
 
-    public TestSetup(TestEnvironment env, int testBufferSize) throws InterruptedException {
+    public TestSetup(TestEnvironment env, int testBufferSize, boolean subscribeProcessorToEnvPublisher) throws InterruptedException {
       super(env);
       tees = env.newManualSubscriber(createHelperPublisher(Long.MAX_VALUE));
       processor = createIdentityProcessor(testBufferSize);
-      subscribe(processor);
+      if (subscribeProcessorToEnvPublisher) subscribe(processor);
     }
 
     public ManualSubscriber<T> newSubscriber() throws InterruptedException {
