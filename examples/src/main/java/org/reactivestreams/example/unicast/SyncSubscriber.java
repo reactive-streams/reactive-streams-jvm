@@ -49,7 +49,7 @@ public abstract class SyncSubscriber<T> implements Subscriber<T> {
 
       if (!done) { // If we aren't already done
         try {
-          if (foreach(element)) {
+          if (whenNext(element)) {
             try {
               subscription.request(1); // Our Subscriber is unbuffered and modest, it requests one element at a time
             } catch (final Throwable t) {
@@ -76,7 +76,7 @@ public abstract class SyncSubscriber<T> implements Subscriber<T> {
   // herefor we also need to cancel our `Subscription`.
   private void done() {
     //On this line we could add a guard against `!done`, but since rule 3.7 says that `Subscription.cancel()` is idempotent, we don't need to.
-    done = true; // If we `foreach` throws an exception, let's consider ourselves done (not accepting more elements)
+    done = true; // If we `whenNext` throws an exception, let's consider ourselves done (not accepting more elements)
     try {
       subscription.cancel(); // Cancel the subscription
     } catch(final Throwable t) {
@@ -87,7 +87,7 @@ public abstract class SyncSubscriber<T> implements Subscriber<T> {
 
   // This method is left as an exercise to the reader/extension point
   // Returns whether more elements are desired or not, and if no more elements are desired
-  protected abstract boolean foreach(final T element);
+  protected abstract boolean whenNext(final T element);
 
   @Override public void onError(final Throwable t) {
     if (subscription == null) { // Technically this check is not needed, since we are expecting Publishers to conform to the spec

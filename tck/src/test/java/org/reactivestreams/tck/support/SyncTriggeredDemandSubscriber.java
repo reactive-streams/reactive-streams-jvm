@@ -7,7 +7,7 @@ import org.reactivestreams.Subscription;
  * SyncTriggeredDemandSubscriber is an implementation of Reactive Streams `Subscriber`,
  * it runs synchronously (on the Publisher's thread) and requests demand triggered from
  * "the outside" using its `triggerDemand` method and from "the inside" using the return
- * value of its user-defined `foreach` method which is invoked to process each element.
+ * value of its user-defined `whenNext` method which is invoked to process each element.
  *
  * NOTE: The code below uses a lot of try-catches to show the reader where exceptions can be expected, and where they are forbidden.
  */
@@ -85,7 +85,7 @@ public abstract class SyncTriggeredDemandSubscriber<T> implements Subscriber<T> 
   // herefor we also need to cancel our `Subscription`.
   private void done() {
     //On this line we could add a guard against `!done`, but since rule 3.7 says that `Subscription.cancel()` is idempotent, we don't need to.
-    done = true; // If we `foreach` throws an exception, let's consider ourselves done (not accepting more elements)
+    done = true; // If we `whenNext` throws an exception, let's consider ourselves done (not accepting more elements)
     try {
       subscription.cancel(); // Cancel the subscription
     } catch(final Throwable t) {

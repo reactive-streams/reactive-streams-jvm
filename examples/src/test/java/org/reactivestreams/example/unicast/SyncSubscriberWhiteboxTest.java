@@ -62,7 +62,7 @@ public class SyncSubscriberWhiteboxTest extends SubscriberWhiteboxVerification<I
       }
 
       @Override
-      protected boolean foreach(Integer element) {
+      protected boolean whenNext(Integer element) {
         return true;
       }
     };
