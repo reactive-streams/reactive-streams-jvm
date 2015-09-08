@@ -50,7 +50,7 @@ public abstract class AsyncSubscriber<T> implements Subscriber<T>, Runnable {
   // herefor we also need to cancel our `Subscription`.
   private final void done() {
     //On this line we could add a guard against `!done`, but since rule 3.7 says that `Subscription.cancel()` is idempotent, we don't need to.
-    done = true; // If we `foreach` throws an exception, let's consider ourselves done (not accepting more elements)
+    done = true; // If `whenNext` throws an exception, let's consider ourselves done (not accepting more elements)
     if (subscription != null) { // If we are bailing out before we got a `Subscription` there's little need for cancelling it.
       try {
         subscription.cancel(); // Cancel the subscription

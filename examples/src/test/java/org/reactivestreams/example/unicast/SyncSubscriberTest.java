@@ -24,7 +24,7 @@ public class SyncSubscriberTest extends SubscriberBlackboxVerification<Integer> 
   @Override public Subscriber<Integer> createSubscriber() {
     return new SyncSubscriber<Integer>() {
       private long acc;
-      @Override protected boolean foreach(final Integer element) {
+      @Override protected boolean whenNext(final Integer element) {
         acc += element;
         return true;
       }
