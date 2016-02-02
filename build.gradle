@@ -28,7 +28,7 @@ subprojects {
     tasks.withType(Test) {
       testLogging {
         exceptionFormat "full"
-        events "failed", "started"
+        events "failed", "started", "standard_out", "standard_error"
       }
     }
 
