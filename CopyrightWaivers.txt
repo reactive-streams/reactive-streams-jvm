@@ -32,3 +32,4 @@ davidmoten     | Dave Moten, davidmoten@gmail.com
 briantopping   | Brian Topping, brian.topping@gmail.com, Mauswerks LLC
 rstoyanchev    | Rossen Stoyanchev, rstoyanchev@pivotal.io, Pivotal
 BjornHamels    | Björn Hamels, bjorn@hamels.nl
+JakeWharton    | Jake Wharton, jakewharton@gmail.com
