@@ -12,6 +12,7 @@ env:
   global:
   - TERM=dumb
   - DEFAULT_TIMEOUT_MILLIS=300
+  - DEFAULT_NO_SIGNALS_TIMEOUT_MILLIS=200
   - PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS=300
 addons: # Fix OpenJDK build. Issue: https://github.com/travis-ci/travis-ci/issues/5227 & https://docs.travis-ci.com/user/hostname
   hostname: rs-jvm
