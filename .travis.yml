@@ -1,5 +1,5 @@
+sudo: true
 language: java
-sudo: required
 script:
   - ./gradlew check
 cache:
@@ -13,5 +13,5 @@ env:
   - TERM=dumb
   - DEFAULT_TIMEOUT_MILLIS=300
   - PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS=300
-addons: # Fix OpenJDK build. Issue: https://github.com/travis-ci/travis-ci/issues/5227 & https://docs.travis-ci.com/user/hostname
+addons:
   hostname: rs-jvm
