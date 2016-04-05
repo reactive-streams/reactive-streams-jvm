@@ -19,6 +19,7 @@ import java.util.concurrent.Executors;
 public class IdentityProcessorVerificationTest extends TCKVerificationSupport {
 
   static final long DEFAULT_TIMEOUT_MILLIS = TestEnvironment.envDefaultTimeoutMillis();
+  static final long DEFAULT_NO_SIGNALS_TIMEOUT_MILLIS = TestEnvironment.envDefaultNoSignalsTimeoutMillis();
 
   private ExecutorService ex;
   @BeforeClass void before() { ex = Executors.newFixedThreadPool(4); }
@@ -155,7 +156,7 @@ public class IdentityProcessorVerificationTest extends TCKVerificationSupport {
   }
 
   private TestEnvironment newTestEnvironment() {
-    return new TestEnvironment(DEFAULT_TIMEOUT_MILLIS);
+    return new TestEnvironment(DEFAULT_TIMEOUT_MILLIS, DEFAULT_NO_SIGNALS_TIMEOUT_MILLIS);
   }
 
 
