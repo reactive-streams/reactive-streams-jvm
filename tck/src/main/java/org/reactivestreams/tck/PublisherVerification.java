@@ -79,7 +79,7 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
     if (envMillis == null) return DEFAULT_PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS;
     else try {
       return Long.parseLong(envMillis);
-    } catch(NumberFormatException ex) {
+    } catch (NumberFormatException ex) {
       throw new IllegalArgumentException(String.format("Unable to parse %s env value [%s] as long!", PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS_ENV, envMillis), ex);
     }
   }
@@ -368,7 +368,7 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
           onSubscribeLatch.expectClose("Should have received onSubscribe");
           onErrorlatch.expectClose(String.format("Error-state Publisher %s did not call `onError` on new Subscriber", pub));
 
-          env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
+          env.verifyNoAsyncErrors();
           }
       });
     } catch (SkipException se) {
@@ -699,8 +699,7 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
 
         env.subscribe(pub, sub);
 
-        long delay = env.defaultTimeoutMillis();
-        env.verifyNoAsyncErrors(delay);
+        env.verifyNoAsyncErrors();
       }
     });
   }
@@ -1060,7 +1059,7 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
 
         // no onError should be signalled
         try {
-          env.verifyNoAsyncErrors(env.defaultTimeoutMillis());
+          env.verifyNoAsyncErrors();
         } finally {
           sub.cancel();
         }

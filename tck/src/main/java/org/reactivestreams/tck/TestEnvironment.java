@@ -22,7 +22,10 @@ public class TestEnvironment {
   private static final String DEFAULT_TIMEOUT_MILLIS_ENV = "DEFAULT_TIMEOUT_MILLIS";
   private static final long DEFAULT_TIMEOUT_MILLIS = 100;
 
+  private static final String DEFAULT_NO_SIGNALS_TIMEOUT_MILLIS_ENV = "DEFAULT_NO_SIGNALS_TIMEOUT_MILLIS";
+
   private final long defaultTimeoutMillis;
+  private final long defaultNoSignalsTimeoutMillis;
   private final boolean printlnDebug;
 
   private CopyOnWriteArrayList<Throwable> asyncErrors = new CopyOnWriteArrayList<Throwable>();
@@ -32,14 +35,27 @@ public class TestEnvironment {
    * interactions. Longer timeout does not invalidate the correctness of
    * the implementation, but can in some cases result in longer time to
    * run the tests.
+   * @param defaultTimeoutMillis default timeout to be used in all expect* methods
+   * @param defaultNoSignalsTimeoutMillis default timeout to be used when no further signals are expected anymore
+   * @param printlnDebug         if true, signals such as OnNext / Request / OnComplete etc will be printed to standard output,
+   */
+  public TestEnvironment(long defaultTimeoutMillis, long defaultNoSignalsTimeoutMillis, boolean printlnDebug) {
+    this.defaultTimeoutMillis = defaultTimeoutMillis;
+    this.defaultNoSignalsTimeoutMillis = defaultNoSignalsTimeoutMillis;
+    this.printlnDebug = printlnDebug;
+  }
+
+  /**
+   * Tests must specify the timeout for expected outcome of asynchronous
+   * interactions. Longer timeout does not invalidate the correctness of
+   * the implementation, but can in some cases result in longer time to
+   * run the tests.
    *
    * @param defaultTimeoutMillis default timeout to be used in all expect* methods
-   * @param printlnDebug         if true, signals such as OnNext / Request / OnComplete etc will be printed to standard output,
-   *                             often helpful to pinpoint simple race conditions etc.
+   * @param defaultNoSignalsTimeoutMillis default timeout to be used when no further signals are expected anymore
    */
-  public TestEnvironment(long defaultTimeoutMillis, boolean printlnDebug) {
-    this.defaultTimeoutMillis = defaultTimeoutMillis;
-    this.printlnDebug = printlnDebug;
+  public TestEnvironment(long defaultTimeoutMillis, long defaultNoSignalsTimeoutMillis) {
+    this(defaultTimeoutMillis, defaultNoSignalsTimeoutMillis, false);
   }
 
   /**
@@ -51,7 +67,7 @@ public class TestEnvironment {
    * @param defaultTimeoutMillis default timeout to be used in all expect* methods
    */
   public TestEnvironment(long defaultTimeoutMillis) {
-    this(defaultTimeoutMillis, false);
+    this(defaultTimeoutMillis, defaultTimeoutMillis, false);
   }
 
   /**
@@ -67,7 +83,7 @@ public class TestEnvironment {
    *                     often helpful to pinpoint simple race conditions etc.
    */
   public TestEnvironment(boolean printlnDebug) {
-    this(envDefaultTimeoutMillis(), printlnDebug);
+    this(envDefaultTimeoutMillis(), envDefaultNoSignalsTimeoutMillis(), printlnDebug);
   }
 
   /**
@@ -80,11 +96,20 @@ public class TestEnvironment {
    * or the default value ({@link TestEnvironment#DEFAULT_TIMEOUT_MILLIS}) will be used.
    */
   public TestEnvironment() {
-    this(envDefaultTimeoutMillis());
+    this(envDefaultTimeoutMillis(), envDefaultNoSignalsTimeoutMillis());
   }
 
+  /** This timeout is used when waiting for a signal to arrive. */
   public long defaultTimeoutMillis() {
     return defaultTimeoutMillis;
+  }
+
+  /**
+   * This timeout is used when asserting that no further signals are emitted.
+   * Note that this timeout default
+   */
+  public long defaultNoSignalsTimeoutMillis() {
+    return defaultNoSignalsTimeoutMillis;
   }
 
   /**
@@ -97,8 +122,23 @@ public class TestEnvironment {
     if (envMillis == null) return DEFAULT_TIMEOUT_MILLIS;
     else try {
       return Long.parseLong(envMillis);
-    } catch(NumberFormatException ex) {
+    } catch (NumberFormatException ex) {
       throw new IllegalArgumentException(String.format("Unable to parse %s env value [%s] as long!", DEFAULT_TIMEOUT_MILLIS_ENV, envMillis), ex);
+    }
+  }
+
+  /**
+   * Tries to parse the env variable {@code DEFAULT_NO_SIGNALS_TIMEOUT_MILLIS} as long and returns the value if present OR its default value.
+   *
+   * @throws java.lang.IllegalArgumentException when unable to parse the env variable
+   */
+  public static long envDefaultNoSignalsTimeoutMillis() {
+    final String envMillis = System.getenv(DEFAULT_NO_SIGNALS_TIMEOUT_MILLIS_ENV);
+    if (envMillis == null) return envDefaultTimeoutMillis();
+    else try {
+      return Long.parseLong(envMillis);
+    } catch (NumberFormatException ex) {
+      throw new IllegalArgumentException(String.format("Unable to parse %s env value [%s] as long!", DEFAULT_NO_SIGNALS_TIMEOUT_MILLIS_ENV, envMillis), ex);
     }
   }
 
@@ -227,7 +267,7 @@ public class TestEnvironment {
    * were signalled pior to, or during that time (by calling {@code flop()}).
    */
   public void verifyNoAsyncErrors() {
-    verifyNoAsyncErrors(defaultTimeoutMillis());
+    verifyNoAsyncErrors(defaultNoSignalsTimeoutMillis());
   }
 
   /**
@@ -485,11 +525,11 @@ public class TestEnvironment {
     }
 
     public void expectNone() throws InterruptedException {
-      expectNone(env.defaultTimeoutMillis());
+      expectNone(env.defaultNoSignalsTimeoutMillis());
     }
 
     public void expectNone(String errMsgPrefix) throws InterruptedException {
-      expectNone(env.defaultTimeoutMillis(), errMsgPrefix);
+      expectNone(env.defaultNoSignalsTimeoutMillis(), errMsgPrefix);
     }
 
     public void expectNone(long withinMillis) throws InterruptedException {

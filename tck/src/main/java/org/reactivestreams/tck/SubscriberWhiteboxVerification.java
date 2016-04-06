@@ -711,7 +711,7 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
     }
 
     public void expectNone() throws InterruptedException {
-      expectNone(env.defaultTimeoutMillis());
+      expectNone(env.defaultNoSignalsTimeoutMillis());
     }
 
     public void expectNone(long withinMillis) throws InterruptedException {
