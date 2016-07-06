@@ -241,6 +241,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
                 // but keep signalling data if more demand comes in anyway!
                 if (!completed) {
                   s.onComplete();
+                  completed = true;
                 }
 
               }
