@@ -214,7 +214,7 @@ nioSelectorThreadOrigin | map(f) filter(p) consumeTo(toNioSelectorOutput)
 
 All of these variants are "asynchronous streams". They all have their place and each has different tradeoffs including performance and implementation complexity.
 
-The Reactive Streams contract allows implementations the flexibility to manage resources and scheduling and mix asynchronous and synchronous processing within the bounds of a non-blocking, asynchronous, push-based stream.
+The Reactive Streams contract allows implementations the flexibility to manage resources and scheduling and mix asynchronous and synchronous processing within the bounds of a non-blocking, asynchronous, dynamic push-pull stream.
 
 In order to allow fully asynchronous implementations of all participating API elements—`Publisher`/`Subscription`/`Subscriber`/`Processor`—all methods defined by these interfaces return `void`.
 
