@@ -27,7 +27,7 @@ public interface Subscription {
     /**
      * Request the {@link Publisher} to stop sending data and clean up resources.
      * <p>
-     * Data may still be sent to meet previously signalled demand after calling cancel as this request is asynchronous.
+     * Data may still be sent to meet previously signalled demand after calling cancel.
      */
     public void cancel();
 }
