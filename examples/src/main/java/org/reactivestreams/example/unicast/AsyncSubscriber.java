@@ -199,7 +199,7 @@ public abstract class AsyncSubscriber<T> implements Subscriber<T>, Runnable {
             handleOnSubscribe(((OnSubscribe)s).subscription);
           else if (s instanceof OnError) // We are always able to handle OnError, obeying rule 2.10
             handleOnError(((OnError)s).error);
-          else if (s == OnComplete.Instance) // We are always able to handle OnError, obeying rule 2.9
+          else if (s == OnComplete.Instance) // We are always able to handle OnComplete, obeying rule 2.9
             handleOnComplete();
         }
       } finally {
