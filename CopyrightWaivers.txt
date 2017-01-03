@@ -34,3 +34,4 @@ rstoyanchev    | Rossen Stoyanchev, rstoyanchev@pivotal.io, Pivotal
 BjornHamels    | Björn Hamels, bjorn@hamels.nl
 JakeWharton    | Jake Wharton, jakewharton@gmail.com
 anthonyvdotbe  | Anthony Vanelverdinghe, anthonyv.be@outlook.com
+seratch        | Kazuhiro Sera, seratch@gmail.com, SmartNews, Inc.
