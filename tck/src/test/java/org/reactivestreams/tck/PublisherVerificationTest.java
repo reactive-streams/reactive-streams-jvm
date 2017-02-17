@@ -444,19 +444,19 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
   }
 
   @Test
-  public void required_spec309_requestZeroMustSignalIllegalArgumentException_shouldFailBy_expectingOnError() throws Throwable {
-    requireTestFailure(new ThrowingRunnable() {
+  public void optional_spec309_requestZeroMustSignalIllegalArgumentException_shouldFailBy_expectingOnError() throws Throwable {
+      requireTestSkip(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        noopPublisherVerification().required_spec309_requestZeroMustSignalIllegalArgumentException();
+        noopPublisherVerification().optional_spec309_requestZeroMustSignalIllegalArgumentException();
       }
     }, "Expected onError");
   }
 
   @Test
-  public void required_spec309_requestNegativeNumberMustSignalIllegalArgumentException_shouldFailBy_expectingOnError() throws Throwable {
-    requireTestFailure(new ThrowingRunnable() {
+  public void optional_spec309_requestNegativeNumberMustSignalIllegalArgumentException_shouldFailBy_expectingOnError() throws Throwable {
+    requireTestSkip(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
-        noopPublisherVerification().required_spec309_requestNegativeNumberMustSignalIllegalArgumentException();
+        noopPublisherVerification().optional_spec309_requestNegativeNumberMustSignalIllegalArgumentException();
       }
     }, "Expected onError");
   }

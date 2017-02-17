@@ -346,13 +346,13 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
   }
 
   @Override @Test
-  public void required_spec309_requestZeroMustSignalIllegalArgumentException() throws Throwable {
-    publisherVerification.required_spec309_requestZeroMustSignalIllegalArgumentException();
+  public void optional_spec309_requestZeroMustSignalIllegalArgumentException() throws Throwable {
+    publisherVerification.optional_spec309_requestZeroMustSignalIllegalArgumentException();
   }
 
   @Override @Test
-  public void required_spec309_requestNegativeNumberMustSignalIllegalArgumentException() throws Throwable {
-    publisherVerification.required_spec309_requestNegativeNumberMustSignalIllegalArgumentException();
+  public void optional_spec309_requestNegativeNumberMustSignalIllegalArgumentException() throws Throwable {
+    publisherVerification.optional_spec309_requestNegativeNumberMustSignalIllegalArgumentException();
   }
 
   @Override @Test

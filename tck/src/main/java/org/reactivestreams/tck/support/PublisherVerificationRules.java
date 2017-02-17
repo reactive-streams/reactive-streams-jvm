@@ -35,8 +35,8 @@ public interface PublisherVerificationRules {
   void untested_spec305_cancelMustNotSynchronouslyPerformHeavyCompuatation() throws Exception;
   void required_spec306_afterSubscriptionIsCancelledRequestMustBeNops() throws Throwable;
   void required_spec307_afterSubscriptionIsCancelledAdditionalCancelationsMustBeNops() throws Throwable;
-  void required_spec309_requestZeroMustSignalIllegalArgumentException() throws Throwable;
-  void required_spec309_requestNegativeNumberMustSignalIllegalArgumentException() throws Throwable;
+  void optional_spec309_requestZeroMustSignalIllegalArgumentException() throws Throwable;
+  void optional_spec309_requestNegativeNumberMustSignalIllegalArgumentException() throws Throwable;
   void required_spec312_cancelMustMakeThePublisherToEventuallyStopSignaling() throws Throwable;
   void required_spec313_cancelMustMakeThePublisherEventuallyDropAllReferencesToTheSubscriber() throws Throwable;
   void required_spec317_mustSupportAPendingElementCountUpToLongMaxValue() throws Throwable;

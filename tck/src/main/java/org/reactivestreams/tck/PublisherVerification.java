@@ -856,8 +856,8 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams-jvm#3.9
   @Override @Test
-  public void required_spec309_requestZeroMustSignalIllegalArgumentException() throws Throwable {
-    activePublisherTest(10, false, new PublisherTestRun<T>() {
+  public void optional_spec309_requestZeroMustSignalIllegalArgumentException() throws Throwable {
+    optionalActivePublisherTest(10, false, new PublisherTestRun<T>() {
       @Override public void run(Publisher<T> pub) throws Throwable {
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
         sub.request(0);
@@ -868,8 +868,8 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
 
   // Verifies rule: https://github.com/reactive-streams/reactive-streams-jvm#3.9
   @Override @Test
-  public void required_spec309_requestNegativeNumberMustSignalIllegalArgumentException() throws Throwable {
-    activePublisherTest(10, false, new PublisherTestRun<T>() {
+  public void optional_spec309_requestNegativeNumberMustSignalIllegalArgumentException() throws Throwable {
+      optionalActivePublisherTest(10, false, new PublisherTestRun<T>() {
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
