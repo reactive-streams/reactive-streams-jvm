@@ -46,7 +46,7 @@ public class RangePublisherTest extends PublisherVerification<Integer> {
     }
     
     public RangePublisherTest() {
-        super(new TestEnvironment(25));
+        super(new TestEnvironment());
     }
 
     @Override
