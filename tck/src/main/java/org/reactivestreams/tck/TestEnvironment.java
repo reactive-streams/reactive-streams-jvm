@@ -978,8 +978,18 @@ public class TestEnvironment {
     }
 
     public boolean tryExpectCompletion(long timeoutMillis) throws InterruptedException {
-      Optional<T> value = abq.poll(timeoutMillis, TimeUnit.MILLISECONDS);
-      return value != null && !value.isDefined();
+      while (timeoutMillis-- > 0) {
+        Optional<T> value = abq.peek();
+        if (value != null) {
+          if (!value.isDefined()) {
+            abq.poll();
+            return true;
+          }
+          return false;
+        }
+        Thread.sleep(1);
+      }
+      return false;
     }
 
     @SuppressWarnings("unchecked")
