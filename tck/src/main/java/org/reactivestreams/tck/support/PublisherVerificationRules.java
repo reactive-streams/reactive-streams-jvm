@@ -11,8 +11,6 @@
 
 package org.reactivestreams.tck.support;
 
-import org.reactivestreams.tck.TestEnvironment;
-
 /**
  * Internal TCK use only.
  * Add / Remove tests for PublisherVerification here to make sure that they arre added/removed in the other places.
@@ -32,7 +30,7 @@ public interface PublisherVerificationRules {
   void required_validate_boundedDepthOfOnNextAndRequestRecursion() throws Exception;
   /**
    * Asks for a {@code Publisher} that should emit exaclty one item and complete (both within a
-   * timeout specified by {@link TestEnvironment#defaultTimeoutMillis()}).
+   * timeout specified by {@link org.reactivestreams.tck.TestEnvironment#defaultTimeoutMillis()}).
    * <p>The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} returns zero.
    * <p>This test mostly ensures that the {@code Publisher} implementation is actually operational.
    * If this test fails (likely with a timeout error), the following could be checked within the {@code Publisher} implementation:
@@ -52,7 +50,7 @@ public interface PublisherVerificationRules {
   void required_createPublisher1MustProduceAStreamOfExactly1Element() throws Throwable;
   /**
    * Asks for a {@code Publisher} that should emit exaclty three items and complete (all within a
-   * timeout specified by {@link TestEnvironment#defaultTimeoutMillis()}).
+   * timeout specified by {@link org.reactivestreams.tck.TestEnvironment#defaultTimeoutMillis()}).
    * <p>The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 3.
    * <p>This test mostly ensures that the {@code Publisher} implementation is actually operational.
    * If this test fails (likely with a timeout error), the following could be checked within the {@code Publisher} implementation:
