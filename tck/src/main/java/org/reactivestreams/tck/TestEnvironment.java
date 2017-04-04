@@ -978,7 +978,8 @@ public class TestEnvironment {
     }
 
     public boolean tryExpectCompletion(long timeoutMillis) throws InterruptedException {
-      while (timeoutMillis-- > 0) {
+      long end = System.currentTimeMillis() + timeoutMillis;
+      do {
         Optional<T> value = abq.peek();
         if (value != null) {
           if (!value.isDefined()) {
@@ -988,7 +989,7 @@ public class TestEnvironment {
           return false;
         }
         Thread.sleep(1);
-      }
+      } while (System.currentTimeMillis() < end);
       return false;
     }
 
