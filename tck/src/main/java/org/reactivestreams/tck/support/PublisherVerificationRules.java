@@ -327,6 +327,7 @@ public interface PublisherVerificationRules {
    * <p>The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 
    * {@link #required_validate_boundedDepthOfOnNextAndRequestRecursion()} plus 1.
    * <p>If this test fails, the following could be checked within the {@code Publisher} implementation:
+   * <ul>
    * <li>the {@code TestEnvironment} has large enough timeout specified in case the {@code Publisher} has some time-delay behavior,</li>
    * <li>make sure the {@link #required_createPublisher1MustProduceAStreamOfExactly1Element()} and {@link #required_createPublisher3MustProduceAStreamOfExactly3Elements()} tests pass,</li>
    * <li>the implementation doesn't allow unbounded recursion when {@code request()} is called from within {@code onNext}, i.e., the lack of
@@ -352,6 +353,7 @@ public interface PublisherVerificationRules {
    * <p>The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 3.
    * <p>The post-cancellation request pattern is (1, 1, 1).
    * <p>If this test fails, the following could be checked within the {@code Publisher} implementation:
+   * <ul>
    * <li>the {@code TestEnvironment} has large enough timeout specified in case the {@code Publisher} has some time-delay behavior,</li>
    * <li>make sure the {@link #required_createPublisher1MustProduceAStreamOfExactly1Element()} and {@link #required_createPublisher3MustProduceAStreamOfExactly3Elements()} tests pass,</li>
    * <li>the cancellation indicator flag is properly persisted (may require volatile) and checked as part of the signal emission process.</li>
@@ -364,6 +366,7 @@ public interface PublisherVerificationRules {
    * multiple times should result in no signals to be emitted and should result in an thrown exception. 
    * <p>The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 1.
    * <p>If this test fails, the following could be checked within the {@code Publisher} implementation:
+   * <ul>
    * <li>the {@code TestEnvironment} has large enough timeout specified in case the {@code Publisher} has some time-delay behavior,</li>
    * <li>make sure the {@link #required_createPublisher1MustProduceAStreamOfExactly1Element()} and {@link #required_createPublisher3MustProduceAStreamOfExactly3Elements()} tests pass,</li>
    * <li>the cancellation indicator flag is properly persisted (may require volatile) and checked as part of the signal emission process.</li>
