@@ -884,7 +884,8 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
-        sub.request(-1);
+        final Random r = new Random();
+        sub.request(-r.nextInt(Integer.MAX_VALUE) - 1);
         sub.expectErrorWithMessage(IllegalArgumentException.class, "3.9"); // we do require implementations to mention the rule number at the very least
       }
     });
