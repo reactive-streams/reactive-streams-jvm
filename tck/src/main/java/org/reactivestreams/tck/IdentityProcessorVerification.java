@@ -691,7 +691,7 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
           // some processors could emit items from the beginning, some may
           // cache for a limited time or count, therefore
           // any of the first 3 items may appear after requesing one
-          expectAnyNextElement(sub2, Arrays.asList(x, y, z));
+          expectAnyNextElement(sub2, new HashSet<T>(Arrays.asList(x, y, z)));
 
           if (totalRequests == 3) {
             expectRequest();
@@ -704,7 +704,7 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
           // sub2 may not complete because it still has pending y or z
           if (!sub2.tryExpectCompletion(env.defaultTimeoutMillis())) {
               sub2.request(1);
-              expectAnyNextElement(sub2, Arrays.asList(y, z));
+              expectAnyNextElement(sub2, new HashSet<T>(Arrays.asList(y, z)));
               
               // z may still be pending
               if (!sub2.tryExpectCompletion(env.defaultTimeoutMillis())) {
@@ -774,7 +774,7 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
       }
     }
 
-    public void expectAnyNextElement(ManualSubscriber<T> sub, Collection<T> expected) throws InterruptedException {
+    public void expectAnyNextElement(ManualSubscriber<T> sub, Set<T> expected) throws InterruptedException {
       final T elem = sub.nextElement(String.format("timeout while awaiting %s", expected));
       if (!expected.contains(elem)) {
         StringBuilder sb = new StringBuilder();
