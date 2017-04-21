@@ -30,9 +30,9 @@ public interface PublisherVerificationRules {
   void required_validate_boundedDepthOfOnNextAndRequestRecursion() throws Exception;
   /**
    * Asks for a {@code Publisher} that should emit exactly one item and complete (both within a
-   * timeout specified by {@link org.reactivestreams.tck.TestEnvironment#defaultTimeoutMillis()}).
+   * timeout specified by {@link org.reactivestreams.tck.TestEnvironment#defaultTimeoutMillis()})
+   * in response to a request(1).
    * <p>The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} returns zero.
-   * <p>This test mostly ensures that the {@code Publisher} implementation is actually operational.
    * If this test fails (likely with a timeout error), the following could be checked within the {@code Publisher} implementation:
    * <ul>
    * <li>the {@code Publisher.subscribe(Subscriber)} method has actual implementation,</li>
@@ -52,8 +52,8 @@ public interface PublisherVerificationRules {
    * Asks for a {@code Publisher} that should emit exactly three items and complete (all within a
    * timeout specified by {@link org.reactivestreams.tck.TestEnvironment#defaultTimeoutMillis()}).
    * <p>The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 3.
-   * <p>This test mostly ensures that the {@code Publisher} implementation is actually operational.
-   * If this test fails (likely with a timeout error), the following could be checked within the {@code Publisher} implementation:
+   * <p>The tests requests one-by-one and verifies each single response item arrives in time.
+   * <p>If this test fails (likely with a timeout error), the following could be checked within the {@code Publisher} implementation:
    * <ul>
    * <li>the {@code Publisher.subscribe(Subscriber)} method has actual implementation,</li>
    * <li>in the {@code Publisher.subscribe(Subscriber)} method, if there is an upstream {@code Publisher},
@@ -189,7 +189,7 @@ public interface PublisherVerificationRules {
   /**
    * Asks for an empty {@code Publisher} and calls and verifies if {@code onSubscribe} was called before any calls
    * to the other {@code onXXX} methods.
-   * <p>Note that this test doesn't request anything yet an {@code onNext} is not considered as a failure.
+   * <p>Note that this test doesn't request anything, however, an {@code onNext} is not considered as a failure.
    * <p>If this test fails, the following could be checked within the {@code Publisher} implementation:
    * <ul>
    * <li>the {@code TestEnvironment} has large enough timeout specified in case the {@code Publisher} has some time-delay behavior,</li>
