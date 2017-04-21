@@ -29,7 +29,7 @@ public interface PublisherVerificationRules {
    */
   void required_validate_boundedDepthOfOnNextAndRequestRecursion() throws Exception;
   /**
-   * Asks for a {@code Publisher} that should emit exaclty one item and complete (both within a
+   * Asks for a {@code Publisher} that should emit exactly one item and complete (both within a
    * timeout specified by {@link org.reactivestreams.tck.TestEnvironment#defaultTimeoutMillis()}).
    * <p>The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} returns zero.
    * <p>This test mostly ensures that the {@code Publisher} implementation is actually operational.
@@ -49,7 +49,7 @@ public interface PublisherVerificationRules {
    */
   void required_createPublisher1MustProduceAStreamOfExactly1Element() throws Throwable;
   /**
-   * Asks for a {@code Publisher} that should emit exaclty three items and complete (all within a
+   * Asks for a {@code Publisher} that should emit exactly three items and complete (all within a
    * timeout specified by {@link org.reactivestreams.tck.TestEnvironment#defaultTimeoutMillis()}).
    * <p>The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 3.
    * <p>This test mostly ensures that the {@code Publisher} implementation is actually operational.
@@ -338,7 +338,7 @@ public interface PublisherVerificationRules {
   void required_spec303_mustNotAllowUnboundedRecursion() throws Throwable;
   /**
    * Currently, this test is skipped because a {@code request} could enter into a synchronous computation via {@code onNext}
-   * legally and otherwise there is no common agreement on what constitutes as heavy computation.
+   * legally and otherwise there is no common agreement how to detect such heavy computation reliably.
    * @throws Exception allow arbitrary exceptions to be thrown by the implementation of this test
    */
   void untested_spec304_requestShouldNotPerformHeavyComputations() throws Exception;
@@ -381,7 +381,7 @@ public interface PublisherVerificationRules {
    * <p>Note that this test expects the {@code IllegalArgumentException} being signalled through {@code onError}, not by
    * throwing from {@code request()} (which is also forbidden) or signalling the error by any other means (i.e., through the
    * Thread.currentThread().getUncaughtExceptionHandler() for example).
-   * <p>Note also that requesting and emission may happen concurrently and honoring this rule may require extra serialization within
+   * <p>Note also that requesting and emission may happen concurrently and honoring this rule may require extra coordination within
    * the {@code Publisher}.
    * <p>If this test fails, the following could be checked within the {@code Publisher} implementation:
    * <ul>
