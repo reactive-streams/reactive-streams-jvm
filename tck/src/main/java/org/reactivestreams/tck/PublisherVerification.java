@@ -11,6 +11,23 @@
 
 package org.reactivestreams.tck;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -24,22 +41,6 @@ import org.reactivestreams.tck.support.PublisherVerificationRules;
 import org.testng.SkipException;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.lang.Override;
-import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 
 /**
  * Provides tests for verifying {@code Publisher} specification rules.
@@ -1141,8 +1142,7 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
                                     "which this Publisher is unable to provide (as signalled by returning Long.MAX_VALUE from `maxElementsFromPublisher()`)");
         }
       int skipped = 0;
-      List<Long> currentLength = new ArrayList<Long>();
-      List<Throwable> failures = new ArrayList<Throwable>();
+      Map<Long, Throwable> failures = new TreeMap<Long, Throwable>();
       for (long elementCount : elements) {
           if (elementCount > max) {
               skipped++;
@@ -1156,12 +1156,10 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
                   if (ex.isSkip()) {
                       skipped++;
                   } else {
-                      currentLength.add(elementCount);
-                      failures.add(ex);
+                      failures.put(elementCount, ex);
                   }
               } catch (Throwable ex) {
-                  currentLength.add(elementCount);
-                  failures.add(ex);
+                  failures.put(elementCount, ex);
               }
           }
       }
@@ -1174,9 +1172,10 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
           
           sb.append("Some of the length-specific sub-tests failed:\n");
           
-          for (int i = 0; i < currentLength.size(); i++) {
-            Throwable ex = failures.get(i);
-            sb.append("Length = ").append(currentLength.get(i)).append(": ").append(ex.getMessage()).append('\n');
+          for (Map.Entry<Long, Throwable> entry : failures.entrySet()) {
+            long len = entry.getKey();
+            Throwable ex = entry.getValue();
+            sb.append("Length = ").append(len).append(": ").append(ex.getMessage()).append('\n');
             StringWriter sw = new StringWriter();
             ex.printStackTrace(new PrintWriter(sw, true));
             sb.append(sw);
