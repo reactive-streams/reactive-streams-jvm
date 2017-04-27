@@ -135,7 +135,8 @@ public interface PublisherVerificationRules {
    * <li>in the {@code Publisher.subscribe(Subscriber)} method, if there is an upstream {@code Publisher},
    * that {@code Publisher} is actually subscribed to,</li>
    * <li>if the {@code Publisher} implementation is able to emit an {@code onError} without requests,</li> 
-   * <li>if the {@code Publisher} is non-empty as this test requires a {@code Publisher} without items.</li> 
+   * <li>if the {@code Publisher} is non-empty as this test requires a {@code Publisher} to signal an
+   * {@code onError} eagerly.</li> 
    * </ul>
    */
   void optional_spec104_mustSignalOnErrorWhenFails() throws Throwable;
