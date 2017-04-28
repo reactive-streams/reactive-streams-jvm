@@ -71,7 +71,9 @@ public interface PublisherVerificationRules {
   void required_createPublisher3MustProduceAStreamOfExactly3Elements() throws Throwable;
   /**
    * Asks for a {@code Publisher} that responds to a request pattern of 0 (not requesting upfront), 1, 1 and 2
-   * in a timely manner. 
+   * in a timely manner.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.1'>1.1</a>
    * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 5.
    * <p>
@@ -91,6 +93,8 @@ public interface PublisherVerificationRules {
    * Asks for a short {@code Publisher} and verifies that requesting once and with more than the length (but bounded) results in the
    * correct number of items to be emitted (i.e., length 3 and request 10) followed by an {@code onComplete} signal. 
    * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.2'>1.2</a>
+   * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 3.
    * <p>
    * This test ensures that the {@code Publisher} implementation can deal with larger requests than the number of items it can produce.
@@ -105,6 +109,8 @@ public interface PublisherVerificationRules {
   /**
    * Asks for a short {@code Publisher} (i.e., length 10), repeatedly subscribes to this {@code Publisher}, requests items
    * one by one and verifies the {@code Publisher} calls the {@code onXXX} methods non-overlappingly.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.3'>1.3</a>
    * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 10.
    * <p>
@@ -127,6 +133,8 @@ public interface PublisherVerificationRules {
    * followed by a single call to {@code onError()} without receiving any requests and otherwise
    * not throwing any exception.
    * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.4'>1.4</a>
+   * <p>
    * The test is not executed if {@code PublisherVerification.createErrorPublisher()} returns null.
    * <p>
    * If this test fails, the following could be checked within the error {@code Publisher} implementation:
@@ -134,6 +142,7 @@ public interface PublisherVerificationRules {
    * <li>the {@code Publisher.subscribe(Subscriber)} method has actual implementation,</li>
    * <li>in the {@code Publisher.subscribe(Subscriber)} method, if there is an upstream {@code Publisher},
    * that {@code Publisher} is actually subscribed to,</li>
+   * <li>if the {@code Publisher} implementation does signal an {@code onSubscribe} before signalling {@code onError},</li> 
    * <li>if the {@code Publisher} implementation is able to emit an {@code onError} without requests,</li> 
    * <li>if the {@code Publisher} is non-empty as this test requires a {@code Publisher} to signal an
    * {@code onError} eagerly.</li> 
@@ -143,6 +152,8 @@ public interface PublisherVerificationRules {
   /**
    * Asks for a short {@code Publisher} (i.e., length 3) and verifies, after requesting one by one, the sequence
    * completes normally.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.5'>1.5</a>
    * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 3.
    * <p>
@@ -158,6 +169,8 @@ public interface PublisherVerificationRules {
   /**
    * Asks for an empty {@code Publisher} (i.e., length 0) and verifies it completes in a timely manner.
    * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.5'>1.5</a>
+   * <p>
    * Note that the tests requests 1 before expecting an {@code onComplete} signal.
    * <p>
    * If this test fails, the following could be checked within the {@code Publisher} implementation:
@@ -170,11 +183,15 @@ public interface PublisherVerificationRules {
   /**
    * Currently, this test is skipped because it is unclear this rule can be effectively checked
    * on a {@code Publisher} instance without looking into or hooking into the implementation of it.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.6'>1.6</a>
    */
   void untested_spec106_mustConsiderSubscriptionCancelledAfterOnErrorOrOnCompleteHasBeenCalled() throws Throwable;
   /**
    * Asks for a single-element {@code Publisher} and checks if requesting after the terminal event doesn't
    * lead to more items or terminal signals to be emitted.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.7'>1.7</a>
    * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 1.
    * <p>
@@ -191,15 +208,21 @@ public interface PublisherVerificationRules {
   /**
    * Currently, this test is skipped, although it is possible to validate an error {@code Publisher} along
    * the same lines as {@link #required_spec107_mustNotEmitFurtherSignalsOnceOnCompleteHasBeenSignalled()}.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.7'>1.7</a>
    */
   void untested_spec107_mustNotEmitFurtherSignalsOnceOnErrorHasBeenSignalled() throws Throwable;
   /**
    * Currently, this test is skipped because there was no agreement on how to verify its "eventually" requirement.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.8'>1.8</a>
    */
   void untested_spec108_possiblyCanceledSubscriptionShouldNotReceiveOnErrorOrOnCompleteSignals() throws Throwable;
   /**
    * Asks for an empty {@code Publisher} and verifies if {@code onSubscribe} signal was emitted before
    * any other {@code onNext}, {@code onError} or {@code onComplete} signal.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.9'>1.9</a>
    * <p>
    * Note that this test doesn't request anything, however, an {@code onNext} is not considered as a failure.
    * <p>
@@ -218,11 +241,15 @@ public interface PublisherVerificationRules {
    * Currently, this test is skipped because there is no common agreement on what is to be considered a fatal exception and
    * besides, {@code Publisher.subscribe} is only allowed throw a {@code NullPointerException} and any other
    * exception would require looking into or hooking into the implementation of the {@code Publisher}.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.9'>1.9</a>
    */
   void untested_spec109_subscribeShouldNotThrowNonFatalThrowable() throws Throwable;
   /**
    * Asks for an empty {@code Publisher} and calls {@code subscribe} on it with {@code null} that should result in
    * a {@code NullPointerException} to be thrown.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.9'>1.9</a>
    * <p>
    * If this test fails, check if the {@code subscribe()} implementation has an explicit null check (or a method dereference
    * on the {@code Subscriber}), especially if the incoming {@code Subscriber} is wrapped or stored to be used later.
@@ -231,6 +258,8 @@ public interface PublisherVerificationRules {
   /**
    * Asks for an error {@code Publisher} that should call {@code onSubscribe} exactly once 
    * followed by a single call to {@code onError()} without receiving any requests.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.9'>1.9</a>
    * <p>
    * The test is not executed if {@code PublisherVerification.createErrorPublisher()} returns null.
    * <p>
@@ -251,11 +280,15 @@ public interface PublisherVerificationRules {
    * Currently, this test is skipped because enforcing rule §1.10 requires unlimited retention and reference-equal checks on
    * all incoming {@code Subscriber} which is generally infeasible, plus reusing the same {@code Subscriber} instance is
    * better detected (or ignored) inside {@code Subscriber.onSubscribe} when the method is called multiple times. 
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.10'>1.10</a>
    */
   void untested_spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice() throws Throwable;
   /**
    * Ask for a single-element {@code Publisher} and subscribes to it twice, without consuming with either {@code Subscriber} instance
    * (i.e., no requests are issued).
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.11'>1.11</a>
    * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 1.
    * <p>
@@ -266,6 +299,8 @@ public interface PublisherVerificationRules {
   /**
    * Asks for a short {@code Publisher} (length 5), subscribes 3 {@code Subscriber}s to it, requests with different
    * patterns and checks if all 3 received the same events in the same order.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.11'>1.11</a>
    * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 5.
    * <p>
@@ -290,6 +325,8 @@ public interface PublisherVerificationRules {
    * Asks for a short {@code Publisher} (length 3), subscribes 3 {@code Subscriber}s to it, requests more than the length items
    * upfront with each and verifies they all received the same items in the same order (but does not verify they all complete).
    * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.11'>1.11</a>
+   * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 3.
    * <p>
    * Note that this test requires a {@code Publisher} that always emits the same signals to any {@code Subscriber}, regardless of
@@ -310,6 +347,8 @@ public interface PublisherVerificationRules {
   /**
    * Asks for a short {@code Publisher} (length 3), subscribes 3 {@code Subscriber}s to it, requests more than the length items
    * upfront with each and verifies they all received the same items in the same order followed by an {@code onComplete} signal.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.11'>1.11</a>
    * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 3.
    * <p>
@@ -332,6 +371,8 @@ public interface PublisherVerificationRules {
    * Asks for a short {@code Publisher} (length 6), requests several times from within {@code onSubscribe} and then requests
    * one-by-one from {@code onNext}.
    * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#3.2'>3.2</a>
+   * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 6.
    * <p>
    * The request pattern is 3 x 1 from within {@code onSubscribe} and one from within each {@code onNext} invocation.
@@ -353,6 +394,8 @@ public interface PublisherVerificationRules {
    * calls {@code request(1)} externally and then from within {@code onNext} and checks if the stack depth did not increase beyond the
    * amount permitted by {@link #required_validate_boundedDepthOfOnNextAndRequestRecursion()}.
    * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#3.3'>3.3</a>
+   * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 
    * {@link #required_validate_boundedDepthOfOnNextAndRequestRecursion()} plus 1.
    * <p>
@@ -368,15 +411,21 @@ public interface PublisherVerificationRules {
   /**
    * Currently, this test is skipped because a {@code request} could enter into a synchronous computation via {@code onNext}
    * legally and otherwise there is no common agreement how to detect such heavy computation reliably.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#3.4'>3.4</a>
    */
   void untested_spec304_requestShouldNotPerformHeavyComputations() throws Exception;
   /**
    * Currently, this test is skipped because there is no reliable agreed upon way to detect a heavy computation.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#3.5'>3.5</a>
    */
   void untested_spec305_cancelMustNotSynchronouslyPerformHeavyCompuatation() throws Exception;
   /**
    * Asks for a short {@code Publisher} (length 3) and verifies that cancelling without requesting anything, then requesting
    * items should result in no signals to be emitted.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#3.6'>3.6</a>
    * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 3.
    * <p>
@@ -394,6 +443,8 @@ public interface PublisherVerificationRules {
    * Asks for a single-element {@code Publisher} and verifies that without requesting anything, cancelling the sequence
    * multiple times should result in no signals to be emitted and should result in an thrown exception. 
    * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#3.7'>3.7</a>
+   * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 1.
    * <p>
    * If this test fails, the following could be checked within the {@code Publisher} implementation:
@@ -407,6 +458,8 @@ public interface PublisherVerificationRules {
   /**
    * Asks for a short {@code Publisher} (length 10) and issues a {@code request(0)} which should trigger an {@code onError} call
    * with an {@code IllegalArgumentException} and the message containing the string "3.9" (reference to the rule number).
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#3.9'>3.9</a>
    * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 10.
    * <p>
@@ -431,6 +484,8 @@ public interface PublisherVerificationRules {
    * Asks for a short {@code Publisher} (length 10) and issues a random, negative {@code request()} call which should trigger an {@code onError} call
    * with an {@code IllegalArgumentException} and the message containing the string "3.9" (reference to the rule number).
    * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#3.9'>3.9</a>
+   * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 10.
    * <p>
    * Note that this test expects the {@code IllegalArgumentException} being signalled through {@code onError}, not by
@@ -454,6 +509,8 @@ public interface PublisherVerificationRules {
    * Asks for a short {@code Publisher} (length 20), requests some items (less than the length), consumes one item then
    * cancels the sequence and verifies the publisher emitted at most the requested amount and stopped emitting (or terminated). 
    * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#3.12'>3.12</a>
+   * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 20.
    * <p>
    * If this test fails, the following could be checked within the {@code Publisher} implementation:
@@ -468,6 +525,8 @@ public interface PublisherVerificationRules {
    * Asks for a short {@code Publisher} (length 3) requests and consumes one element from it, cancels the {@code Subscription}
    * , calls {@code System.gc()} and then checks if all references to the test {@code Subscriber} has been dropped (by checking
    * the {@code WeakReference} has been emptied). 
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#3.13'>3.13</a>
    * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 3.
    * <p>
@@ -490,6 +549,8 @@ public interface PublisherVerificationRules {
    * {@code Publisher} emits all of its items and completes normally
    * and does not keep spinning attempting to fulfill the {@code Long.MAX_VALUE} demand by some means.
    * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#3.17'>3.17</a>
+   * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 3.
    * <p>
    * If this test fails, the following could be checked within the {@code Publisher} implementation:
@@ -505,6 +566,8 @@ public interface PublisherVerificationRules {
    * Asks for a short {@code Publisher} (length 3) and requests {@code Long.MAX_VALUE} from it in total (split across
    * two {@code Long.MAX_VALUE / 2} and one {@code request(1)}), verifying that the
    * {@code Publisher} emits all of its items and completes normally.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#3.17'>3.17</a>
    * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 3.
    * <p>
@@ -523,6 +586,8 @@ public interface PublisherVerificationRules {
    * Asks for a very long {@code Publisher} (up to {@code Integer.MAX_VALUE}), requests {@code Long.MAX_VALUE - 1} after
    * each received item and expects no failure due to a potential overflow in the pending emission count while consuming 
    * 10 items and cancelling the sequence.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#3.17'>3.17</a>
    * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than {@code Integer.MAX_VALUE}.
    * <p>
