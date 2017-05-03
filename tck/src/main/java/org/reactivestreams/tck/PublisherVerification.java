@@ -211,17 +211,20 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
       public void run(Publisher<T> pub) throws InterruptedException {
 
         ManualSubscriber<T> sub = env.newManualSubscriber(pub);
+        try {
+            sub.expectNone(String.format("Publisher %s produced value before the first `request`: ", pub));
+            sub.request(1);
+            sub.nextElement(String.format("Publisher %s produced no element after first `request`", pub));
+            sub.expectNone(String.format("Publisher %s produced unrequested: ", pub));
+    
+            sub.request(1);
+            sub.request(2);
+            sub.nextElements(3, env.defaultTimeoutMillis(), String.format("Publisher %s produced less than 3 elements after two respective `request` calls", pub));
 
-        sub.expectNone(String.format("Publisher %s produced value before the first `request`: ", pub));
-        sub.request(1);
-        sub.nextElement(String.format("Publisher %s produced no element after first `request`", pub));
-        sub.expectNone(String.format("Publisher %s produced unrequested: ", pub));
-
-        sub.request(1);
-        sub.request(2);
-        sub.nextElements(3, env.defaultTimeoutMillis(), String.format("Publisher %s produced less than 3 elements after two respective `request` calls", pub));
-
-        sub.expectNone(String.format("Publisher %sproduced unrequested ", pub));
+            sub.expectNone(String.format("Publisher %sproduced unrequested ", pub));
+        } finally {
+            sub.cancel();
+        }
       }
     });
   }
@@ -473,30 +476,39 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
       @Override
       public void run(Publisher<T> pub) throws Throwable {
         final Latch onSubscribeLatch = new Latch(env);
-        pub.subscribe(new Subscriber<T>() {
-          @Override
-          public void onError(Throwable cause) {
-            onSubscribeLatch.assertClosed("onSubscribe should be called prior to onError always");
+        final AtomicReference<Subscription> cancel = new AtomicReference<Subscription>();
+        try {
+          pub.subscribe(new Subscriber<T>() {
+            @Override
+            public void onError(Throwable cause) {
+              onSubscribeLatch.assertClosed("onSubscribe should be called prior to onError always");
+            }
+    
+            @Override
+            public void onSubscribe(Subscription subs) {
+              cancel.set(subs);
+              onSubscribeLatch.assertOpen("Only one onSubscribe call expected");
+              onSubscribeLatch.close();
+            }
+    
+            @Override
+            public void onNext(T elem) {
+              onSubscribeLatch.assertClosed("onSubscribe should be called prior to onNext always");
+            }
+    
+            @Override
+            public void onComplete() {
+              onSubscribeLatch.assertClosed("onSubscribe should be called prior to onComplete always");
+            }
+          });
+          onSubscribeLatch.expectClose("Should have received onSubscribe");
+          env.verifyNoAsyncErrorsNoDelay();
+        } finally {
+          Subscription s = cancel.getAndSet(null);
+          if (s != null) {
+            s.cancel();
           }
-
-          @Override
-          public void onSubscribe(Subscription subs) {
-            onSubscribeLatch.assertOpen("Only one onSubscribe call expected");
-            onSubscribeLatch.close();
-          }
-
-          @Override
-          public void onNext(T elem) {
-            onSubscribeLatch.assertClosed("onSubscribe should be called prior to onNext always");
-          }
-
-          @Override
-          public void onComplete() {
-            onSubscribeLatch.assertClosed("onSubscribe should be called prior to onComplete always");
-          }
-        });
-        onSubscribeLatch.expectClose("Should have received onSubscribe");
-        env.verifyNoAsyncErrorsNoDelay();
+        }
       }
     });
   }
@@ -545,7 +557,15 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
         ManualSubscriber<T> sub1 = env.newManualSubscriber(pub);
         ManualSubscriber<T> sub2 = env.newManualSubscriber(pub);
 
-        env.verifyNoAsyncErrors();
+        try {
+          env.verifyNoAsyncErrors();
+        } finally {
+          try {
+            sub1.cancel();
+          } finally {
+            sub2.cancel();
+          }
+        }
       }
     });
   }
