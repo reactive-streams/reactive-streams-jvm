@@ -804,7 +804,7 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
   }
 
   @Override @Test
-  public void untested_spec305_cancelMustNotSynchronouslyPerformHeavyCompuatation() throws Exception {
+  public void untested_spec305_cancelMustNotSynchronouslyPerformHeavyComputation() throws Exception {
     notVerified(); // cannot be meaningfully tested, or can it?
   }
 

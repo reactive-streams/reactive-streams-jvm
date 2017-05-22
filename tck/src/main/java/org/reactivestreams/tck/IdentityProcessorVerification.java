@@ -342,8 +342,8 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
   }
 
   @Override @Test
-  public void untested_spec305_cancelMustNotSynchronouslyPerformHeavyCompuatation() throws Exception {
-    publisherVerification.untested_spec305_cancelMustNotSynchronouslyPerformHeavyCompuatation();
+  public void untested_spec305_cancelMustNotSynchronouslyPerformHeavyComputation() throws Exception {
+    publisherVerification.untested_spec305_cancelMustNotSynchronouslyPerformHeavyComputation();
   }
 
   @Override @Test

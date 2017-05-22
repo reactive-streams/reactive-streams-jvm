@@ -420,7 +420,7 @@ public interface PublisherVerificationRules {
    * <p>
    * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#3.5'>3.5</a>
    */
-  void untested_spec305_cancelMustNotSynchronouslyPerformHeavyCompuatation() throws Exception;
+  void untested_spec305_cancelMustNotSynchronouslyPerformHeavyComputation() throws Exception;
   /**
    * Asks for a short {@code Publisher} (length 3) and verifies that cancelling without requesting anything, then requesting
    * items should result in no signals to be emitted.
