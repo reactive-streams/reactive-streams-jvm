@@ -287,7 +287,16 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
       public void run(BlackboxTestStage stage) throws Throwable {
         final Publisher<T> pub = new Publisher<T>() {
           @Override
-          public void subscribe(Subscriber<? super T> s) {
+          public void subscribe(final Subscriber<? super T> s) {
+            s.onSubscribe(new Subscription() {
+              @Override public void request(long n) { 
+                // do nothing...
+              }
+              @Override public void cancel() {
+                // do nothing...
+              }
+            });
+            // immediately complete
             s.onComplete();
           }
         };
