@@ -244,37 +244,15 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
   // Verifies rule: https://github.com/reactive-streams/reactive-streams-jvm#2.9
   @Override @Test
   public void required_spec209_blackbox_mustBePreparedToReceiveAnOnCompleteSignalWithPrecedingRequestCall() throws Throwable {
-    blackboxSubscriberWithoutSetupTest(new BlackboxTestStageTestRun() {
-      @Override
+    blackboxSubscriberTest(new BlackboxTestStageTestRun() {
+      @Override @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
       public void run(BlackboxTestStage stage) throws Throwable {
-        final Publisher<T> pub = new Publisher<T>() {
-          @Override public void subscribe(final Subscriber<? super T> s) {
-            s.onSubscribe(new Subscription() {
-              private boolean completed = false;
-
-              @Override public void request(long n) {
-                if (!completed) {
-                  completed = true;
-                  s.onComplete(); // Publisher now realises that it is in fact already completed
-                }
-              }
-
-              @Override public void cancel() {
-                // noop, ignore
-              }
-            });
-          }
-        };
-
-        final Subscriber<T> sub = createSubscriber();
-        final BlackboxSubscriberProxy<T> probe = stage.createBlackboxSubscriberProxy(env, sub);
-
-        pub.subscribe(probe);
+        final Subscriber<? super T> sub = stage.sub();
+        
         triggerRequest(sub);
-        probe.expectCompletion();
-        probe.expectNone();
-
-        env.verifyNoAsyncErrorsNoDelay();
+        final long notUsed = stage.expectRequest(); // received request signal
+        sub.onComplete();
+        stage.subProxy().expectCompletion();
       }
     });
   }
@@ -282,23 +260,13 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
   // Verifies rule: https://github.com/reactive-streams/reactive-streams-jvm#2.9
   @Override @Test
   public void required_spec209_blackbox_mustBePreparedToReceiveAnOnCompleteSignalWithoutPrecedingRequestCall() throws Throwable {
-    blackboxSubscriberWithoutSetupTest(new BlackboxTestStageTestRun() {
-      @Override
+    blackboxSubscriberTest(new BlackboxTestStageTestRun() {
+      @Override @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
       public void run(BlackboxTestStage stage) throws Throwable {
-        final Publisher<T> pub = new Publisher<T>() {
-          @Override
-          public void subscribe(Subscriber<? super T> s) {
-            s.onComplete();
-          }
-        };
+        final Subscriber<? super T> sub = stage.sub();
 
-        final Subscriber<T> sub = createSubscriber();
-        final BlackboxSubscriberProxy<T> probe = stage.createBlackboxSubscriberProxy(env, sub);
-
-        pub.subscribe(probe);
-        probe.expectCompletion();
-
-        env.verifyNoAsyncErrorsNoDelay();
+        sub.onComplete();
+        stage.subProxy().expectCompletion();
       }
     });
   }
@@ -307,9 +275,25 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
   @Override @Test
   public void required_spec210_blackbox_mustBePreparedToReceiveAnOnErrorSignalWithPrecedingRequestCall() throws Throwable {
     blackboxSubscriberTest(new BlackboxTestStageTestRun() {
-      @Override
-      @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+      @Override @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
       public void run(BlackboxTestStage stage) throws Throwable {
+        final Subscriber<? super T> sub = stage.sub();
+        
+        triggerRequest(sub);
+        final long notUsed = stage.expectRequest(); // received request signal
+        sub.onError(new TestException()); // in response to that, we fail
+        stage.subProxy().expectError(Throwable.class);
+      }
+    });
+  }
+  
+  // Verifies rule: https://github.com/reactive-streams/reactive-streams-jvm#2.10
+  @Override @Test
+  public void required_spec210_blackbox_mustBePreparedToReceiveAnOnErrorSignalWithoutPrecedingRequestCall() throws Throwable {
+    blackboxSubscriberTest(new BlackboxTestStageTestRun() {
+      @Override @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
+      public void run(BlackboxTestStage stage) throws Throwable {
+        
         stage.sub().onError(new TestException());
         stage.subProxy().expectError(Throwable.class);
       }
