@@ -96,11 +96,16 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
       @Override
       public void run(BlackboxTestStage stage) throws InterruptedException {
         triggerRequest(stage.subProxy().sub());
-        final long n = stage.expectRequest();// assuming subscriber wants to consume elements...
+        final long requested = stage.expectRequest();// assuming subscriber wants to consume elements...
+        final long signalsToEmit = Math.min(requested, 512); // protecting against Subscriber which sends ridiculous large demand
 
         // should cope with up to requested number of elements
-        for (int i = 0; i < n; i++)
+        for (int i = 0; i < signalsToEmit; i++)
           stage.signalNext();
+        
+        // we complete after `signalsToEmit` (which can be less than `requested`), 
+        // which is legal under https://github.com/reactive-streams/reactive-streams-jvm#1.2
+        stage.sendCompletion();
       }
     });
   }
