@@ -1,5 +1,7 @@
 # Reactive Streams #
 
+[![Join the chat at https://gitter.im/reactive-streams/reactive-streams-jvm](https://badges.gitter.im/Join%20Chat.svg)](https://gitter.im/reactive-streams/reactive-streams-jvm?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 The purpose of Reactive Streams is to provide a standard for asynchronous stream processing with non-blocking backpressure.
 
 The latest release is available on Maven Central as
