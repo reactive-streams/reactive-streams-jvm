@@ -297,6 +297,18 @@ public interface PublisherVerificationRules {
    */
   void optional_spec111_maySupportMultiSubscribe() throws Throwable;
   /**
+   * Ask for a single-element {@code Publisher} and subscribes to it twice.
+   * Each {@code Subscriber} requests for 1 element and checks if onNext or onComplete signals was received.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.11'>1.11</a> &amp;
+   * <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.5'>1.5</a>
+   * <p>
+   * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 1.
+   * <p>
+   * Any exception thrown through non-regular means will indicate a skipped test.
+   */
+  void optional_spec111_registeredSubscribersMustReceiveOnNextOrOnCompleteSignals() throws Throwable;
+  /**
    * Asks for a short {@code Publisher} (length 5), subscribes 3 {@code Subscriber}s to it, requests with different
    * patterns and checks if all 3 received the same events in the same order.
    * <p>
@@ -310,7 +322,7 @@ public interface PublisherVerificationRules {
    * when they subscribe and how they request elements. I.e., a "live" {@code Publisher} emitting the current time would not pass this test.
    * <p>
    * Note that this test is optional and may appear skipped even if the behavior should be actually supported by the {@code Publisher},
-   * see the skip message for an indication of this. 
+   * see the skip message for an indication of this.
    * <p>
    * If this test fails, the following could be checked within the {@code Publisher} implementation:
    * <ul>

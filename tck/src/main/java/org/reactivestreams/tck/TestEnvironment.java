@@ -390,6 +390,10 @@ public class TestEnvironment {
       return nextElement(timeoutMillis, errorMsg);
     }
 
+    public Optional<T> requestNextElementOrEndOfStream() throws InterruptedException {
+      return requestNextElementOrEndOfStream(env.defaultTimeoutMillis(), "Did not receive expected stream completion");
+    }
+
     public Optional<T> requestNextElementOrEndOfStream(String errorMsg) throws InterruptedException {
       return requestNextElementOrEndOfStream(env.defaultTimeoutMillis(), errorMsg);
     }

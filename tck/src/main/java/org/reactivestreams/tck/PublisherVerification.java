@@ -573,6 +573,32 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
   }
 
   @Override @Test
+  public void optional_spec111_registeredSubscribersMustReceiveOnNextOrOnCompleteSignals() throws Throwable {
+    optionalActivePublisherTest(1, false, new PublisherTestRun<T>() {
+      @Override
+      public void run(Publisher<T> pub) throws Throwable {
+        ManualSubscriber<T> sub1 = env.newManualSubscriber(pub);
+        ManualSubscriber<T> sub2 = env.newManualSubscriber(pub);
+        //It's implementation dependant to be a multicast or unicast.
+        //So we don't know which subscriber will receive an onNext (and onComplete) and which just onComplete.
+        //Plus, even if subscription assumed to be unicast, it's implementation choice, which one will be signalled
+        //with onNext.
+        sub1.requestNextElementOrEndOfStream();
+        sub2.requestNextElementOrEndOfStream();
+        try {
+            env.verifyNoAsyncErrors();
+        } finally {
+            try {
+                sub1.cancel();
+            } finally {
+                sub2.cancel();
+            }
+        }
+      }
+    });
+  }
+
+  @Override @Test
   public void optional_spec111_multicast_mustProduceTheSameElementsInTheSameSequenceToAllOfItsSubscribersWhenRequestingOneByOne() throws Throwable {
     optionalActivePublisherTest(5, true, new PublisherTestRun<T>() { // This test is skipped if the publisher is unbounded (never sends onComplete)
       @Override
