@@ -136,7 +136,7 @@ class AsyncStreamPublisher<T> implements Publisher<T> {
                 terminateDueTo(new IllegalStateException(subscriber + " violated the Reactive Streams rule 2.13 by throwing an exception from onSubscribe.", t));
             }
             if (!cancelled) {
-                // Deal with already complete iterators promptly
+                // Deal with already complete suppliers promptly
                 boolean hasElements = false;
                 try {
                     // Try to fetch an element from a stream to ensure the stream is not empty,
