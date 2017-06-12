@@ -13,7 +13,6 @@ package org.reactivestreams.example.unicast;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
-import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.tck.PublisherVerification;
@@ -21,6 +20,8 @@ import org.reactivestreams.tck.TestEnvironment;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
+
+import static org.reactivestreams.example.unicast.AsyncStreamPublisher.StreamSupplier;
 
 @Test // Must be here for TestNG to find and run this, do not remove
 public class AsyncStreamPublisherTest extends PublisherVerification<Integer> {
@@ -47,7 +48,7 @@ public class AsyncStreamPublisherTest extends PublisherVerification<Integer> {
     @Override
     public Publisher<Integer> createPublisher(final long elements) {
         assert (elements <= maxElementsFromPublisher());
-        return new AsyncStreamPublisher(new Supplier<Integer>() {
+        return new AsyncStreamPublisher(new StreamSupplier<Integer>() {
             private int at;
             @Override
             public Integer get() {
@@ -58,7 +59,7 @@ public class AsyncStreamPublisherTest extends PublisherVerification<Integer> {
 
     @Override
     public Publisher<Integer> createFailedPublisher() {
-        return new AsyncStreamPublisher<Integer>(new Supplier<Integer>() {
+        return new AsyncStreamPublisher<Integer>(new StreamSupplier<Integer>() {
             @Override
             public Integer get() {
                 throw new RuntimeException("Error state signal!");

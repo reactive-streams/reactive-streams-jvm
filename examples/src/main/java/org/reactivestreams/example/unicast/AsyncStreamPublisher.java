@@ -14,7 +14,6 @@ package org.reactivestreams.example.unicast;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.Executor;
 import java.util.concurrent.atomic.AtomicBoolean;
-import java.util.function.Supplier;
 
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -23,7 +22,7 @@ import org.reactivestreams.Subscription;
 /**
  * AsyncStreamPublisher is an implementation of Reactive Streams `Publisher`
  * which executes asynchronously, using a provided `Executor` and produces elements
- * from a given `Supplier` in a "unicast" configuration to its `Subscribers`.
+ * from a given `StreamSupplier` in a "unicast" configuration to its `Subscribers`.
  * <p>
  * NOTE: The code below uses a lot of try-catches to show the reader where exceptions can be expected, and where they are forbidden.
  */
@@ -31,15 +30,15 @@ class AsyncStreamPublisher<T> implements Publisher<T> {
 
     private final static int DEFAULT_BATCHSIZE = 1024;
 
-    private final Supplier<T> supplier; // This is our data source / generator
+    private final StreamSupplier<T> supplier; // This is our data source / generator
     private final Executor executor; // This is our thread pool, which will make sure that our Publisher runs asynchronously to its Subscribers
     private final int batchSize; // In general, if one uses an `Executor`, one should be nice nad not hog a thread for too long, this is the cap for that, in elements
 
-    public AsyncStreamPublisher(final Supplier<T> supplier, final Executor executor) {
+    public AsyncStreamPublisher(final StreamSupplier<T> supplier, final Executor executor) {
         this(supplier, DEFAULT_BATCHSIZE, executor);
     }
 
-    public AsyncStreamPublisher(final Supplier<T> supplier, final int batchSize, final Executor executor) {
+    public AsyncStreamPublisher(final StreamSupplier<T> supplier, final int batchSize, final Executor executor) {
         if (supplier == null) {
             throw null;
         }
@@ -61,6 +60,10 @@ class AsyncStreamPublisher<T> implements Publisher<T> {
         // As per 2.13, this method must return normally (i.e. not throw)
         new SubscriptionImpl(s).init();
     }
+    
+    static interface StreamSupplier<T> {
+        T get();
+    } 
 
     // These represent the protocol of the `AsyncIterablePublishers` SubscriptionImpls
     static interface Signal {
