@@ -135,27 +135,28 @@ class AsyncStreamPublisher<T> implements Publisher<T> {
             } catch (final Throwable t) { // Due diligence to obey 2.13
                 terminateDueTo(new IllegalStateException(subscriber + " violated the Reactive Streams rule 2.13 by throwing an exception from onSubscribe.", t));
             }
-
-            // Deal with already complete iterators promptly
-            boolean hasElements = false;
-            try {
-                // Try to fetch an element from a stream to ensure the stream is not empty,
-                // this will be sent by the first calling of doSend
-                nextElementToBeSent = supplier.get();
-                hasElements = nextElementToBeSent != null;
-            } catch (final Throwable t) {
-                terminateDueTo(t); // If hasNext throws, there's something wrong and we need to signal onError as per 1.2, 1.4
-                return;
-            }
-
-            // If we don't have anything to deliver, we're already done, so lets do the right thing and
-            // not wait for demand to deliver `onComplete` as per rule 1.2 and 1.3
-            if (!hasElements) {
+            if (!cancelled) {
+                // Deal with already complete iterators promptly
+                boolean hasElements = false;
                 try {
-                    doCancel(); // Rule 1.6 says we need to consider the `Subscription` cancelled when `onComplete` is signalled
-                    subscriber.onComplete();
-                } catch (final Throwable t) { // As per rule 2.13, `onComplete` is not allowed to throw exceptions, so we do what we can, and log this.
-                    (new IllegalStateException(subscriber + " violated the Reactive Streams rule 2.13 by throwing an exception from onComplete.", t)).printStackTrace(System.err);
+                    // Try to fetch an element from a stream to ensure the stream is not empty,
+                    // this will be sent by the first calling of doSend
+                    nextElementToBeSent = supplier.get();
+                    hasElements = nextElementToBeSent != null;
+                } catch (final Throwable t) {
+                    terminateDueTo(t); // If hasNext throws, there's something wrong and we need to signal onError as per 1.2, 1.4
+                    return;
+                }
+    
+                // If we don't have anything to deliver, we're already done, so lets do the right thing and
+                // not wait for demand to deliver `onComplete` as per rule 1.2 and 1.3
+                if (!hasElements) {
+                    try {
+                        doCancel(); // Rule 1.6 says we need to consider the `Subscription` cancelled when `onComplete` is signalled
+                        subscriber.onComplete();
+                    } catch (final Throwable t) { // As per rule 2.13, `onComplete` is not allowed to throw exceptions, so we do what we can, and log this.
+                        (new IllegalStateException(subscriber + " violated the Reactive Streams rule 2.13 by throwing an exception from onComplete.", t)).printStackTrace(System.err);
+                    }
                 }
             }
         }
