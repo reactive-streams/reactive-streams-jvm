@@ -18,6 +18,7 @@ import java.util.concurrent.Executor;
 /**
  * SupplierPublisher uses a supplier with only one 'get()' method for supplying values
  * from unknown streams like files or sockets.
+ * The supplier informs about the end of stream by returning a 'null' value.
  */
 public class SupplierPublisher<T> extends AsyncIterablePublisher<T> {
     public SupplierPublisher(final Supplier<T> supplier, final Executor executor) {
