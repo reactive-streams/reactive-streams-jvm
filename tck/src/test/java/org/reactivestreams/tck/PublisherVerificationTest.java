@@ -745,28 +745,28 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
       public Publisher<Integer> createPublisher(final long elements) {
         return new Publisher<Integer>() {
 
-          private final Collection<Demand> demands = new CopyOnWriteArrayList<Demand>();
+          private final Collection<CancelableSubscription> subscriptions = new CopyOnWriteArrayList<CancelableSubscription>();
           private final AtomicLong source = new AtomicLong(elements);
 
           @Override
           public void subscribe(Subscriber<? super Integer> s) {
-            if (shouldBlowUp && !demands.isEmpty()) {
-              // onSubscribe first
-              new Demand(s);
+            // onSubscribe first
+            CancelableSubscription subscription = new CancelableSubscription(s);
+            s.onSubscribe(subscription);
+            if (shouldBlowUp && !subscriptions.isEmpty()) {
               s.onError(new RuntimeException("Unexpected additional subscriber"));
             } else {
-              demands.add(new Demand(s));
+              subscriptions.add(subscription);
             }
           }
 
-          class Demand implements Subscription {
+          class CancelableSubscription implements Subscription {
 
             final AtomicBoolean canceled = new AtomicBoolean();
             Subscriber<? super Integer> subscriber;
 
-            Demand(Subscriber<? super Integer> subscriber) {
+            CancelableSubscription(Subscriber<? super Integer> subscriber) {
               this.subscriber = subscriber;
-              this.subscriber.onSubscribe(this);
             }
 
             @Override
@@ -788,10 +788,10 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
               canceled.set(true);
               subscriber = null;
               // COR list, so its ok to remove demand that way
-              for (Demand demand : demands) {
+              for (CancelableSubscription subscription : subscriptions) {
                 // reference equality. It's ok
-                if (demand == this) {
-                  demands.remove(demand);
+                if (subscription == this) {
+                  subscriptions.remove(subscription);
                 }
               }
             }
