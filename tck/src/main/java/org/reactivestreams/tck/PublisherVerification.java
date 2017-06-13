@@ -579,10 +579,11 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
       public void run(Publisher<T> pub) throws Throwable {
         ManualSubscriber<T> sub1 = env.newManualSubscriber(pub);
         ManualSubscriber<T> sub2 = env.newManualSubscriber(pub);
-        //It's implementation dependant to be a multicast or unicast.
-        //So we don't know which subscriber will receive an onNext (and onComplete) and which just onComplete.
-        //Plus, even if subscription assumed to be unicast, it's implementation choice, which one will be signalled
-        //with onNext.
+        // Since we're testing the case when the Publisher DOES support the optional multi-subscribers scenario,
+        // and decides if it handles them uni-cast or multi-cast, we don't know which subscriber will receive an
+        // onNext (and optional onComplete) signal(s) and which just onComplete signal.
+        // Plus, even if subscription assumed to be unicast, it's implementation choice, which one will be signalled
+        // with onNext.
         sub1.requestNextElementOrEndOfStream();
         sub2.requestNextElementOrEndOfStream();
         try {

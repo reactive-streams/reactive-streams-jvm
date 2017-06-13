@@ -285,7 +285,8 @@ public interface PublisherVerificationRules {
    */
   void untested_spec110_rejectASubscriptionRequestIfTheSameSubscriberSubscribesTwice() throws Throwable;
   /**
-   * Ask for a single-element {@code Publisher} and subscribes to it twice, without consuming with either {@code Subscriber} instance
+   * Asks for a single-element {@code Publisher} and subscribes to it twice, without consuming with either
+   * {@code Subscriber} instance
    * (i.e., no requests are issued).
    * <p>
    * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.11'>1.11</a>
@@ -297,11 +298,12 @@ public interface PublisherVerificationRules {
    */
   void optional_spec111_maySupportMultiSubscribe() throws Throwable;
   /**
-   * Ask for a single-element {@code Publisher} and subscribes to it twice.
+   * Asks for a single-element {@code Publisher} and subscribes to it twice.
    * Each {@code Subscriber} requests for 1 element and checks if onNext or onComplete signals was received.
    * <p>
-   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.11'>1.11</a> &amp;
-   * <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.5'>1.5</a>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.11'>1.11</a>,
+   * and depends on valid implementation of rule <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.5'>1.5</a>
+   * in order to verify this.
    * <p>
    * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 1.
    * <p>
