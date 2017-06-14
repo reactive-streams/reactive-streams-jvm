@@ -787,13 +787,7 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
             public void cancel() {
               canceled.set(true);
               subscriber = null;
-              // COR list, so its ok to remove demand that way
-              for (CancelableSubscription subscription : subscriptions) {
-                // reference equality. It's ok
-                if (subscription == this) {
-                  subscriptions.remove(subscription);
-                }
-              }
+              subscriptions.remove(this);
             }
           }
 
