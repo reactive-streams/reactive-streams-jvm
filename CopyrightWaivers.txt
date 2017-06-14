@@ -36,3 +36,4 @@ JakeWharton    | Jake Wharton, jakewharton@gmail.com
 anthonyvdotbe  | Anthony Vanelverdinghe, anthonyv.be@outlook.com
 seratch        | Kazuhiro Sera, seratch@gmail.com, SmartNews, Inc.
 akarnokd       | David Karnok, akarnokd@gmail.com
+egetman        | Evgeniy Getman, getman.eugene@gmail.com
