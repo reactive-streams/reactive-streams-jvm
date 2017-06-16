@@ -216,6 +216,20 @@ public interface SubscriberBlackboxVerificationRules {
    * </ul>
    */
   void required_spec210_blackbox_mustBePreparedToReceiveAnOnErrorSignalWithPrecedingRequestCall() throws Throwable;
+
+  /**
+   * Asks for a {@code Subscriber}, signals {@code onSubscribe} followed by an {@code onError} synchronously.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#2.10'>2.10</a>
+   * <p>
+   * If this test fails, the following could be checked within the {@code Subscriber} implementation:
+   * <ul>
+   * <li>if the {@code Subscriber} throws an unchecked exception from its {@code onSubscribe} or
+   * {@code onError} methods.
+   * </ul>
+   */
+  void required_spec210_blackbox_mustBePreparedToReceiveAnOnErrorSignalWithoutPrecedingRequestCall() throws Throwable;
+
   /**
    * Currently, this test is skipped because it would require analyzing what the {@code Subscriber} implementation
    * does.

@@ -149,7 +149,7 @@ public class SubscriberBlackboxVerificationTest extends TCKVerificationSupport {
           // don't even request()
         }).required_spec209_blackbox_mustBePreparedToReceiveAnOnCompleteSignalWithPrecedingRequestCall();
       }
-    }, "did not call `registerOnComplete()`");
+    }, "Did not receive expected `request` call within");
   }
 
   @Test
@@ -160,11 +160,38 @@ public class SubscriberBlackboxVerificationTest extends TCKVerificationSupport {
   }
 
   @Test
-  public void required_spec210_blackbox_mustBePreparedToReceiveAnOnErrorSignalWithPrecedingRequestCall_shouldFail() throws Throwable {
+  public void required_spec210_blackbox_mustBePreparedToReceiveAnOnErrorSignalWithPrecedingRequestCall_shouldPass_withRequestingSubscriber() throws Throwable {
+    customSubscriberVerification(new NoopSubscriber() {
+      @Override
+      public void onSubscribe(Subscription s) {
+        s.request(1); // request anything
+      }
+    }).required_spec209_blackbox_mustBePreparedToReceiveAnOnCompleteSignalWithPrecedingRequestCall();
+  }
+
+  @Test
+  public void required_spec210_blackbox_mustBePreparedToReceiveAnOnErrorSignalWithPrecedingRequestCall_shouldFail_withNoopSubscriber() throws Throwable {
+    requireTestFailure(new ThrowingRunnable() {
+      @Override
+      public void run() throws Throwable {
+        customSubscriberVerification(new NoopSubscriber() {
+          // not requesting, so we can't test the "request followed by failure" scenario
+        }).required_spec209_blackbox_mustBePreparedToReceiveAnOnCompleteSignalWithPrecedingRequestCall();
+      }
+    }, "Did not receive expected `request` call within");
+  }
+
+  @Test
+  public void required_spec210_blackbox_mustBePreparedToReceiveAnOnErrorSignalWithPrecedingRequestCall_shouldFail_withThrowingInsideOnError() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
 
         customSubscriberVerification(new NoopSubscriber() {
+          @Override
+          public void onSubscribe(Subscription s) {
+            s.request(1);
+          }
+
           @Override public void onError(Throwable t) {
             // this is wrong in many ways (incl. spec violation), but aims to simulate user code which "blows up" when handling the onError signal
             throw new RuntimeException("Wrong, don't do this!", t); // don't do this

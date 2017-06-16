@@ -12,6 +12,8 @@
 package org.reactivestreams.tck;
 
 import org.reactivestreams.Publisher;
+import org.reactivestreams.Subscriber;
+import org.reactivestreams.Subscription;
 import org.reactivestreams.example.unicast.AsyncIterablePublisher;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
