@@ -247,11 +247,9 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
     blackboxSubscriberTest(new BlackboxTestStageTestRun() {
       @Override @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
       public void run(BlackboxTestStage stage) throws Throwable {
-        final Subscriber<? super T> sub = stage.sub();
-        
-        triggerRequest(sub);
+        triggerRequest(stage.subProxy().sub());
         final long notUsed = stage.expectRequest(); // received request signal
-        sub.onComplete();
+        stage.sub().onComplete();
         stage.subProxy().expectCompletion();
       }
     });
@@ -277,11 +275,9 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
     blackboxSubscriberTest(new BlackboxTestStageTestRun() {
       @Override @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
       public void run(BlackboxTestStage stage) throws Throwable {
-        final Subscriber<? super T> sub = stage.sub();
-        
-        triggerRequest(sub);
+        triggerRequest(stage.subProxy().sub());
         final long notUsed = stage.expectRequest(); // received request signal
-        sub.onError(new TestException()); // in response to that, we fail
+        stage.sub().onError(new TestException()); // in response to that, we fail
         stage.subProxy().expectError(Throwable.class);
       }
     });
