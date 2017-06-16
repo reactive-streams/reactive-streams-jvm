@@ -227,6 +227,7 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
 
       secondSubscriptionCancelled.expectClose("Expected SecondSubscription given to subscriber to be cancelled, but `Subscription.cancel()` was not called.");
       env.verifyNoAsyncErrorsNoDelay();
+      sendCompletion(); // we're done, complete the subscriber under test
     }};
   }
 

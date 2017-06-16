@@ -18,8 +18,10 @@ import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
 
 /**
 * Validates that the TCK's {@link org.reactivestreams.tck.SubscriberBlackboxVerification} fails with nice human readable errors.
@@ -109,6 +111,34 @@ public class SubscriberBlackboxVerificationTest extends TCKVerificationSupport {
         }).required_spec205_blackbox_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal();
       }
     }, "illegally called `subscription.request(1)");
+  }
+
+  @Test
+  public void required_spec205_blackbox_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal_shouldGetCompletion() throws Throwable {
+    final CountDownLatch completion = new CountDownLatch(1);
+      
+    customSubscriberVerification(new KeepSubscriptionSubscriber() {
+      volatile Subscription sub;
+
+      @Override
+      public void onSubscribe(Subscription s) {
+        super.onSubscribe(s);
+        if (sub != null) {
+          sub = s;
+          s.request(1);
+        } else {
+          // the second one we cancel
+          s.cancel();
+        }
+      }
+
+      @Override
+      public void onComplete() {
+        completion.countDown();
+      }
+    }).required_spec205_blackbox_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal();
+    
+    completion.await(1, TimeUnit.SECONDS);
   }
 
   @Test
