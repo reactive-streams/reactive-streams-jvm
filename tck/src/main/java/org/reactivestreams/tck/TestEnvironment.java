@@ -775,6 +775,10 @@ public class TestEnvironment {
     public void expectCancelling(long timeoutMillis) throws InterruptedException {
       cancelled.expectClose(timeoutMillis, "Did not receive expected cancelling of upstream subscription");
     }
+    
+    public boolean isCancelled() throws InterruptedException {
+      return cancelled.isClosed();
+    }
   }
 
   /**
