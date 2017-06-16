@@ -19,13 +19,16 @@ import org.reactivestreams.tck.support.TestException;
 import org.testng.Assert;
 import org.testng.annotations.Test;
 
+import java.util.Collection;
 import java.util.Random;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.RejectedExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
 * Validates that the TCK's {@link org.reactivestreams.tck.PublisherVerification} fails with nice human readable errors.
@@ -362,6 +365,21 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
   @Test
   public void optional_spec111_maySupportMultiSubscribe_shouldFailBy_actuallyPass() throws Throwable {
     noopPublisherVerification().optional_spec111_maySupportMultiSubscribe();
+  }
+
+  @Test
+  public void optional_spec111_registeredSubscribersMustReceiveOnNextOrOnCompleteSignals_beSkippedWhenMultipleSubscribersNotSupported() throws Throwable {
+    requireTestSkip(new ThrowingRunnable() {
+      @Override
+      public void run() throws Throwable {
+        multiSubscribersPublisherVerification(true).optional_spec111_registeredSubscribersMustReceiveOnNextOrOnCompleteSignals();
+      }
+    }, "Unexpected additional subscriber");
+  }
+
+  @Test
+  public void optional_spec111_registeredSubscribersMustReceiveOnNextOrOnCompleteSignals_shouldPass() throws Throwable {
+    multiSubscribersPublisherVerification(false).optional_spec111_registeredSubscribersMustReceiveOnNextOrOnCompleteSignals();
   }
 
   @Test
@@ -712,6 +730,73 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
 
       @Override public Publisher<Integer> createFailedPublisher() {
         return errorPub;
+      }
+    };
+  }
+
+  /**
+   * Verification using a Publisher that supports multiple subscribers
+   * @param shouldBlowUp if true {@link RuntimeException} will be thrown during second subscription.
+   */
+  final PublisherVerification<Integer> multiSubscribersPublisherVerification(final boolean shouldBlowUp) {
+    return new PublisherVerification<Integer>(newTestEnvironment()) {
+
+      @Override
+      public Publisher<Integer> createPublisher(final long elements) {
+        return new Publisher<Integer>() {
+
+          private final Collection<CancelableSubscription> subscriptions = new CopyOnWriteArrayList<CancelableSubscription>();
+          private final AtomicLong source = new AtomicLong(elements);
+
+          @Override
+          public void subscribe(Subscriber<? super Integer> s) {
+            // onSubscribe first
+            CancelableSubscription subscription = new CancelableSubscription(s);
+            s.onSubscribe(subscription);
+            if (shouldBlowUp && !subscriptions.isEmpty()) {
+              s.onError(new RuntimeException("Unexpected additional subscriber"));
+            } else {
+              subscriptions.add(subscription);
+            }
+          }
+
+          class CancelableSubscription implements Subscription {
+
+            final AtomicBoolean canceled = new AtomicBoolean();
+            Subscriber<? super Integer> subscriber;
+
+            CancelableSubscription(Subscriber<? super Integer> subscriber) {
+              this.subscriber = subscriber;
+            }
+
+            @Override
+            public void request(long n) {
+              if (!canceled.get()) {
+                for (long i = 0; i < n; i++) {
+                  if (source.getAndDecrement() < 0) {
+                    canceled.set(true);
+                    subscriber.onComplete();
+                  } else {
+                    subscriber.onNext((int) i);
+                  }
+                }
+              }
+            }
+
+            @Override
+            public void cancel() {
+              canceled.set(true);
+              subscriber = null;
+              subscriptions.remove(this);
+            }
+          }
+
+        };
+      }
+
+      @Override
+      public Publisher<Integer> createFailedPublisher() {
+        return SKIP;
       }
     };
   }
