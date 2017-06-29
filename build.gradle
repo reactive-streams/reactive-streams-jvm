@@ -3,7 +3,7 @@ subprojects {
     apply plugin: "osgi"
 
     group = "org.reactivestreams"
-    version = "1.0.0"
+    version = "1.0.1-RC1"
 
     sourceCompatibility = 1.6
     targetCompatibility = 1.6
@@ -42,7 +42,7 @@ subprojects {
             instructionReplace "Bundle-Vendor", "Reactive Streams SIG"
             instructionReplace "Bundle-Description", "Reactive Streams API"
             instructionReplace "Bundle-DocURL", "http://reactive-streams.org"
-            instructionReplace "Bundle-Version", "1.0.0"
+            instructionReplace "Bundle-Version", "1.0.1-RC1"
         }
     }
 
