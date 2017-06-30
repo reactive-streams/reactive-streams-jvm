@@ -1,5 +1,7 @@
 language: java
 sudo: required
+dist: trusty
+group: edge
 script:
   - ./gradlew check
 cache:
@@ -7,6 +9,7 @@ cache:
   - $HOME/.gradle
 jdk:
   - oraclejdk8
+  - oraclejdk9
   - openjdk6
 env:
   global:
