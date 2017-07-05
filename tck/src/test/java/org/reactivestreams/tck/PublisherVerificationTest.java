@@ -482,6 +482,27 @@ public class PublisherVerificationTest extends TCKVerificationSupport {
   }
 
   @Test
+  public void required_spec309_requestZeroMustSignalIllegalArgumentException_shouldPass() throws Throwable {
+    customPublisherVerification(new Publisher<Integer>() {
+      @Override
+      public void subscribe(final Subscriber<? super Integer> s) {
+        s.onSubscribe(new Subscription() {
+          @Override
+          public void request(long n) {
+            // we error out with any message, it does not have to contain any specific wording
+            if (n <= 0) s.onError(new IllegalArgumentException("Illegal request value detected!"));
+          }
+
+          @Override
+          public void cancel() {
+            // noop
+          }
+        });
+      }
+    }).required_spec309_requestZeroMustSignalIllegalArgumentException();
+  }
+
+  @Test
   public void required_spec309_requestNegativeNumberMustSignalIllegalArgumentException_shouldFailBy_expectingOnError() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {

@@ -896,7 +896,7 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
       @Override public void run(Publisher<T> pub) throws Throwable {
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
         sub.request(0);
-        sub.expectErrorWithMessage(IllegalArgumentException.class, "3.9"); // we do require implementations to mention the rule number at the very least
+        sub.expectError(IllegalArgumentException.class);
       }
     });
   }
@@ -909,7 +909,22 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
         final Random r = new Random();
         sub.request(-r.nextInt(Integer.MAX_VALUE) - 1);
-        sub.expectErrorWithMessage(IllegalArgumentException.class, "3.9"); // we do require implementations to mention the rule number at the very least
+        // we do require implementations to mention the rule number at the very least, or mentioning that the non-negative request is the problem
+        sub.expectError(IllegalArgumentException.class); 
+      }
+    });
+  }
+
+  @Override @Test
+  public void optional_spec309_requestNegativeNumberMaySignalIllegalArgumentExceptionWithSpecificMessage() throws Throwable {
+    optionalActivePublisherTest(10, false, new PublisherTestRun<T>() {
+      @Override
+      public void run(Publisher<T> pub) throws Throwable {
+        final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
+        final Random r = new Random();
+        sub.request(-r.nextInt(Integer.MAX_VALUE) - 1);
+        // we do require implementations to mention the rule number at the very least, or mentioning that the non-negative request is the problem
+        sub.expectErrorWithMessage(IllegalArgumentException.class, Arrays.asList("3.9", "non-positive subscription request", "negative subscription request")); 
       }
     });
   }

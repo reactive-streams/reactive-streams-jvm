@@ -370,6 +370,11 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
   public void required_spec309_requestNegativeNumberMustSignalIllegalArgumentException() throws Throwable {
     publisherVerification.required_spec309_requestNegativeNumberMustSignalIllegalArgumentException();
   }
+  
+  @Override @Test
+  public void optional_spec309_requestNegativeNumberMaySignalIllegalArgumentExceptionWithSpecificMessage() throws Throwable {
+    publisherVerification.optional_spec309_requestNegativeNumberMaySignalIllegalArgumentExceptionWithSpecificMessage();
+  }
 
   @Override @Test
   public void required_spec312_cancelMustMakeThePublisherToEventuallyStopSignaling() throws Throwable {
