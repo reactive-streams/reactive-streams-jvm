@@ -2,11 +2,11 @@
 
 ---
 
-# Version 1.0.1-RC1 released on 2017-06-29
+# Version 1.0.1-RC2 released on 2017-07-10
 
 ## Announcement: 
 
-After more than two years since 1.0.0, we are proud to announce the immediate availability of `Reactive Streams version 1.0.1-RC1`.
+After more than two years since 1.0.0, we are proud to announce the immediate availability of `Reactive Streams version 1.0.1-RC2`.
 
 Since 1.0.0 was released `Reactive Streams` has managed to achieve most, if not all, it set out to achieve. There are now numerous implementations, and it is scheduled to be included in [JDK9](http://download.java.net/java/jdk9/docs/api/java/util/concurrent/Flow.html).
 
@@ -17,7 +17,7 @@ When JDK9 ships, `Reactive Streams` will publish a compatibility/conversion libr
 ## Highlights:
 
 - Specification
-  + A new [Glossary](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.1-RC1/README.md#glossary) section
+  + A new [Glossary](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.1-RC2/README.md#glossary) section
   + Description of the intent behind every single rule
   + No breaking semantical changes
   + Multiple rule [clarifications](#specification-clarifications)
@@ -103,6 +103,14 @@ When JDK9 ships, `Reactive Streams` will publish a compatibility/conversion libr
 
 **Comment: Footnote reworked into the Intent-section of the rule.**
 
+## Subscription Rule 9
+
+**1.0.0:** While the Subscription is not cancelled, Subscription.request(long n) MUST signal onError with a java.lang.IllegalArgumentException if the argument is <= 0. The cause message MUST include a reference to this rule and/or quote the full rule.
+
+**1.0.1:** While the Subscription is not cancelled, Subscription.request(long n) MUST signal onError with a java.lang.IllegalArgumentException if the argument is <= 0. The cause message SHOULD explain that non-positive request signals are illegal.
+
+**Comment: The MUST requirement to include a reference to the rule in the exception message has been dropped, in favor of that the exception message SHOULD explain that non-positive requests are illegal.**
+
 ## Subscription Rule 13
 
 **1.0.0:** While the Subscription is not cancelled, Subscription.cancel() MUST request the Publisher to eventually drop any references to the corresponding subscriber. Re-subscribing with the same Subscriber object is discouraged [see 2.12], but this specification does not mandate that it is disallowed since that would mean having to store previously cancelled subscriptions indefinitely.
@@ -144,6 +152,7 @@ When JDK9 ships, `Reactive Streams` will publish a compatibility/conversion libr
 - Renamed `untested_spec305_cancelMustNotSynchronouslyPerformHeavyCompuatation` to `untested_spec305_cancelMustNotSynchronouslyPerformHeavyComputation` ([#306](https://github.com/reactive-streams/reactive-streams-jvm/issues/306))
 - Allow configuring separate timeout for "no events during N time", allowing for more aggressive timeouts in the rest of the test suite if required ([#314](https://github.com/reactive-streams/reactive-streams-jvm/issues/314))
 - New test verifying Rule 2.10, in which subscriber must be prepared to receive onError signal without having signaled request before ([#374](https://github.com/reactive-streams/reactive-streams-jvm/issues/374))
+- The verification of Rule 3.9 has been split up into 2 different tests, one to verify that an IllegalArgumentException is sent, and the other an optional check to verify that the exception message informs that non-positive request signals are illegal.
 ---
 
 ## Contributors
