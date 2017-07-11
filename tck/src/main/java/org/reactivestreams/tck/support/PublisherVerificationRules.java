@@ -471,7 +471,7 @@ public interface PublisherVerificationRules {
   void required_spec307_afterSubscriptionIsCancelledAdditionalCancelationsMustBeNops() throws Throwable;
   /**
    * Asks for a short {@code Publisher} (length 10) and issues a {@code request(0)} which should trigger an {@code onError} call
-   * with an {@code IllegalArgumentException} and the message containing the string "3.9" (reference to the rule number).
+   * with an {@code IllegalArgumentException}.
    * <p>
    * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#3.9'>3.9</a>
    * <p>
@@ -495,8 +495,8 @@ public interface PublisherVerificationRules {
    */
   void required_spec309_requestZeroMustSignalIllegalArgumentException() throws Throwable;
   /**
-   * Asks for a short {@code Publisher} (length 10) and issues a random, negative {@code request()} call which should trigger an {@code onError} call
-   * with an {@code IllegalArgumentException} and the message containing the string "3.9" (reference to the rule number).
+   * Asks for a short {@code Publisher} (length 10) and issues a random, negative {@code request()} call which should 
+   * trigger an {@code onError} call with an {@code IllegalArgumentException}. 
    * <p>
    * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#3.9'>3.9</a>
    * <p>
@@ -519,6 +519,31 @@ public interface PublisherVerificationRules {
    * </ul>
    */
   void required_spec309_requestNegativeNumberMustSignalIllegalArgumentException() throws Throwable;
+  /**
+   * Asks for a short {@code Publisher} (length 10) and issues a random, negative {@code request()} call which should 
+   * trigger an {@code onError} call with an {@code IllegalArgumentException}. 
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#3.9'>3.9</a>
+   * <p>
+   * The test is not executed if {@link org.reactivestreams.tck.PublisherVerification#maxElementsFromPublisher()} is less than 10.
+   * <p>
+   * Note that this test expects the {@code IllegalArgumentException} being signalled through {@code onError}, not by
+   * throwing from {@code request()} (which is also forbidden) or signalling the error by any other means (i.e., through the
+   * {@code Thread.currentThread().getUncaughtExceptionHandler()} for example).
+   * <p>
+   * Note also that requesting and emission may happen concurrently and honoring this rule may require extra coordination within
+   * the {@code Publisher}.
+   * <p>
+   * If this test fails, the following could be checked within the {@code Publisher} implementation:
+   * <ul>
+   * <li>the {@code TestEnvironment} has large enough timeout specified in case the {@code Publisher} has some time-delay behavior,</li>
+   * <li>make sure the {@link #required_createPublisher1MustProduceAStreamOfExactly1Element()} and {@link #required_createPublisher3MustProduceAStreamOfExactly3Elements()} tests pass,</li>
+   * <li>the {@code Publisher} can emit an {@code onError} in this particular case, even if there was no prior and legal
+   * {@code request} call and even if the {@code Publisher} would like to emit items first before emitting an {@code onError}
+   * in general.
+   * </ul>
+   */
+  void optional_spec309_requestNegativeNumberMaySignalIllegalArgumentExceptionWithSpecificMessage() throws Throwable;
   /**
    * Asks for a short {@code Publisher} (length 20), requests some items (less than the length), consumes one item then
    * cancels the sequence and verifies the publisher emitted at most the requested amount and stopped emitting (or terminated). 

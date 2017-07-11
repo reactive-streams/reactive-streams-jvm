@@ -17,6 +17,7 @@ import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.support.SubscriberBufferOverflowException;
 import org.reactivestreams.tck.support.Optional;
 
+import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -513,14 +514,24 @@ public class TestEnvironment {
     public <E extends Throwable> void expectErrorWithMessage(Class<E> expected, String requiredMessagePart) throws Exception {
       expectErrorWithMessage(expected, requiredMessagePart, env.defaultTimeoutMillis());
     }
+    public <E extends Throwable> void expectErrorWithMessage(Class<E> expected, List<String> requiredMessagePartAlternatives) throws Exception {
+      expectErrorWithMessage(expected, requiredMessagePartAlternatives, env.defaultTimeoutMillis());
+    }
 
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     public <E extends Throwable> void expectErrorWithMessage(Class<E> expected, String requiredMessagePart, long timeoutMillis) throws Exception {
+      expectErrorWithMessage(expected, Collections.singletonList(requiredMessagePart), timeoutMillis);
+    }
+    public <E extends Throwable> void expectErrorWithMessage(Class<E> expected, List<String> requiredMessagePartAlternatives, long timeoutMillis) throws Exception {
       final E err = expectError(expected, timeoutMillis);
       final String message = err.getMessage();
-      assertTrue(message.contains(requiredMessagePart),
+      
+      boolean contains = false;
+      for (String requiredMessagePart : requiredMessagePartAlternatives) 
+        if (message.contains(requiredMessagePart)) contains = true; // not short-circuting loop, it is expected to
+      assertTrue(contains,
                  String.format("Got expected exception [%s] but missing message part [%s], was: %s",
-                               err.getClass(), requiredMessagePart, err.getMessage()));
+                               err.getClass(), "anyOf: " + requiredMessagePartAlternatives, err.getMessage()));
     }
 
     public <E extends Throwable> E expectError(Class<E> expected) throws Exception {
