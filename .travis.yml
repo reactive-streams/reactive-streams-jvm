@@ -21,6 +21,11 @@ matrix:
         - export JAVA_HOME=~/jdk-9
         - PATH=$JAVA_HOME/bin:$PATH
         - cd -
+        
+# Don't let Travis CI execute './gradlew assemble' by default
+install:
+# Display Gradle, JVM and other versions
+  - ./gradlew -version
 
 env:
   global:
