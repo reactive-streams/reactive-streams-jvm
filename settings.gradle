@@ -1,9 +1,27 @@
 rootProject.name = 'reactive-streams'
+
+def jdkFlow = false;
+
+try {
+    Class.forName("java.util.concurrent.Flow");
+    jdkFlow = true;
+    println("Java 9 Flow API found")
+} catch (Throwable ex) {
+    // Flow API not available
+    println("Java 9 Flow API not available")
+}
+
 include ':reactive-streams'
 include ':reactive-streams-tck'
 include ':reactive-streams-examples'
 
+if (jdkFlow) {
+    include ':reactive-streams-flow-bridge'
+}
+
 project(':reactive-streams').projectDir = "$rootDir/api" as File
 project(':reactive-streams-tck').projectDir = "$rootDir/tck" as File
 project(':reactive-streams-examples').projectDir = "$rootDir/examples" as File
-
+if (jdkFlow) {
+    project(':reactive-streams-flow-bridge').projectDir = "$rootDir/flow-bridge" as File
+}

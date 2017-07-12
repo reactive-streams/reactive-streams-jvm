@@ -1,13 +1,35 @@
 language: java
 sudo: required
+dist: trusty
+#group: edge
+
 script:
   - ./gradlew check
 cache:
   directories:
   - $HOME/.gradle
-jdk:
-  - oraclejdk8
-  - openjdk6
+
+before_install:
+  - export GRADLE_OPTS=-Xmx1024m
+
+matrix:
+  include:
+    - jdk: openjdk7
+    - jdk: oraclejdk8 # JDK 1.8.0_131-b11
+    - jdk: oraclejdk9 # JDK 9-ea+174 provided by Travis will be replaced by 9+177 in "before_install"
+      before_install:
+        - cd ~
+        - wget http://download.java.net/java/jdk9/archive/177/binaries/jdk-9+177_linux-x64_bin.tar.gz
+        - tar -xzf jdk-9+177_linux-x64_bin.tar.gz
+        - export JAVA_HOME=~/jdk-9
+        - PATH=$JAVA_HOME/bin:$PATH
+        - cd -
+
+# Don't let Travis CI execute './gradlew assemble' by default
+install:
+# Display Gradle, JVM and other versions
+  - ./gradlew -version
+
 env:
   global:
   - TERM=dumb

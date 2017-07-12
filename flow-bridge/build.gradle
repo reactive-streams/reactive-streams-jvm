@@ -1,0 +1,9 @@
+description = 'reactive-streams-flow-bridge'
+
+dependencies {
+    compile project(':reactive-streams')
+
+    testCompile project(':reactive-streams-tck')
+    testCompile group: 'org.testng', name: 'testng', version: '5.14.10'
+}
+test.useTestNG()
