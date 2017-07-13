@@ -16,6 +16,7 @@ import org.reactivestreams.tck.PublisherVerification;
 import org.reactivestreams.tck.TestEnvironment;
 import org.testng.annotations.Test;
 
+import java.io.IOException;
 import java.util.Objects;
 import java.util.concurrent.Flow;
 import java.util.concurrent.ForkJoinPool;
@@ -48,7 +49,9 @@ public class SubmissionPublisherTckTest extends PublisherVerification<Integer> {
 
     @Override
     public Publisher<Integer> createFailedPublisher() {
-        return null;
+        final SubmissionPublisher<Integer> sp = new SubmissionPublisher<Integer>();
+        sp.closeExceptionally(new IOException());
+        return ReactiveFlowBridge.toReactive(sp);
     }
 
     @Override

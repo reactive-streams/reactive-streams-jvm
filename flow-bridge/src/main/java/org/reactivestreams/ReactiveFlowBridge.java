@@ -24,7 +24,7 @@ public final class ReactiveFlowBridge {
 
     /**
      * Converts a Flow Publisher into a Reactive Publisher.
-     * @param <T> the value type
+     * @param <T> the element type
      * @param flowPublisher the source Flow Publisher to convert
      * @return the equivalent Reactive Publisher
      */
@@ -45,7 +45,7 @@ public final class ReactiveFlowBridge {
 
     /**
      * Converts a Reactive Publisher into a Flow Publisher.
-     * @param <T> the value type
+     * @param <T> the element type
      * @param reactivePublisher the source Reactive Publisher to convert
      * @return the equivalent Flow Publisher
      */
@@ -158,7 +158,7 @@ public final class ReactiveFlowBridge {
     
     /**
      * Wraps a Reactive Subscriber and forwards methods of the Flow Subscriber to it.
-     * @param <T> the value type
+     * @param <T> the element type
      */
     static final class FlowToReactiveSubscriber<T> 
             implements Flow.Subscriber<T> {
@@ -192,7 +192,7 @@ public final class ReactiveFlowBridge {
 
     /**
      * Wraps a Reactive Subscriber and forwards methods of the Flow Subscriber to it.
-     * @param <T> the value type
+     * @param <T> the element type
      */
     static final class ReactiveToFlowSubscriber<T> 
             implements org.reactivestreams.Subscriber<T> {
@@ -312,7 +312,7 @@ public final class ReactiveFlowBridge {
 
     /**
      * Reactive Publisher that wraps a Flow Publisher.
-     * @param <T> the value type
+     * @param <T> the element type
      */
     static final class ReactivePublisherFromFlow<T> implements org.reactivestreams.Publisher<T> {
 
@@ -334,7 +334,7 @@ public final class ReactiveFlowBridge {
 
     /**
      * Flow Publisher that wraps a Reactive Publisher.
-     * @param <T> the value type
+     * @param <T> the element type
      */
     static final class FlowPublisherFromReactive<T> implements Flow.Publisher<T> {
 
