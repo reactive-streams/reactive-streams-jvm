@@ -2,11 +2,11 @@
 
 ---
 
-# Version 1.0.1-RC2 released on 2017-07-10
+# Version 1.0.1 released on 2017-08-09
 
 ## Announcement: 
 
-After more than two years since 1.0.0, we are proud to announce the immediate availability of `Reactive Streams version 1.0.1-RC2`.
+After more than two years since 1.0.0, we are proud to announce the immediate availability of `Reactive Streams version 1.0.1`.
 
 Since 1.0.0 was released `Reactive Streams` has managed to achieve most, if not all, it set out to achieve. There are now numerous implementations, and it is scheduled to be included in [JDK9](http://download.java.net/java/jdk9/docs/api/java/util/concurrent/Flow.html).
 
@@ -17,7 +17,7 @@ When JDK9 ships, `Reactive Streams` will publish a compatibility/conversion libr
 ## Highlights:
 
 - Specification
-  + A new [Glossary](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.1-RC2/README.md#glossary) section
+  + A new [Glossary](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.1/README.md#glossary) section
   + Description of the intent behind every single rule
   + No breaking semantical changes
   + Multiple rule [clarifications](#specification-clarifications)
@@ -175,3 +175,4 @@ When JDK9 ships, `Reactive Streams` will publish a compatibility/conversion libr
   + (new) Kazuhiro Sera [(@seratch)](https://github.com/seratch)
   + (new) Dávid Karnok [(@akarnokd)](https://github.com/akarnokd)
   + (new) Evgeniy Getman [(@egetman)](https://github.com/egetman)
+  + (new) Ángel Sanz [(@angelsanz)](https://github.com/angelsanz)
