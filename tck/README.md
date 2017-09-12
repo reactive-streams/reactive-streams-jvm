@@ -41,7 +41,7 @@ Since the TCK is aimed at Reactive Stream implementers, looking into the sources
 In order to make mapping between test cases and Specification rules easier, each test case covering a specific
 Specification rule abides the following naming convention: `TYPE_spec###_DESC` where:
 
-* `TYPE` is one of: [#type-required](required), [#type-optional](optional), [#type-stochastic](stochastic) or [#type-untested](untested) which describe if this test is covering a Rule that MUST or SHOULD be implemented. The specific words are explained in detail below.
+* `TYPE` is one of: [required](#type-required), [optional](#type-optional), [stochastic](#type-stochastic) or [untested](#type-untested) which describe if this test is covering a Rule that MUST or SHOULD be implemented. The specific words are explained in detail below.
 * `###` is the Rule number (`1.xx` Rules are about `Publisher`s, `2.xx` Rules are about Subscribers etc.)
 * `DESC` is a short explanation of what exactly is being tested in this test case, as sometimes one Rule may have multiple test cases in order to cover the entire Rule.
 
