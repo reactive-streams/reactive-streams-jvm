@@ -16,15 +16,7 @@ matrix:
   include:
     - jdk: openjdk7
     - jdk: oraclejdk8 # JDK 1.8.0_131-b11
-    # From https://github.com/reactive-streams/reactive-streams-jvm/pull/383
-    - jdk: oraclejdk9 # JDK 9-ea+174 provided by Travis will be replaced by 9+177 in "before_install"
-      before_install:
-        - cd ~
-        - wget http://download.java.net/java/jdk9/archive/177/binaries/jdk-9+177_linux-x64_bin.tar.gz
-        - tar -xzf jdk-9+177_linux-x64_bin.tar.gz
-        - export JAVA_HOME=~/jdk-9
-        - PATH=$JAVA_HOME/bin:$PATH
-        - cd -
+    - jdk: oraclejdk9
 
 # Don't let Travis CI execute './gradlew assemble' by default
 # From https://github.com/reactive-streams/reactive-streams-jvm/pull/383
