@@ -76,7 +76,7 @@ public class ReactiveFlowBridgeTest {
 
         TestConsumer<Integer> tc = new TestConsumer<Integer>();
 
-        ReactiveFlowBridge.toReactive(p).subscribe(tc);
+        ReactiveFlowBridge.toReactiveStreams(p).subscribe(tc);
 
         p.submit(1);
         p.submit(2);
@@ -99,7 +99,7 @@ public class ReactiveFlowBridgeTest {
 
         TestConsumer<Integer> tc = new TestConsumer<Integer>();
 
-        ReactiveFlowBridge.toReactive(p).subscribe(tc);
+        ReactiveFlowBridge.toReactiveStreams(p).subscribe(tc);
 
         p.submit(1);
         p.submit(2);
