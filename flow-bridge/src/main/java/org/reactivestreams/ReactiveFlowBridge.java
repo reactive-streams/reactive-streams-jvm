@@ -54,7 +54,7 @@ public final class ReactiveFlowBridge {
             org.reactivestreams.Publisher<? extends T> reactiveStreamsPublisher
     ) {
         if (reactiveStreamsPublisher == null) {
-            throw new NullPointerException("reactivePublisher");
+            throw new NullPointerException("reactiveStreamsPublisher");
         }
         if (reactiveStreamsPublisher instanceof Flow.Publisher) {
             return (Flow.Publisher<T>)reactiveStreamsPublisher;
@@ -100,7 +100,7 @@ public final class ReactiveFlowBridge {
             org.reactivestreams.Processor<? super T, ? extends U> reactiveStreamsProcessor
         ) {
         if (reactiveStreamsProcessor == null) {
-            throw new NullPointerException("reactiveProcessor");
+            throw new NullPointerException("reactiveStreamsProcessor");
         }
         if (reactiveStreamsProcessor instanceof Flow.Processor) {
             return (Flow.Processor<T, U>)reactiveStreamsProcessor;
