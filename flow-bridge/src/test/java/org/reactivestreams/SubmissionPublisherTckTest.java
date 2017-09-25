@@ -40,14 +40,14 @@ public class SubmissionPublisherTckTest extends PublisherVerification<Integer> {
                 sp.close();
             }
         }).start();
-        return ReactiveFlowBridge.toReactiveStreams(sp);
+        return ReactiveStreamsFlowBridge.toReactiveStreams(sp);
     }
 
     @Override
     public Publisher<Integer> createFailedPublisher() {
         final SubmissionPublisher<Integer> sp = new SubmissionPublisher<Integer>();
         sp.closeExceptionally(new IOException());
-        return ReactiveFlowBridge.toReactiveStreams(sp);
+        return ReactiveStreamsFlowBridge.toReactiveStreams(sp);
     }
 
     @Override

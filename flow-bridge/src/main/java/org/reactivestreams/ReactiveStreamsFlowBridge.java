@@ -16,9 +16,9 @@ import java.util.concurrent.Flow;
 /**
  * Bridge between Reactive Streams API and the Java 9 {@link java.util.concurrent.Flow} API.
  */
-public final class ReactiveFlowBridge {
+public final class ReactiveStreamsFlowBridge {
     /** Utility class. */
-    private ReactiveFlowBridge() {
+    private ReactiveStreamsFlowBridge() {
         throw new IllegalStateException("No instances!");
     }
 

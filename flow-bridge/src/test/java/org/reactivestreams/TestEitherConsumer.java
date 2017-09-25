@@ -18,7 +18,18 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Flow;
 import java.util.concurrent.TimeUnit;
 
-class TestConsumer<T> implements Flow.Subscriber<T>, Subscriber<T> {
+/**
+ * Class that provides basic state assertions on received elements and
+ * terminal signals from either a Reactive Streams Publisher or a
+ * Flow Publisher.
+ * <p>
+ *     As with standard {@link Subscriber}s, an instance of this class
+ *     should be subscribed to at most one (Reactive Streams or
+ *     Flow) Publisher.
+ * </p>
+ * @param <T> the element type
+ */
+class TestEitherConsumer<T> implements Flow.Subscriber<T>, Subscriber<T> {
 
     protected final List<T> values;
 
@@ -34,11 +45,11 @@ class TestConsumer<T> implements Flow.Subscriber<T>, Subscriber<T> {
 
     final long initialRequest;
 
-    public TestConsumer() {
+    public TestEitherConsumer() {
         this(Long.MAX_VALUE);
     }
 
-    public TestConsumer(long initialRequest) {
+    public TestEitherConsumer(long initialRequest) {
         this.values = new ArrayList<T>();
         this.errors = new ArrayList<Throwable>();
         this.done = new CountDownLatch(1);
@@ -103,7 +114,7 @@ class TestConsumer<T> implements Flow.Subscriber<T>, Subscriber<T> {
         return done.await(timeout, unit);
     }
 
-    public final TestConsumer<T> assertResult(T... items) {
+    public final TestEitherConsumer<T> assertResult(T... items) {
         if (!values.equals(Arrays.asList(items))) {
             throw new AssertionError("Expected: " + Arrays.toString(items) + ", Actual: " + values + ", Completions: " + completions);
         }
@@ -114,7 +125,7 @@ class TestConsumer<T> implements Flow.Subscriber<T>, Subscriber<T> {
     }
 
 
-    public final TestConsumer<T> assertFailure(Class<? extends Throwable> errorClass, T... items) {
+    public final TestEitherConsumer<T> assertFailure(Class<? extends Throwable> errorClass, T... items) {
         if (!values.equals(Arrays.asList(items))) {
             throw new AssertionError("Expected: " + Arrays.toString(items) + ", Actual: " + values + ", Completions: " + completions);
         }
@@ -132,7 +143,7 @@ class TestConsumer<T> implements Flow.Subscriber<T>, Subscriber<T> {
         return this;
     }
 
-    public final TestConsumer<T> awaitDone(long timeout, TimeUnit unit) {
+    public final TestEitherConsumer<T> awaitDone(long timeout, TimeUnit unit) {
         try {
             if (!done.await(timeout, unit)) {
                 subscription.cancel();
@@ -145,7 +156,7 @@ class TestConsumer<T> implements Flow.Subscriber<T>, Subscriber<T> {
         return this;
     }
 
-    public final TestConsumer<T> assertRange(int start, int count) {
+    public final TestEitherConsumer<T> assertRange(int start, int count) {
         if (values.size() != count) {
             throw new AssertionError("Expected: " + count + ", Actual: " + values.size());
         }

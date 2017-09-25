@@ -18,7 +18,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Flow;
 import java.util.concurrent.SubmissionPublisher;
 
-public class ReactiveFlowBridgeTest {
+public class ReactiveStreamsFlowBridgeTest {
     @Test
     public void reactiveToFlowNormal() {
         MulticastPublisher<Integer> p = new MulticastPublisher<Integer>(new Executor() {
@@ -28,9 +28,9 @@ public class ReactiveFlowBridgeTest {
             }
         }, Flow.defaultBufferSize());
 
-        TestConsumer<Integer> tc = new TestConsumer<Integer>();
+        TestEitherConsumer<Integer> tc = new TestEitherConsumer<Integer>();
 
-        ReactiveFlowBridge.toFlow(p).subscribe(tc);
+        ReactiveStreamsFlowBridge.toFlow(p).subscribe(tc);
 
         p.offer(1);
         p.offer(2);
@@ -51,9 +51,9 @@ public class ReactiveFlowBridgeTest {
             }
         }, Flow.defaultBufferSize());
 
-        TestConsumer<Integer> tc = new TestConsumer<Integer>();
+        TestEitherConsumer<Integer> tc = new TestEitherConsumer<Integer>();
 
-        ReactiveFlowBridge.toFlow(p).subscribe(tc);
+        ReactiveStreamsFlowBridge.toFlow(p).subscribe(tc);
 
         p.offer(1);
         p.offer(2);
@@ -74,9 +74,9 @@ public class ReactiveFlowBridgeTest {
             }
         }, Flow.defaultBufferSize());
 
-        TestConsumer<Integer> tc = new TestConsumer<Integer>();
+        TestEitherConsumer<Integer> tc = new TestEitherConsumer<Integer>();
 
-        ReactiveFlowBridge.toReactiveStreams(p).subscribe(tc);
+        ReactiveStreamsFlowBridge.toReactiveStreams(p).subscribe(tc);
 
         p.submit(1);
         p.submit(2);
@@ -97,9 +97,9 @@ public class ReactiveFlowBridgeTest {
             }
         }, Flow.defaultBufferSize());
 
-        TestConsumer<Integer> tc = new TestConsumer<Integer>();
+        TestEitherConsumer<Integer> tc = new TestEitherConsumer<Integer>();
 
-        ReactiveFlowBridge.toReactiveStreams(p).subscribe(tc);
+        ReactiveStreamsFlowBridge.toReactiveStreams(p).subscribe(tc);
 
         p.submit(1);
         p.submit(2);
