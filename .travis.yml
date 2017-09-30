@@ -1,13 +1,29 @@
 language: java
 sudo: required
+dist: trusty
+#group: edge
+
 script:
   - ./gradlew check
 cache:
   directories:
   - $HOME/.gradle
-jdk:
-  - oraclejdk8
-  - openjdk6
+
+before_install:
+  - export GRADLE_OPTS=-Xmx1024m
+
+matrix:
+  include:
+    - jdk: openjdk7
+    - jdk: oraclejdk8 # JDK 1.8.0_131-b11
+    - jdk: oraclejdk9
+
+# Don't let Travis CI execute './gradlew assemble' by default
+# From https://github.com/reactive-streams/reactive-streams-jvm/pull/383
+install:
+# Display Gradle, JVM and other versions
+  - ./gradlew -version
+
 env:
   global:
   - TERM=dumb
