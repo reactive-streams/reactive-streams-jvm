@@ -9,21 +9,14 @@
  * work. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.*
  ************************************************************************/
 
-package org.reactivestreams.tck.support;
+package org.reactivestreams.tck.flow.support;
 
-public final class SubscriberBufferOverflowException extends RuntimeException {
-  public SubscriberBufferOverflowException() {
-  }
-
-  public SubscriberBufferOverflowException(String message) {
-    super(message);
-  }
-
-  public SubscriberBufferOverflowException(String message, Throwable cause) {
-    super(message, cause);
-  }
-
-  public SubscriberBufferOverflowException(Throwable cause) {
-    super(cause);
+/**
+ * Exception used by the TCK to signal failures.
+ * May be thrown or signalled through {@link org.reactivestreams.Subscriber#onError(Throwable)}.
+ */
+public final class TestException extends RuntimeException {
+  public TestException() {
+    super("Test Exception: Boom!");
   }
 }

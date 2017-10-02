@@ -9,20 +9,21 @@
  * work. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.*
  ************************************************************************/
 
-package org.reactivestreams.tck;
+package org.reactivestreams.tck.flow;
 
-import org.reactivestreams.Subscriber;
+import org.reactivestreams.tck.TestEnvironment;
+import org.reactivestreams.tck.flow.FlowSubscriberBlackboxVerification;
+import org.reactivestreams.tck.flow.support.SyncTriggeredDemandFlowSubscriber;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import org.reactivestreams.tck.flow.support.SyncTriggeredDemandSubscriber;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Flow;
 
 @Test // Must be here for TestNG to find and run this, do not remove
-public class SyncTriggeredDemandSubscriberTest extends SubscriberBlackboxVerification<Integer> {
+public class SyncTriggeredDemandSubscriberTest extends FlowSubscriberBlackboxVerification<Integer> {
 
   private ExecutorService e;
   @BeforeClass void before() { e = Executors.newFixedThreadPool(4); }
@@ -32,12 +33,13 @@ public class SyncTriggeredDemandSubscriberTest extends SubscriberBlackboxVerific
     super(new TestEnvironment());
   }
 
-  @Override public void triggerRequest(final Subscriber<? super Integer> subscriber) {
-    ((SyncTriggeredDemandSubscriber<? super Integer>)subscriber).triggerDemand(1);
+  @Override
+  public void triggerFlowRequest(Flow.Subscriber<? super Integer> subscriber) {
+    ((SyncTriggeredDemandFlowSubscriber<? super Integer>) subscriber).triggerDemand(1)
   }
 
-  @Override public Subscriber<Integer> createSubscriber() {
-    return new SyncTriggeredDemandSubscriber<Integer>() {
+  @Override public Flow.Subscriber<Integer> createFlowSubscriber() {
+    return new SyncTriggeredDemandFlowSubscriber<Integer>() {
       private long acc;
       @Override protected long foreach(final Integer element) {
         acc += element;

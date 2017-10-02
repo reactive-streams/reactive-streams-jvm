@@ -15,7 +15,7 @@ import org.reactivestreams.Processor;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import org.reactivestreams.tck.support.TCKVerificationSupport;
+import org.reactivestreams.tck.flow.support.TCKVerificationSupport;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;

@@ -116,7 +116,7 @@ public class ReactiveStreamsFlowBridgeTest {
     public void reactiveStreamsToFlowSubscriber() {
         TestEitherConsumer<Integer> tc = new TestEitherConsumer<Integer>();
 
-        Flow.Subscriber<Integer> fs = ReactiveStreamsFlowBridge.toFlowSubscriber(tc);
+        Flow.Subscriber<Integer> fs = ReactiveStreamsFlowBridge.toFlow(tc);
 
         final Object[] state = { null, null };
 
@@ -148,7 +148,7 @@ public class ReactiveStreamsFlowBridgeTest {
     public void flowToReactiveStreamsSubscriber() {
         TestEitherConsumer<Integer> tc = new TestEitherConsumer<Integer>();
 
-        org.reactivestreams.Subscriber<Integer> fs = ReactiveStreamsFlowBridge.toReactiveStreamsSubscriber(tc);
+        org.reactivestreams.Subscriber<Integer> fs = ReactiveStreamsFlowBridge.toReactiveStreams(tc);
 
         final Object[] state = { null, null };
 

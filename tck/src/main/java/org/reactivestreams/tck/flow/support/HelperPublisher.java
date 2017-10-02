@@ -9,14 +9,12 @@
  * work. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.*
  ************************************************************************/
 
-package org.reactivestreams.tck.support;
+package org.reactivestreams.tck.flow.support;
 
 import java.util.Collections;
 import java.util.Iterator;
 import java.util.concurrent.Executor;
-import org.reactivestreams.Subscription;
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Publisher;
+
 import org.reactivestreams.example.unicast.AsyncIterablePublisher;
 
 public class HelperPublisher<T> extends AsyncIterablePublisher<T> {
