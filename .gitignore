@@ -26,3 +26,4 @@ test-results
 test-tmp
 *.class
 gradle.properties
+*.orig

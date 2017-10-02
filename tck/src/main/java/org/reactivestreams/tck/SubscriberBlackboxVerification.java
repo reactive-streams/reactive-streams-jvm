@@ -16,9 +16,9 @@ import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.TestEnvironment.ManualPublisher;
 import org.reactivestreams.tck.TestEnvironment.ManualSubscriber;
-import org.reactivestreams.tck.support.Optional;
-import org.reactivestreams.tck.support.SubscriberBlackboxVerificationRules;
-import org.reactivestreams.tck.support.TestException;
+import org.reactivestreams.tck.flow.support.Optional;
+import org.reactivestreams.tck.flow.support.SubscriberBlackboxVerificationRules;
+import org.reactivestreams.tck.flow.support.TestException;
 import org.testng.SkipException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -42,7 +42,7 @@ import static org.testng.Assert.assertTrue;
  * @see org.reactivestreams.Subscriber
  * @see org.reactivestreams.Subscription
  */
-public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublisher<T> 
+public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublisher<T>
   implements SubscriberBlackboxVerificationRules {
 
   protected final TestEnvironment env;
@@ -66,7 +66,7 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
    * By default this method does nothing.
    */
   public void triggerRequest(final Subscriber<? super T> subscriber) {
-
+    // this method is intentionally left blank
   }
 
   // ENV SETUP
@@ -101,14 +101,14 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
         // should cope with up to requested number of elements
         for (int i = 0; i < signalsToEmit && sampleIsCancelled(stage, i, 10); i++)
           stage.signalNext();
-        
-        // we complete after `signalsToEmit` (which can be less than `requested`), 
+
+        // we complete after `signalsToEmit` (which can be less than `requested`),
         // which is legal under https://github.com/reactive-streams/reactive-streams-jvm#1.2
         stage.sendCompletion();
       }
 
-      /** 
-       * In order to allow some "skid" and not check state on each iteration, 
+      /**
+       * In order to allow some "skid" and not check state on each iteration,
        * only check {@code stage.isCancelled} every {@code checkInterval}'th iteration.
        */
       private boolean sampleIsCancelled(BlackboxTestStage stage, int i, int checkInterval) throws InterruptedException {
@@ -284,14 +284,14 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
       }
     });
   }
-  
+
   // Verifies rule: https://github.com/reactive-streams/reactive-streams-jvm#2.10
   @Override @Test
   public void required_spec210_blackbox_mustBePreparedToReceiveAnOnErrorSignalWithoutPrecedingRequestCall() throws Throwable {
     blackboxSubscriberTest(new BlackboxTestStageTestRun() {
       @Override @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
       public void run(BlackboxTestStage stage) throws Throwable {
-        
+
         stage.sub().onError(new TestException());
         stage.subProxy().expectError(Throwable.class);
       }

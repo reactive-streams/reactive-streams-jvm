@@ -9,7 +9,7 @@
  * work. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.*
  ************************************************************************/
 
-package org.reactivestreams.tck.support;
+package org.reactivestreams.tck.flow.support;
 
 public interface Function<In, Out> {
   public Out apply(In in) throws Throwable;
