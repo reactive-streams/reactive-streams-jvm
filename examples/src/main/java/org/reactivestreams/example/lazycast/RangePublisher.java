@@ -156,7 +156,9 @@ public final class RangePublisher implements Publisher<Integer> {
 
             try {
                 for (; ; ) {
-                    // Check if there was an invalid request and then report it.
+                    // Check if there was an invalid request and then report its exception
+                    // as mandated by rule 3.9. The stacktrace in it should
+                    // help locate the faulty logic in the Subscriber.
                     Throwable invalidRequest = this.invalidRequest;
                     if (invalidRequest != null) {
                         // When we signal onError, the subscription must be considered as cancelled, as per rule 1.6
