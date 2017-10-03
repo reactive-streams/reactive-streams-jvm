@@ -9,7 +9,7 @@
  * work. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.*
  ************************************************************************/
 
-package org.reactivestreams.example.lazycast;
+package org.reactivestreams.example.unicast;
 
 import org.reactivestreams.*;
 
