@@ -40,8 +40,24 @@ public final class RangePublisher implements Publisher<Integer> {
     }
 
     @Override
-    public void subscribe(Subscriber<? super Integer> s) {
-        s.onSubscribe(new RangeSubscription(s, start, start + count));
+    public void subscribe(Subscriber<? super Integer> subscriber) {
+        // As per rule 1.11, we have decided to support multiple subscribers
+        // in a unicast configuration for this `Publisher` implementation.
+
+        // As per rule 1.09, we need to throw a `java.lang.NullPointerException`
+        // if the `Subscriber` is `null`
+        if (subscriber == null) throw null;
+
+        // As per 2.13, this method must return normally (i.e. not throw).
+        try {
+            subscriber.onSubscribe(new RangeSubscription(subscriber, start, start + count));
+        } catch (Throwable ex) {
+            new IllegalStateException(subscriber + " violated the Reactive Streams rule 2.13 " +
+                    "by throwing an exception from onSubscribe.", ex)
+                    // When onSubscribe fails this way, we don't know what state the
+                    // subscriber is thus calling onError may cause more crashes.
+                    .printStackTrace();
+        }
     }
 
     /**
@@ -49,7 +65,12 @@ public final class RangePublisher implements Publisher<Integer> {
      * requested amount and responds to the downstream's request() and
      * cancel() calls.
      */
-    static final class RangeSubscription extends AtomicLong implements Subscription {
+    static final class RangeSubscription
+            // We are using this `AtomicLong` to make sure that this `Subscription`
+            // doesn't run concurrently with itself, which would violate rule 1.3
+            // among others (no concurrent notifications).
+            // The atomic transition from 0L to N > 0L will ensure this.
+            extends AtomicLong implements Subscription {
 
         private static final long serialVersionUID = -9000845542177067735L;
 
@@ -89,6 +110,8 @@ public final class RangePublisher implements Publisher<Integer> {
             this.end = end;
         }
 
+        // This method will register inbound demand from our `Subscriber` and
+        // validate it against rule 3.9 and rule 3.17
         @Override
         public void request(long n) {
             // Non-positive requests should be honored with IllegalArgumentException
@@ -100,7 +123,8 @@ public final class RangePublisher implements Publisher<Integer> {
             for (;;) {
                 long requested = get();
                 long update = requested + n;
-                // cap the amount at Long.MAX_VALUE
+                // As governed by rule 3.17, when demand overflows `Long.MAX_VALUE`
+                // we treat the signalled demand as "effectively unbounded"
                 if (update < 0L) {
                     update = Long.MAX_VALUE;
                 }
@@ -115,6 +139,8 @@ public final class RangePublisher implements Publisher<Integer> {
             }
         }
 
+        // This handles cancellation requests, and is idempotent, thread-safe and not
+        // synchronously performing heavy computations as specified in rule 3.5
         @Override
         public void cancel() {
             // Indicate to the emission loop it should stop.
@@ -128,59 +154,86 @@ public final class RangePublisher implements Publisher<Integer> {
             int end = this.end;
             int emitted = 0;
 
-            for (;;) {
-                // Check if there was an invalid request and then report it.
-                Throwable invalidRequest = this.invalidRequest;
-                if (invalidRequest != null) {
-                    downstream.onError(invalidRequest);
-                    return;
-                }
+            try {
+                for (; ; ) {
+                    // Check if there was an invalid request and then report it.
+                    Throwable invalidRequest = this.invalidRequest;
+                    if (invalidRequest != null) {
+                        // When we signal onError, the subscription must be considered as cancelled, as per rule 1.6
+                        cancelled = true;
 
-                // Loop while the index hasn't reached the end and we haven't
-                // emitted all that's been requested
-                while (index != end && emitted != currentRequested) {
-                    // We stop if cancellation was requested
-                    if (cancelled) {
+                        downstream.onError(invalidRequest);
                         return;
                     }
 
-                    downstream.onNext(index);
+                    // Loop while the index hasn't reached the end and we haven't
+                    // emitted all that's been requested
+                    while (index != end && emitted != currentRequested) {
+                        // to make sure that we follow rule 1.8, 3.6 and 3.7
+                        // We stop if cancellation was requested.
+                        if (cancelled) {
+                            return;
+                        }
 
-                    // Increment the index for the next possible emission.
-                    index++;
-                    // Increment the emitted count to prevent overflowing the downstream.
-                    emitted++;
-                }
+                        downstream.onNext(index);
 
-                // If the index reached the end, we complete the downstream.
-                if (index == end) {
-                    // Unless cancellation was requested by the last onNext.
-                    if (!cancelled) {
-                        downstream.onComplete();
+                        // Increment the index for the next possible emission.
+                        index++;
+                        // Increment the emitted count to prevent overflowing the downstream.
+                        emitted++;
                     }
-                    return;
-                }
 
-                // Did the requested amount change while we were looping?
-                long freshRequested = get();
-                if (freshRequested == currentRequested) {
-                    // Save where the loop has left off: the next value to be emitted
-                    this.index = index;
-                    // Atomically subtract the previously requested (also emitted) amount
-                    currentRequested = addAndGet(-currentRequested);
-                    // If there was no new request in between get() and addAndGet(), we simply quit
-                    // The next 0 to N transition in request() will trigger the next emission loop.
-                    if (currentRequested == 0L) {
-                        break;
+                    // If the index reached the end, we complete the downstream.
+                    if (index == end) {
+                        // to make sure that we follow rule 1.8, 3.6 and 3.7
+                        // Unless cancellation was requested by the last onNext.
+                        if (!cancelled) {
+                            // We need to consider this `Subscription` as cancelled as per rule 1.6
+                            // Note, however, that this state is not observable from the outside
+                            // world and since we leave the loop with requested > 0L, any
+                            // further request() will never trigger the loop.
+                            cancelled = true;
+
+                            downstream.onComplete();
+                        }
+                        return;
                     }
-                    // Looks like there were more async requests, reset the emitted count and continue.
-                    emitted = 0;
-                } else {
-                    // Yes, avoid the atomic subtraction and resume.
-                    // emitted != currentRequest in this case and index
-                    // still points to the next value to be emitted
-                    currentRequested = freshRequested;
+
+                    // Did the requested amount change while we were looping?
+                    long freshRequested = get();
+                    if (freshRequested == currentRequested) {
+                        // Save where the loop has left off: the next value to be emitted
+                        this.index = index;
+                        // Atomically subtract the previously requested (also emitted) amount
+                        currentRequested = addAndGet(-currentRequested);
+                        // If there was no new request in between get() and addAndGet(), we simply quit
+                        // The next 0 to N transition in request() will trigger the next emission loop.
+                        if (currentRequested == 0L) {
+                            break;
+                        }
+                        // Looks like there were more async requests, reset the emitted count and continue.
+                        emitted = 0;
+                    } else {
+                        // Yes, avoid the atomic subtraction and resume.
+                        // emitted != currentRequest in this case and index
+                        // still points to the next value to be emitted
+                        currentRequested = freshRequested;
+                    }
                 }
+            } catch (Throwable ex) {
+                // We can only get here if `onNext`, `onError` or `onComplete` threw, and they
+                // are not allowed to according to 2.13, so we can only cancel and log here.
+                // If `onError` throws an exception, this is a spec violation according to rule 1.9,
+                // and all we can do is to log it.
+
+                // Make sure that we are cancelled, since we cannot do anything else
+                // since the `Subscriber` is faulty.
+                cancelled = true;
+
+                // We can't report the failure to onError as the Subscriber is unreliable.
+                (new IllegalStateException(downstream + " violated the Reactive Streams rule 2.13 by " +
+                        "throwing an exception from onNext, onError or onComplete.", ex))
+                        .printStackTrace();
             }
         }
     }
