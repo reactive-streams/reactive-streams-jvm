@@ -128,7 +128,7 @@ public final class ReactiveStreamsFlowBridge {
      * Converts a Flow Subscriber into a Reactive Streams Subscriber.
      * @param <T> the input and output value type
      * @param flowSubscriber the Flow Subscriber instance to convert
-     * @return the equivalent Flow Subscriber
+     * @return the equivalent Reactive Streams Subscriber
      */
     public static <T> org.reactivestreams.Subscriber<T> toReactiveStreamsSubscriber(Flow.Subscriber<T> flowSubscriber) {
         if (flowSubscriber == null) {
