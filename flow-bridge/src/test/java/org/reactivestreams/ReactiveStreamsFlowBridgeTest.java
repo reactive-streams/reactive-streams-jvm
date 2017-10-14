@@ -11,6 +11,7 @@
 
 package org.reactivestreams;
 
+import org.testng.Assert;
 import org.testng.annotations.Test;
 
 import java.io.IOException;
@@ -109,5 +110,69 @@ public class ReactiveStreamsFlowBridgeTest {
         p.closeExceptionally(new IOException());
 
         tc.assertFailure(IOException.class, 1, 2, 3, 4, 5);
+    }
+
+    @Test
+    public void reactiveStreamsToFlowSubscriber() {
+        TestEitherConsumer<Integer> tc = new TestEitherConsumer<Integer>();
+
+        Flow.Subscriber<Integer> fs = ReactiveStreamsFlowBridge.toFlowSubscriber(tc);
+
+        final Object[] state = { null, null };
+
+        fs.onSubscribe(new Flow.Subscription() {
+            @Override
+            public void request(long n) {
+                state[0] = n;
+            }
+
+            @Override
+            public void cancel() {
+                state[1] = true;
+            }
+        });
+
+        Assert.assertEquals(state[0], Long.MAX_VALUE);
+
+        fs.onNext(1);
+        fs.onNext(2);
+        fs.onNext(3);
+        fs.onComplete();
+
+        tc.assertResult(1, 2, 3);
+
+        Assert.assertNull(state[1]);
+    }
+
+    @Test
+    public void flowToReactiveStreamsSubscriber() {
+        TestEitherConsumer<Integer> tc = new TestEitherConsumer<Integer>();
+
+        org.reactivestreams.Subscriber<Integer> fs = ReactiveStreamsFlowBridge.toReactiveStreamsSubscriber(tc);
+
+        final Object[] state = { null, null };
+
+        fs.onSubscribe(new org.reactivestreams.Subscription() {
+            @Override
+            public void request(long n) {
+                state[0] = n;
+            }
+
+            @Override
+            public void cancel() {
+                state[1] = true;
+            }
+        });
+
+        Assert.assertEquals(state[0], Long.MAX_VALUE);
+
+        fs.onNext(1);
+        fs.onNext(2);
+        fs.onNext(3);
+        fs.onComplete();
+
+        tc.assertResult(1, 2, 3);
+
+        Assert.assertNull(state[1]);
     }
 }

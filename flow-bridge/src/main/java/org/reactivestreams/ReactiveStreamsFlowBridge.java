@@ -110,7 +110,33 @@ public final class ReactiveStreamsFlowBridge {
         }
         return new FlowToReactiveProcessor<T, U>(reactiveStreamsProcessor);
     }
-    
+
+    /**
+     * Converts a Reactive Streams Subscriber into a Flow Subscriber.
+     * @param <T> the input and output value type
+     * @param reactiveStreamsSubscriber the Reactive Streams Subscriber instance to convert
+     * @return the equivalent Flow Subscriber
+     */
+    public static <T> Flow.Subscriber<T> toFlowSubscriber(org.reactivestreams.Subscriber<T> reactiveStreamsSubscriber) {
+        if (reactiveStreamsSubscriber == null) {
+            throw new NullPointerException("reactiveStreamsSubscriber");
+        }
+        return new FlowToReactiveSubscriber<T>(reactiveStreamsSubscriber);
+    }
+
+    /**
+     * Converts a Flow Subscriber into a Reactive Streams Subscriber.
+     * @param <T> the input and output value type
+     * @param flowSubscriber the Flow Subscriber instance to convert
+     * @return the equivalent Reactive Streams Subscriber
+     */
+    public static <T> org.reactivestreams.Subscriber<T> toReactiveStreamsSubscriber(Flow.Subscriber<T> flowSubscriber) {
+        if (flowSubscriber == null) {
+            throw new NullPointerException("flowSubscriber");
+        }
+        return new ReactiveToFlowSubscriber<T>(flowSubscriber);
+    }
+
     /**
      * Wraps a Reactive Streams Subscription and converts the calls to a Flow Subscription.
      */
