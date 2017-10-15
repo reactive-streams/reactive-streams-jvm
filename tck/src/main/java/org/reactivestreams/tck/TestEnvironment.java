@@ -235,6 +235,10 @@ public class TestEnvironment {
   }
 
 
+  public <T> void subscribe(Publisher<T> pub, Subscriber<T> sub) throws InterruptedException {
+    pub.subscribe(sub);
+    verifyNoAsyncErrorsNoDelay();
+  }
 
   public <T> void subscribe(Publisher<T> pub, TestSubscriber<T> sub) throws InterruptedException {
     subscribe(pub, sub, defaultTimeoutMillis);

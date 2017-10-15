@@ -35,6 +35,7 @@ public class SyncTriggeredDemandSubscriberTest extends SubscriberBlackboxVerific
     super(new TestEnvironment());
   }
 
+  @SuppressWarnings("unchecked")
   @Override public void triggerRequest(final Subscriber<? super Integer> subscriber) {
     ((SyncTriggeredDemandSubscriber<? super Integer>)subscriber).triggerDemand(1);
   }
