@@ -33,7 +33,7 @@ public class BrokenExampleWhiteboxTest extends SubscriberBlackboxVerification<In
   }
 
   @Override public void triggerRequest(final Subscriber<? super Integer> subscriber) {
-    ((MySubscriber<Integer>)subscriber).triggerDemand(1);
+    ((SyncTriggeredDemandSubscriber<?>)subscriber).triggerDemand(1);
   }
 
   @Override public Subscriber<Integer> createSubscriber() {

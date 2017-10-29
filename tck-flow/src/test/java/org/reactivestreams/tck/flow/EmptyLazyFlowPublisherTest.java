@@ -42,7 +42,7 @@ public class EmptyLazyFlowPublisherTest extends FlowPublisherVerification<Intege
   @Override
   public Publisher<Integer> createFlowPublisher(long elements) {
     return ReactiveStreamsFlowBridge.toFlow(
-      new AsyncIterablePublisher<>(Collections.emptyList(), ex)
+      new AsyncIterablePublisher<Integer>(Collections.<Integer>emptyList(), ex)
     );
   }
 
