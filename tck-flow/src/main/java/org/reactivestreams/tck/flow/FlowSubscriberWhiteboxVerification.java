@@ -35,7 +35,7 @@ public abstract class FlowSubscriberWhiteboxVerification<T> extends SubscriberWh
 
   @Override
   final public Subscriber<T> createSubscriber(WhiteboxSubscriberProbe<T> probe) {
-    return ReactiveStreamsFlowBridge.toReactiveStreams(createFlowSubscriber(probe));
+    return ReactiveStreamsFlowBridge.toSubscriber(createFlowSubscriber(probe));
   }
   /**
    * This is the main method you must implement in your test incarnation.
