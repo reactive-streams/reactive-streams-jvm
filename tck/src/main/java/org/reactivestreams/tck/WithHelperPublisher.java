@@ -12,9 +12,9 @@
 package org.reactivestreams.tck;
 
 import org.reactivestreams.Publisher;
-import org.reactivestreams.tck.support.Function;
-import org.reactivestreams.tck.support.HelperPublisher;
-import org.reactivestreams.tck.support.InfiniteHelperPublisher;
+import org.reactivestreams.tck.flow.support.Function;
+import org.reactivestreams.tck.flow.support.HelperPublisher;
+import org.reactivestreams.tck.flow.support.InfiniteHelperPublisher;
 
 import java.util.concurrent.ExecutorService;
 

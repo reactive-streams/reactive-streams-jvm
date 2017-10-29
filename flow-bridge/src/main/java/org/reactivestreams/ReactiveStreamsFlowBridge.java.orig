@@ -34,11 +34,11 @@ public final class ReactiveStreamsFlowBridge {
         if (flowPublisher == null) {
             throw new NullPointerException("flowPublisher");
         }
-        if (flowPublisher instanceof FlowPublisherFromReactive) {
-            return (org.reactivestreams.Publisher<T>)(((FlowPublisherFromReactive<T>)flowPublisher).reactiveStreams);
-        }
         if (flowPublisher instanceof org.reactivestreams.Publisher) {
             return (org.reactivestreams.Publisher<T>)flowPublisher;
+        }
+        if (flowPublisher instanceof FlowPublisherFromReactive) {
+            return (org.reactivestreams.Publisher<T>)(((FlowPublisherFromReactive<T>)flowPublisher).reactiveStreams);
         }
         return new ReactivePublisherFromFlow<T>(flowPublisher);
     }
@@ -56,15 +56,15 @@ public final class ReactiveStreamsFlowBridge {
         if (reactiveStreamsPublisher == null) {
             throw new NullPointerException("reactiveStreamsPublisher");
         }
-        if (reactiveStreamsPublisher instanceof ReactivePublisherFromFlow) {
-            return (Flow.Publisher<T>)(((ReactivePublisherFromFlow<T>)reactiveStreamsPublisher).flow);
-        }
         if (reactiveStreamsPublisher instanceof Flow.Publisher) {
             return (Flow.Publisher<T>)reactiveStreamsPublisher;
         }
+        if (reactiveStreamsPublisher instanceof ReactivePublisherFromFlow) {
+            return (Flow.Publisher<T>)(((ReactivePublisherFromFlow<T>)reactiveStreamsPublisher).flow);
+        }
         return new FlowPublisherFromReactive<T>(reactiveStreamsPublisher);
     }
-
+    
     /**
      * Converts a Flow Processor into a Reactive Streams Processor.
      * @param <T> the input value type
@@ -79,11 +79,11 @@ public final class ReactiveStreamsFlowBridge {
         if (flowProcessor == null) {
             throw new NullPointerException("flowProcessor");
         }
-        if (flowProcessor instanceof FlowToReactiveProcessor) {
-            return (org.reactivestreams.Processor<T, U>)(((FlowToReactiveProcessor<T, U>)flowProcessor).reactiveStreams);
-        }
         if (flowProcessor instanceof org.reactivestreams.Processor) {
             return (org.reactivestreams.Processor<T, U>)flowProcessor;
+        }
+        if (flowProcessor instanceof FlowToReactiveProcessor) {
+            return (org.reactivestreams.Processor<T, U>)(((FlowToReactiveProcessor<T, U>)flowProcessor).reactiveStreams);
         }
         return new ReactiveToFlowProcessor<T, U>(flowProcessor);
     }
@@ -102,11 +102,11 @@ public final class ReactiveStreamsFlowBridge {
         if (reactiveStreamsProcessor == null) {
             throw new NullPointerException("reactiveStreamsProcessor");
         }
-        if (reactiveStreamsProcessor instanceof ReactiveToFlowProcessor) {
-            return (Flow.Processor<T, U>)(((ReactiveToFlowProcessor<T, U>)reactiveStreamsProcessor).flow);
-        }
         if (reactiveStreamsProcessor instanceof Flow.Processor) {
             return (Flow.Processor<T, U>)reactiveStreamsProcessor;
+        }
+        if (reactiveStreamsProcessor instanceof ReactiveToFlowProcessor) {
+            return (Flow.Processor<T, U>)(((ReactiveToFlowProcessor<T, U>)reactiveStreamsProcessor).flow);
         }
         return new FlowToReactiveProcessor<T, U>(reactiveStreamsProcessor);
     }
@@ -117,16 +117,9 @@ public final class ReactiveStreamsFlowBridge {
      * @param reactiveStreamsSubscriber the Reactive Streams Subscriber instance to convert
      * @return the equivalent Flow Subscriber
      */
-    @SuppressWarnings("unchecked")
-    public static <T> Flow.Subscriber<T> toFlow(org.reactivestreams.Subscriber<T> reactiveStreamsSubscriber) {
+    public static <T> Flow.Subscriber<T> toFlowSubscriber(org.reactivestreams.Subscriber<T> reactiveStreamsSubscriber) {
         if (reactiveStreamsSubscriber == null) {
             throw new NullPointerException("reactiveStreamsSubscriber");
-        }
-        if (reactiveStreamsSubscriber instanceof ReactiveToFlowSubscriber) {
-            return (Flow.Subscriber<T>)((ReactiveToFlowSubscriber<T>)reactiveStreamsSubscriber).flow;
-        }
-        if (reactiveStreamsSubscriber instanceof Flow.Subscriber) {
-            return (Flow.Subscriber<T>)reactiveStreamsSubscriber;
         }
         return new FlowToReactiveSubscriber<T>(reactiveStreamsSubscriber);
     }
@@ -135,18 +128,15 @@ public final class ReactiveStreamsFlowBridge {
      * Converts a Flow Subscriber into a Reactive Streams Subscriber.
      * @param <T> the input and output value type
      * @param flowSubscriber the Flow Subscriber instance to convert
+<<<<<<< HEAD
      * @return the equivalent Reactive Streams Subscriber
+=======
+     * @return the equivalent Flow Subscriber
+>>>>>>> 376b159... Java 9 Flow bridge: add Subscriber converters
      */
-    @SuppressWarnings("unchecked")
-    public static <T> org.reactivestreams.Subscriber<T> toReactiveStreams(Flow.Subscriber<T> flowSubscriber) {
+    public static <T> org.reactivestreams.Subscriber<T> toReactiveStreamsSubscriber(Flow.Subscriber<T> flowSubscriber) {
         if (flowSubscriber == null) {
             throw new NullPointerException("flowSubscriber");
-        }
-        if (flowSubscriber instanceof FlowToReactiveSubscriber) {
-            return (org.reactivestreams.Subscriber<T>)((FlowToReactiveSubscriber<T>)flowSubscriber).reactiveStreams;
-        }
-        if (flowSubscriber instanceof org.reactivestreams.Subscriber) {
-            return (org.reactivestreams.Subscriber<T>)flowSubscriber;
         }
         return new ReactiveToFlowSubscriber<T>(flowSubscriber);
     }
@@ -155,8 +145,8 @@ public final class ReactiveStreamsFlowBridge {
      * Wraps a Reactive Streams Subscription and converts the calls to a Flow Subscription.
      */
     static final class FlowToReactiveSubscription implements Flow.Subscription {
-        final org.reactivestreams.Subscription reactiveStreams;
-
+        private final org.reactivestreams.Subscription reactiveStreams;
+        
         public FlowToReactiveSubscription(org.reactivestreams.Subscription reactive) {
             this.reactiveStreams = reactive;
         }
@@ -170,15 +160,15 @@ public final class ReactiveStreamsFlowBridge {
         public void cancel() {
             reactiveStreams.cancel();
         }
-
+        
     }
-
+    
     /**
      * Wraps a Flow Subscription and converts the calls to a Reactive Streams Subscription.
      */
     static final class ReactiveToFlowSubscription implements org.reactivestreams.Subscription {
-        final Flow.Subscription flow;
-
+        private final Flow.Subscription flow;
+        
         public ReactiveToFlowSubscription(Flow.Subscription flow) {
             this.flow = flow;
         }
@@ -192,25 +182,25 @@ public final class ReactiveStreamsFlowBridge {
         public void cancel() {
             flow.cancel();
         }
-
-
+        
+        
     }
-
+    
     /**
      * Wraps a Reactive Streams Subscriber and forwards methods of the Flow Subscriber to it.
      * @param <T> the element type
      */
-    static final class FlowToReactiveSubscriber<T>
+    static final class FlowToReactiveSubscriber<T> 
             implements Flow.Subscriber<T> {
-        final org.reactivestreams.Subscriber<? super T> reactiveStreams;
-
+        private final org.reactivestreams.Subscriber<? super T> reactiveStreams;
+        
         public FlowToReactiveSubscriber(org.reactivestreams.Subscriber<? super T> reactive) {
             this.reactiveStreams = reactive;
         }
 
         @Override
         public void onSubscribe(Flow.Subscription subscription) {
-            reactiveStreams.onSubscribe((subscription == null) ? null : new ReactiveToFlowSubscription(subscription));
+            reactiveStreams.onSubscribe(new ReactiveToFlowSubscription(subscription));
         }
 
         @Override
@@ -227,24 +217,24 @@ public final class ReactiveStreamsFlowBridge {
         public void onComplete() {
             reactiveStreams.onComplete();
         }
-
+        
     }
 
     /**
      * Wraps a Reactive Streams Subscriber and forwards methods of the Flow Subscriber to it.
      * @param <T> the element type
      */
-    static final class ReactiveToFlowSubscriber<T>
+    static final class ReactiveToFlowSubscriber<T> 
             implements org.reactivestreams.Subscriber<T> {
-        final Flow.Subscriber<? super T> flow;
-
+        private final Flow.Subscriber<? super T> flow;
+        
         public ReactiveToFlowSubscriber(Flow.Subscriber<? super T> flow) {
             this.flow = flow;
         }
 
         @Override
         public void onSubscribe(org.reactivestreams.Subscription subscription) {
-            flow.onSubscribe((subscription == null) ? null : new FlowToReactiveSubscription(subscription));
+            flow.onSubscribe(new FlowToReactiveSubscription(subscription));
         }
 
         @Override
@@ -261,9 +251,9 @@ public final class ReactiveStreamsFlowBridge {
         public void onComplete() {
             flow.onComplete();
         }
-
+        
     }
-
+    
     /**
      * Wraps a Flow Processor and forwards methods of the Reactive Streams Processor to it.
      * @param <T> the input type
@@ -272,14 +262,14 @@ public final class ReactiveStreamsFlowBridge {
     static final class ReactiveToFlowProcessor<T, U>
             implements org.reactivestreams.Processor<T, U> {
         final Flow.Processor<? super T, ? extends U> flow;
-
+        
         public ReactiveToFlowProcessor(Flow.Processor<? super T, ? extends U> flow) {
             this.flow = flow;
         }
 
         @Override
-        public void onSubscribe(org.reactivestreams.Subscription subscription) {
-            flow.onSubscribe((subscription == null) ? null : new FlowToReactiveSubscription(subscription));
+        public void onSubscribe(org.reactivestreams.Subscription s) {
+            flow.onSubscribe(new FlowToReactiveSubscription(s));
         }
 
         @Override
@@ -299,10 +289,14 @@ public final class ReactiveStreamsFlowBridge {
 
         @Override
         public void subscribe(org.reactivestreams.Subscriber<? super U> s) {
-            flow.subscribe((s == null) ? null : new FlowToReactiveSubscriber<U>(s));
+            if (s == null) {
+                flow.subscribe(null);
+                return;
+            }
+            flow.subscribe(new FlowToReactiveSubscriber<U>(s));
         }
     }
-
+    
     /**
      * Wraps a Reactive Streams Processor and forwards methods of the Flow Processor to it.
      * @param <T> the input type
@@ -311,14 +305,14 @@ public final class ReactiveStreamsFlowBridge {
     static final class FlowToReactiveProcessor<T, U>
             implements Flow.Processor<T, U> {
         final org.reactivestreams.Processor<? super T, ? extends U> reactiveStreams;
-
+        
         public FlowToReactiveProcessor(org.reactivestreams.Processor<? super T, ? extends U> reactive) {
             this.reactiveStreams = reactive;
         }
 
         @Override
-        public void onSubscribe(Flow.Subscription subscription) {
-            reactiveStreams.onSubscribe((subscription == null) ? null : new ReactiveToFlowSubscription(subscription));
+        public void onSubscribe(Flow.Subscription s) {
+            reactiveStreams.onSubscribe(new ReactiveToFlowSubscription(s));
         }
 
         @Override
@@ -338,7 +332,11 @@ public final class ReactiveStreamsFlowBridge {
 
         @Override
         public void subscribe(Flow.Subscriber<? super U> s) {
-            reactiveStreams.subscribe((s == null) ? null : new ReactiveToFlowSubscriber<U>(s));
+            if (s == null) {
+                reactiveStreams.subscribe(null);
+                return;
+            }
+            reactiveStreams.subscribe(new ReactiveToFlowSubscriber<U>(s));
         }
     }
 
@@ -356,7 +354,11 @@ public final class ReactiveStreamsFlowBridge {
 
         @Override
         public void subscribe(org.reactivestreams.Subscriber<? super T> reactive) {
-            flow.subscribe((reactive == null) ? null : new FlowToReactiveSubscriber<T>(reactive));
+            if (reactive == null) {
+                flow.subscribe(null);
+                return;
+            }
+            flow.subscribe(new FlowToReactiveSubscriber<T>(reactive));
         }
     }
 
@@ -374,7 +376,11 @@ public final class ReactiveStreamsFlowBridge {
 
         @Override
         public void subscribe(Flow.Subscriber<? super T> flow) {
-            reactiveStreams.subscribe((flow == null) ? null : new ReactiveToFlowSubscriber<T>(flow));
+            if (flow == null) {
+                reactiveStreams.subscribe(null);
+                return;
+            }
+            reactiveStreams.subscribe(new ReactiveToFlowSubscriber<T>(flow));
         }
     }
 

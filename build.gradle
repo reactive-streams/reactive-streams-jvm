@@ -46,7 +46,11 @@ subprojects {
         }
     }
 
-    if (name in ["reactive-streams", "reactive-streams-tck", "reactive-streams-examples", "reactive-streams-flow-bridge"]) {
+    if (name in ["reactive-streams", 
+                 "reactive-streams-tck", 
+                 "reactive-streams-tck-flow",
+                 "reactive-streams-examples",
+                 "reactive-streams-flow-bridge"]) {
         apply plugin: "maven"
         apply plugin: "signing"
 

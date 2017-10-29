@@ -9,21 +9,22 @@
  * work. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.*
  ************************************************************************/
 
-package org.reactivestreams.tck;
+package org.reactivestreams.tck.flow;
 
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
+import org.reactivestreams.tck.TestEnvironment;
+import org.reactivestreams.tck.flow.support.SyncTriggeredDemandFlowSubscriber;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
 import org.testng.annotations.Test;
 
-import org.reactivestreams.tck.flow.support.SyncTriggeredDemandSubscriber;
-
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.Flow;
 
 @Test // Must be here for TestNG to find and run this, do not remove
-public class SyncTriggeredDemandSubscriberWhiteboxTest extends SubscriberWhiteboxVerification<Integer> {
+public class SyncTriggeredDemandSubscriberWhiteboxTest extends FlowSubscriberWhiteboxVerification<Integer> {
 
   private ExecutorService e;
   @BeforeClass void before() { e = Executors.newFixedThreadPool(4); }
@@ -34,10 +35,10 @@ public class SyncTriggeredDemandSubscriberWhiteboxTest extends SubscriberWhitebo
   }
 
   @Override
-  public Subscriber<Integer> createSubscriber(final WhiteboxSubscriberProbe<Integer> probe) {
-    return new SyncTriggeredDemandSubscriber<Integer>() {
+  public Flow.Subscriber<Integer> createFlowSubscriber(final WhiteboxSubscriberProbe<Integer> probe) {
+    return new SyncTriggeredDemandFlowSubscriber<Integer>() {
       @Override
-      public void onSubscribe(final Subscription s) {
+      public void onSubscribe(final Flow.Subscription s) {
         super.onSubscribe(s);
 
         probe.registerOnSubscribe(new SubscriberPuppet() {

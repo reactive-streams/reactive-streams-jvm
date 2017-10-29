@@ -19,9 +19,9 @@ import org.reactivestreams.tck.TestEnvironment.ManualPublisher;
 import org.reactivestreams.tck.TestEnvironment.ManualSubscriber;
 import org.reactivestreams.tck.TestEnvironment.ManualSubscriberWithSubscriptionSupport;
 import org.reactivestreams.tck.TestEnvironment.Promise;
-import org.reactivestreams.tck.support.Function;
-import org.reactivestreams.tck.support.SubscriberWhiteboxVerificationRules;
-import org.reactivestreams.tck.support.PublisherVerificationRules;
+import org.reactivestreams.tck.flow.support.Function;
+import org.reactivestreams.tck.flow.support.SubscriberWhiteboxVerificationRules;
+import org.reactivestreams.tck.flow.support.PublisherVerificationRules;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 

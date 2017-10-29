@@ -9,7 +9,7 @@
  * work. If not, see <http://creativecommons.org/publicdomain/zero/1.0/>.*
  ************************************************************************/
 
-package org.reactivestreams.tck.support;
+package org.reactivestreams.tck.flow.support;
 
 import org.reactivestreams.tck.SubscriberBlackboxVerification;
 
