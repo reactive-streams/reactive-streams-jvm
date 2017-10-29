@@ -48,33 +48,33 @@ public class BrokenExampleBlackboxTest extends SubscriberBlackboxVerification<In
   public Subscriber<Integer> createSubscriber() {
     return new MySubscriber<Integer>();
   }
-
-  public class MySubscriber<T> implements Subscriber<T> {
-    private Subscription subscription;
-
-    @Override
+  
+  public class MySubscriber<T> implements Subscriber<T> {  
+    private Subscription subscription;  
+    
+    @Override  
     public void onSubscribe(Subscription subscription) {
       if (this.subscription == null) {
         this.subscription = subscription;
-        subscription.request(1); //a value of Long.MAX_VALUE may be considered as effectively unbounded
+        subscription.request(1); //a value of  Long.MAX_VALUE may be considered as effectively unbounded
       } else subscription.cancel();
-    }
-
-    @Override
+    }  
+    
+    @Override  
     public void onNext(T item) {
       if (item == null) throw null;
-      System.out.println("Got : " + item);
-      subscription.request(1); //a value of Long.MAX_VALUE may be considered as effectively unbounded
-    }
-
-    @Override
-    public void onError(Throwable t) {
-      t.printStackTrace();
-    }
-
-    @Override
-    public void onComplete() {
-      System.out.println("Done");
-    }
-  }
+      System.out.println("Got : " + item);  
+      subscription.request(1); //a value of  Long.MAX_VALUE may be considered as effectively unbounded
+    }  
+    
+    @Override  
+    public void onError(Throwable t) {  
+      t.printStackTrace();  
+    }  
+    
+    @Override  
+    public void onComplete() {  
+      System.out.println("Done");  
+    }  
+  }  
 }
