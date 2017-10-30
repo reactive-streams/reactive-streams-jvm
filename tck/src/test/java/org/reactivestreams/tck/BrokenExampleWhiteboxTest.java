@@ -54,43 +54,43 @@ public class BrokenExampleWhiteboxTest extends SubscriberBlackboxVerification<In
   }
 
   public class MySubscriber<T> implements Subscriber<T> {
-      private volatile Subscription subscription;
+    private volatile Subscription subscription;
 
     public boolean triggerDemand(final long n) {
-        final Subscription s = subscription;
-        if (s == null) return false;
-        else {
-          try {
-            s.request(n);
-          } catch(final Throwable t) {
-            // Subscription.request is not allowed to throw according to rule 3.16
-            (new IllegalStateException(s + " violated the Reactive Streams rule 3.16 by throwing an exception from request.", t)).printStackTrace(System.err);
-            return false;
-          }
-          return true;
+      final Subscription s = subscription;
+      if (s == null) return false;
+      else {
+        try {
+          s.request(n);
+        } catch (final Throwable t) {
+          // Subscription.request is not allowed to throw according to rule 3.16
+          (new IllegalStateException(s + " violated the Reactive Streams rule 3.16 by throwing an exception from request.", t)).printStackTrace(System.err);
+          return false;
         }
-      }
-
-      @Override
-      public void onSubscribe(Subscription subscription) {
-        this.subscription = subscription;
-        subscription.request(1); //a value of  Long.MAX_VALUE may be considered as effectively unbounded
-      }
-
-      @Override
-      public void onNext(T item) {
-        System.out.println("Got : " + item);
-        subscription.request(1); //a value of  Long.MAX_VALUE may be considered as effectively unbounded
-      }
-
-      @Override
-      public void onError(Throwable t) {
-        t.printStackTrace();
-      }
-
-      @Override
-      public void onComplete() {
-        System.out.println("Done");
+        return true;
       }
     }
+
+    @Override
+    public void onSubscribe(Subscription subscription) {
+      this.subscription = subscription;
+      subscription.request(1); //a value of  Long.MAX_VALUE may be considered as effectively unbounded
+    }
+
+    @Override
+    public void onNext(T item) {
+      System.out.println("Got : " + item);
+      subscription.request(1); //a value of  Long.MAX_VALUE may be considered as effectively unbounded
+    }
+
+    @Override
+    public void onError(Throwable t) {
+      t.printStackTrace();
+    }
+
+    @Override
+    public void onComplete() {
+      System.out.println("Done");
+    }
+  }
 }
