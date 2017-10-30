@@ -31,7 +31,7 @@ public class ReactiveStreamsFlowBridgeTest {
 
         TestEitherConsumer<Integer> tc = new TestEitherConsumer<Integer>();
 
-        ReactiveStreamsFlowBridge.toFlow(p).subscribe(tc);
+        ReactiveStreamsFlowBridge.toFlowPublisher(p).subscribe(tc);
 
         p.offer(1);
         p.offer(2);
@@ -54,7 +54,7 @@ public class ReactiveStreamsFlowBridgeTest {
 
         TestEitherConsumer<Integer> tc = new TestEitherConsumer<Integer>();
 
-        ReactiveStreamsFlowBridge.toFlow(p).subscribe(tc);
+        ReactiveStreamsFlowBridge.toFlowPublisher(p).subscribe(tc);
 
         p.offer(1);
         p.offer(2);
@@ -77,7 +77,7 @@ public class ReactiveStreamsFlowBridgeTest {
 
         TestEitherConsumer<Integer> tc = new TestEitherConsumer<Integer>();
 
-        ReactiveStreamsFlowBridge.toReactiveStreams(p).subscribe(tc);
+        ReactiveStreamsFlowBridge.toPublisher(p).subscribe(tc);
 
         p.submit(1);
         p.submit(2);
@@ -100,7 +100,7 @@ public class ReactiveStreamsFlowBridgeTest {
 
         TestEitherConsumer<Integer> tc = new TestEitherConsumer<Integer>();
 
-        ReactiveStreamsFlowBridge.toReactiveStreams(p).subscribe(tc);
+        ReactiveStreamsFlowBridge.toPublisher(p).subscribe(tc);
 
         p.submit(1);
         p.submit(2);
@@ -116,7 +116,7 @@ public class ReactiveStreamsFlowBridgeTest {
     public void reactiveStreamsToFlowSubscriber() {
         TestEitherConsumer<Integer> tc = new TestEitherConsumer<Integer>();
 
-        Flow.Subscriber<Integer> fs = ReactiveStreamsFlowBridge.toFlow(tc);
+        Flow.Subscriber<Integer> fs = ReactiveStreamsFlowBridge.toFlowSubscriber(tc);
 
         final Object[] state = { null, null };
 
@@ -148,7 +148,7 @@ public class ReactiveStreamsFlowBridgeTest {
     public void flowToReactiveStreamsSubscriber() {
         TestEitherConsumer<Integer> tc = new TestEitherConsumer<Integer>();
 
-        org.reactivestreams.Subscriber<Integer> fs = ReactiveStreamsFlowBridge.toReactiveStreams(tc);
+        org.reactivestreams.Subscriber<Integer> fs = ReactiveStreamsFlowBridge.toSubscriber(tc);
 
         final Object[] state = { null, null };
 
@@ -174,5 +174,61 @@ public class ReactiveStreamsFlowBridgeTest {
         tc.assertResult(1, 2, 3);
 
         Assert.assertNull(state[1]);
+    }
+
+    @Test
+    public void stableConversionForSubscriber() {
+        Subscriber<Integer> rsSub = new Subscriber<Integer>() {
+            @Override public void onSubscribe(Subscription s) {};
+            @Override public void onNext(Integer i) {};
+            @Override public void onError(Throwable t) {};
+            @Override public void onComplete() {};
+        };
+
+        Flow.Subscriber<Integer> fSub = new Flow.Subscriber<Integer>() {
+            @Override public void onSubscribe(Flow.Subscription s) {};
+            @Override public void onNext(Integer i) {};
+            @Override public void onError(Throwable t) {};
+            @Override public void onComplete() {};
+        };
+
+        Assert.assertSame(ReactiveStreamsFlowBridge.toSubscriber(ReactiveStreamsFlowBridge.toFlowSubscriber(rsSub)), rsSub);
+        Assert.assertSame(ReactiveStreamsFlowBridge.toFlowSubscriber(ReactiveStreamsFlowBridge.toSubscriber(fSub)), fSub);
+    }
+
+    @Test
+    public void stableConversionForProcessor() {
+        Processor<Integer, Integer> rsPro = new Processor<Integer, Integer>() {
+            @Override public void onSubscribe(Subscription s) {};
+            @Override public void onNext(Integer i) {};
+            @Override public void onError(Throwable t) {};
+            @Override public void onComplete() {};
+            @Override public void subscribe(Subscriber s) {};
+        };
+
+        Flow.Processor<Integer, Integer> fPro = new Flow.Processor<Integer, Integer>() {
+            @Override public void onSubscribe(Flow.Subscription s) {};
+            @Override public void onNext(Integer i) {};
+            @Override public void onError(Throwable t) {};
+            @Override public void onComplete() {};
+            @Override public void subscribe(Flow.Subscriber s) {};
+        };
+
+        Assert.assertSame(ReactiveStreamsFlowBridge.toProcessor(ReactiveStreamsFlowBridge.toFlowProcessor(rsPro)), rsPro);
+        Assert.assertSame(ReactiveStreamsFlowBridge.toFlowProcessor(ReactiveStreamsFlowBridge.toProcessor(fPro)), fPro);
+    }
+
+    @Test
+    public void stableConversionForPublisher() {
+        Publisher<Integer> rsPub = new Publisher<Integer>() {
+            @Override public void subscribe(Subscriber s) {};
+        };
+
+        Flow.Publisher<Integer> fPub = new Flow.Publisher<Integer>() {
+            @Override public void subscribe(Flow.Subscriber s) {};
+        };
+
+        Assert.assertSame(ReactiveStreamsFlowBridge.toPublisher(ReactiveStreamsFlowBridge.toFlowPublisher(rsPub)), rsPub);
+        Assert.assertSame(ReactiveStreamsFlowBridge.toFlowPublisher(ReactiveStreamsFlowBridge.toPublisher(fPub)), fPub);
     }
 }

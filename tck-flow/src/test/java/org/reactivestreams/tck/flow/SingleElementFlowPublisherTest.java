@@ -42,7 +42,7 @@ public class SingleElementFlowPublisherTest extends FlowPublisherVerification<In
 
   @Override
   public Flow.Publisher<Integer> createFlowPublisher(long elements) {
-    return ReactiveStreamsFlowBridge.toFlow(new AsyncIterablePublisher<Integer>(Collections.singleton(1), ex));
+    return ReactiveStreamsFlowBridge.toFlowPublisher(new AsyncIterablePublisher<Integer>(Collections.singleton(1), ex));
   }
 
   @Override

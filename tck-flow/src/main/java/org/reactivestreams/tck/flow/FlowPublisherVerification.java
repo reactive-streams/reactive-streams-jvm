@@ -36,7 +36,7 @@ public abstract class FlowPublisherVerification<T> extends PublisherVerification
   @Override
   final public Publisher<T> createPublisher(long elements) {
     final Flow.Publisher<T> flowPublisher = createFlowPublisher(elements);
-    return ReactiveStreamsFlowBridge.toReactiveStreams(flowPublisher);
+    return ReactiveStreamsFlowBridge.toPublisher(flowPublisher);
   }
   /**
    * This is the main method you must implement in your test incarnation.
@@ -49,7 +49,7 @@ public abstract class FlowPublisherVerification<T> extends PublisherVerification
   final public Publisher<T> createFailedPublisher() {
     final Flow.Publisher<T> failed = createFailedFlowPublisher();
     if (failed == null) return null; // because `null` means "SKIP" in createFailedPublisher
-    else return ReactiveStreamsFlowBridge.toReactiveStreams(failed);
+    else return ReactiveStreamsFlowBridge.toPublisher(failed);
   }
   /**
    * By implementing this method, additional TCK tests concerning a "failed" publishers will be run.

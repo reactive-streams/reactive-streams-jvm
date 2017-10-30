@@ -40,7 +40,7 @@ public abstract class FlowSubscriberBlackboxVerification<T> extends SubscriberBl
 
   @Override
   public final void triggerRequest(Subscriber<? super T> subscriber) {
-    triggerFlowRequest(ReactiveStreamsFlowBridge.toFlow(subscriber));
+    triggerFlowRequest(ReactiveStreamsFlowBridge.toFlowSubscriber(subscriber));
   }
   /**
    * Override this method if the {@link java.util.concurrent.Flow.Subscriber} implementation you are verifying
@@ -54,7 +54,7 @@ public abstract class FlowSubscriberBlackboxVerification<T> extends SubscriberBl
 
   @Override
   public final Subscriber<T> createSubscriber() {
-    return ReactiveStreamsFlowBridge.<T>toReactiveStreams(createFlowSubscriber());
+    return ReactiveStreamsFlowBridge.<T>toSubscriber(createFlowSubscriber());
   }
   /**
    * This is the main method you must implement in your test incarnation.

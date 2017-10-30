@@ -29,15 +29,15 @@ public final class ReactiveStreamsFlowBridge {
      * @return the equivalent Reactive Streams Publisher
      */
     @SuppressWarnings("unchecked")
-    public static <T> org.reactivestreams.Publisher<T> toReactiveStreams(
+    public static <T> org.reactivestreams.Publisher<T> toPublisher(
             Flow.Publisher<? extends T> flowPublisher) {
         if (flowPublisher == null) {
             throw new NullPointerException("flowPublisher");
         }
         if (flowPublisher instanceof FlowPublisherFromReactive) {
             return (org.reactivestreams.Publisher<T>)(((FlowPublisherFromReactive<T>)flowPublisher).reactiveStreams);
-        if (flowPublisher instanceof org.reactivestreams.Publisher) {
         }
+        if (flowPublisher instanceof org.reactivestreams.Publisher) {
             return (org.reactivestreams.Publisher<T>)flowPublisher;
         }
         return new ReactivePublisherFromFlow<T>(flowPublisher);
@@ -50,7 +50,7 @@ public final class ReactiveStreamsFlowBridge {
      * @return the equivalent Flow Publisher
      */
     @SuppressWarnings("unchecked")
-    public static <T> Flow.Publisher<T> toFlow(
+    public static <T> Flow.Publisher<T> toFlowPublisher(
             org.reactivestreams.Publisher<? extends T> reactiveStreamsPublisher
     ) {
         if (reactiveStreamsPublisher == null) {
@@ -73,7 +73,7 @@ public final class ReactiveStreamsFlowBridge {
      * @return the equivalent Reactive Streams Processor
      */
     @SuppressWarnings("unchecked")
-    public static <T, U> org.reactivestreams.Processor<T, U> toReactiveStreams(
+    public static <T, U> org.reactivestreams.Processor<T, U> toProcessor(
             Flow.Processor<? super T, ? extends U> flowProcessor
     ) {
         if (flowProcessor == null) {
@@ -96,7 +96,7 @@ public final class ReactiveStreamsFlowBridge {
      * @return the equivalent Flow Processor
      */
     @SuppressWarnings("unchecked")
-    public static <T, U> Flow.Processor<T, U> toFlow(
+    public static <T, U> Flow.Processor<T, U> toFlowProcessor(
             org.reactivestreams.Processor<? super T, ? extends U> reactiveStreamsProcessor
         ) {
         if (reactiveStreamsProcessor == null) {
@@ -118,7 +118,7 @@ public final class ReactiveStreamsFlowBridge {
      * @return the equivalent Flow Subscriber
      */
     @SuppressWarnings("unchecked")
-    public static <T> Flow.Subscriber<T> toFlow(org.reactivestreams.Subscriber<T> reactiveStreamsSubscriber) {
+    public static <T> Flow.Subscriber<T> toFlowSubscriber(org.reactivestreams.Subscriber<T> reactiveStreamsSubscriber) {
         if (reactiveStreamsSubscriber == null) {
             throw new NullPointerException("reactiveStreamsSubscriber");
         }
@@ -138,7 +138,7 @@ public final class ReactiveStreamsFlowBridge {
      * @return the equivalent Reactive Streams Subscriber
      */
     @SuppressWarnings("unchecked")
-    public static <T> org.reactivestreams.Subscriber<T> toReactiveStreams(Flow.Subscriber<T> flowSubscriber) {
+    public static <T> org.reactivestreams.Subscriber<T> toSubscriber(Flow.Subscriber<T> flowSubscriber) {
         if (flowSubscriber == null) {
             throw new NullPointerException("flowSubscriber");
         }
