@@ -52,7 +52,6 @@ public class RangeFlowPublisherTest extends FlowPublisherVerification<Integer> {
 
     @Override
     public Flow.Publisher<Integer> createFlowPublisher(long elements) {
-        // FIXME how to do source dependencies between test scopes in gradle?
         return new RangeFlowPublisher(1, elements);
     }
 

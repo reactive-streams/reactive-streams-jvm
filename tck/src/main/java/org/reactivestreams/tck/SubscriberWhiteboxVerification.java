@@ -789,10 +789,13 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
    */
   public interface SubscriberPuppet {
     /**
-     * Trigger {@code request(elements)} on your
+     * Trigger {@code request(elements)} on your {@link Subscriber}
      */
     void triggerRequest(long elements);
 
+    /**
+     * Trigger {@code cancel()} on your {@link Subscriber}
+     */
     void signalCancel();
   }
 
