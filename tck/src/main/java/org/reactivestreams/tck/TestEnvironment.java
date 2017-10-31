@@ -14,8 +14,8 @@ package org.reactivestreams.tck;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import org.reactivestreams.tck.support.SubscriberBufferOverflowException;
-import org.reactivestreams.tck.support.Optional;
+import org.reactivestreams.tck.flow.support.SubscriberBufferOverflowException;
+import org.reactivestreams.tck.flow.support.Optional;
 
 import java.util.Collections;
 import java.util.LinkedList;

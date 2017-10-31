@@ -1,14 +1,24 @@
 rootProject.name = 'reactive-streams'
 
-def jdkFlow = false;
+def jdkFlow = false
+
+final def ANSI_RESET = "\u001B[0m"
+final def ANSI_RED = "\u001B[31m"
+final def ANSI_GREEN = "\u001B[32m"
+final def ANSI_YELLOW = "\u001B[33m"
 
 try {
-    Class.forName("java.util.concurrent.Flow");
-    jdkFlow = true;
-    println("Java 9 Flow API found")
+    Class.forName("java.util.concurrent.Flow")
+    jdkFlow = true
+    println(ANSI_GREEN + "   INFO: ------------------ JDK9 classes detected ---------------------------------" + ANSI_RESET)
+    println(ANSI_GREEN + "   INFO: Java 9 Flow API found; Including [flow-bridge, tck-flow] in build.        " + ANSI_RESET)
+    println(ANSI_GREEN + "   INFO: --------------------------------------------------------------------------" + ANSI_RESET)
 } catch (Throwable ex) {
     // Flow API not available
-    println("Java 9 Flow API not available")
+    println(ANSI_RED + "WARNING: ------------------ JDK9 classes NOT detected -----------------------------" + ANSI_RESET)
+    println(ANSI_RED + "WARNING: Java 9 Flow API not found; Not including [flow-bridge, tck-flow] in build." + ANSI_RESET)
+    println(ANSI_RED + "WARNING: In order to execute the complete test-suite run the build using JDK9+.    " + ANSI_RESET)
+    println(ANSI_RED + "WARNING: --------------------------------------------------------------------------" + ANSI_RESET)
 }
 
 include ':reactive-streams'
@@ -17,6 +27,7 @@ include ':reactive-streams-examples'
 
 if (jdkFlow) {
     include ':reactive-streams-flow-bridge'
+    include ':reactive-streams-tck-flow'
 }
 
 project(':reactive-streams').projectDir = "$rootDir/api" as File
@@ -24,4 +35,5 @@ project(':reactive-streams-tck').projectDir = "$rootDir/tck" as File
 project(':reactive-streams-examples').projectDir = "$rootDir/examples" as File
 if (jdkFlow) {
     project(':reactive-streams-flow-bridge').projectDir = "$rootDir/flow-bridge" as File
+    project(':reactive-streams-tck-flow').projectDir = "$rootDir/tck-flow" as File
 }

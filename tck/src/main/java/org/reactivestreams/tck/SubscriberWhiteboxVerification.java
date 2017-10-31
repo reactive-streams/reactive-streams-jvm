@@ -15,9 +15,9 @@ import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
 import org.reactivestreams.tck.TestEnvironment.*;
-import org.reactivestreams.tck.support.Optional;
-import org.reactivestreams.tck.support.SubscriberWhiteboxVerificationRules;
-import org.reactivestreams.tck.support.TestException;
+import org.reactivestreams.tck.flow.support.Optional;
+import org.reactivestreams.tck.flow.support.SubscriberWhiteboxVerificationRules;
+import org.reactivestreams.tck.flow.support.TestException;
 import org.testng.SkipException;
 import org.testng.annotations.AfterClass;
 import org.testng.annotations.BeforeClass;
@@ -30,7 +30,8 @@ import java.util.concurrent.Executors;
 import static org.testng.Assert.assertTrue;
 
 /**
- * Provides tests for verifying {@link org.reactivestreams.Subscriber} and {@link org.reactivestreams.Subscription} specification rules.
+ * Provides whitebox style tests for verifying {@link org.reactivestreams.Subscriber}
+ * and {@link org.reactivestreams.Subscription} specification rules.
  *
  * @see org.reactivestreams.Subscriber
  * @see org.reactivestreams.Subscription
@@ -369,7 +370,7 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
           sub.onSubscribe(null);
         } catch (final NullPointerException expected) {
           gotNPE = true;
-        } 
+        }
 
         assertTrue(gotNPE, "onSubscribe(null) did not throw NullPointerException");
         env.verifyNoAsyncErrorsNoDelay();
@@ -747,7 +748,7 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
     public void registerOnSubscribe(SubscriberPuppet p) {
       if (!puppet.isCompleted()) {
         puppet.complete(p);
-      } 
+      }
     }
 
   }
@@ -780,9 +781,21 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
 
   }
 
+  /**
+   * Implement this puppet in your Whitebox style tests.
+   * The test suite will invoke the specific trigger/signal methods requesting you to execute the specific action.
+   * Since this is a whitebox style test, you're allowed and expected to use knowladge about your implementation to
+   * make implement these calls.
+   */
   public interface SubscriberPuppet {
+    /**
+     * Trigger {@code request(elements)} on your {@link Subscriber}
+     */
     void triggerRequest(long elements);
 
+    /**
+     * Trigger {@code cancel()} on your {@link Subscriber}
+     */
     void signalCancel();
   }
 
