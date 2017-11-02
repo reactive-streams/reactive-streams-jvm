@@ -12,7 +12,7 @@
 package org.reactivestreams.tck.flow;
 
 import org.reactivestreams.Publisher;
-import org.reactivestreams.ReactiveStreamsFlowBridge;
+import org.reactivestreams.FlowAdapters;
 import org.reactivestreams.tck.PublisherVerification;
 import org.reactivestreams.tck.TestEnvironment;
 
@@ -36,7 +36,7 @@ public abstract class FlowPublisherVerification<T> extends PublisherVerification
   @Override
   final public Publisher<T> createPublisher(long elements) {
     final Flow.Publisher<T> flowPublisher = createFlowPublisher(elements);
-    return ReactiveStreamsFlowBridge.toPublisher(flowPublisher);
+    return FlowAdapters.toPublisher(flowPublisher);
   }
   /**
    * This is the main method you must implement in your test incarnation.
@@ -49,7 +49,7 @@ public abstract class FlowPublisherVerification<T> extends PublisherVerification
   final public Publisher<T> createFailedPublisher() {
     final Flow.Publisher<T> failed = createFailedFlowPublisher();
     if (failed == null) return null; // because `null` means "SKIP" in createFailedPublisher
-    else return ReactiveStreamsFlowBridge.toPublisher(failed);
+    else return FlowAdapters.toPublisher(failed);
   }
   /**
    * By implementing this method, additional TCK tests concerning a "failed" publishers will be run.

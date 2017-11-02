@@ -11,7 +11,7 @@
 
 package org.reactivestreams.tck.flow;
 
-import org.reactivestreams.ReactiveStreamsFlowBridge;
+import org.reactivestreams.FlowAdapters;
 import org.reactivestreams.example.unicast.AsyncIterablePublisher;
 import java.util.concurrent.Flow.Publisher;
 
@@ -41,7 +41,7 @@ public class EmptyLazyFlowPublisherTest extends FlowPublisherVerification<Intege
 
   @Override
   public Publisher<Integer> createFlowPublisher(long elements) {
-    return ReactiveStreamsFlowBridge.toFlowPublisher(
+    return FlowAdapters.toFlowPublisher(
       new AsyncIterablePublisher<Integer>(Collections.<Integer>emptyList(), ex)
     );
   }

@@ -19,7 +19,7 @@ import java.util.concurrent.Executor;
 import java.util.concurrent.Flow;
 import java.util.concurrent.SubmissionPublisher;
 
-public class ReactiveStreamsFlowBridgeTest {
+public class FlowAdaptersTest {
     @Test
     public void reactiveToFlowNormal() {
         MulticastPublisher<Integer> p = new MulticastPublisher<Integer>(new Executor() {
@@ -31,7 +31,7 @@ public class ReactiveStreamsFlowBridgeTest {
 
         TestEitherConsumer<Integer> tc = new TestEitherConsumer<Integer>();
 
-        ReactiveStreamsFlowBridge.toFlowPublisher(p).subscribe(tc);
+        FlowAdapters.toFlowPublisher(p).subscribe(tc);
 
         p.offer(1);
         p.offer(2);
@@ -54,7 +54,7 @@ public class ReactiveStreamsFlowBridgeTest {
 
         TestEitherConsumer<Integer> tc = new TestEitherConsumer<Integer>();
 
-        ReactiveStreamsFlowBridge.toFlowPublisher(p).subscribe(tc);
+        FlowAdapters.toFlowPublisher(p).subscribe(tc);
 
         p.offer(1);
         p.offer(2);
@@ -77,7 +77,7 @@ public class ReactiveStreamsFlowBridgeTest {
 
         TestEitherConsumer<Integer> tc = new TestEitherConsumer<Integer>();
 
-        ReactiveStreamsFlowBridge.toPublisher(p).subscribe(tc);
+        FlowAdapters.toPublisher(p).subscribe(tc);
 
         p.submit(1);
         p.submit(2);
@@ -100,7 +100,7 @@ public class ReactiveStreamsFlowBridgeTest {
 
         TestEitherConsumer<Integer> tc = new TestEitherConsumer<Integer>();
 
-        ReactiveStreamsFlowBridge.toPublisher(p).subscribe(tc);
+        FlowAdapters.toPublisher(p).subscribe(tc);
 
         p.submit(1);
         p.submit(2);
@@ -116,7 +116,7 @@ public class ReactiveStreamsFlowBridgeTest {
     public void reactiveStreamsToFlowSubscriber() {
         TestEitherConsumer<Integer> tc = new TestEitherConsumer<Integer>();
 
-        Flow.Subscriber<Integer> fs = ReactiveStreamsFlowBridge.toFlowSubscriber(tc);
+        Flow.Subscriber<Integer> fs = FlowAdapters.toFlowSubscriber(tc);
 
         final Object[] state = { null, null };
 
@@ -148,7 +148,7 @@ public class ReactiveStreamsFlowBridgeTest {
     public void flowToReactiveStreamsSubscriber() {
         TestEitherConsumer<Integer> tc = new TestEitherConsumer<Integer>();
 
-        org.reactivestreams.Subscriber<Integer> fs = ReactiveStreamsFlowBridge.toSubscriber(tc);
+        org.reactivestreams.Subscriber<Integer> fs = FlowAdapters.toSubscriber(tc);
 
         final Object[] state = { null, null };
 
@@ -192,8 +192,8 @@ public class ReactiveStreamsFlowBridgeTest {
             @Override public void onComplete() {};
         };
 
-        Assert.assertSame(ReactiveStreamsFlowBridge.toSubscriber(ReactiveStreamsFlowBridge.toFlowSubscriber(rsSub)), rsSub);
-        Assert.assertSame(ReactiveStreamsFlowBridge.toFlowSubscriber(ReactiveStreamsFlowBridge.toSubscriber(fSub)), fSub);
+        Assert.assertSame(FlowAdapters.toSubscriber(FlowAdapters.toFlowSubscriber(rsSub)), rsSub);
+        Assert.assertSame(FlowAdapters.toFlowSubscriber(FlowAdapters.toSubscriber(fSub)), fSub);
     }
 
     @Test
@@ -214,8 +214,8 @@ public class ReactiveStreamsFlowBridgeTest {
             @Override public void subscribe(Flow.Subscriber s) {};
         };
 
-        Assert.assertSame(ReactiveStreamsFlowBridge.toProcessor(ReactiveStreamsFlowBridge.toFlowProcessor(rsPro)), rsPro);
-        Assert.assertSame(ReactiveStreamsFlowBridge.toFlowProcessor(ReactiveStreamsFlowBridge.toProcessor(fPro)), fPro);
+        Assert.assertSame(FlowAdapters.toProcessor(FlowAdapters.toFlowProcessor(rsPro)), rsPro);
+        Assert.assertSame(FlowAdapters.toFlowProcessor(FlowAdapters.toProcessor(fPro)), fPro);
     }
 
     @Test
@@ -228,7 +228,7 @@ public class ReactiveStreamsFlowBridgeTest {
             @Override public void subscribe(Flow.Subscriber s) {};
         };
 
-        Assert.assertSame(ReactiveStreamsFlowBridge.toPublisher(ReactiveStreamsFlowBridge.toFlowPublisher(rsPub)), rsPub);
-        Assert.assertSame(ReactiveStreamsFlowBridge.toFlowPublisher(ReactiveStreamsFlowBridge.toPublisher(fPub)), fPub);
+        Assert.assertSame(FlowAdapters.toPublisher(FlowAdapters.toFlowPublisher(rsPub)), rsPub);
+        Assert.assertSame(FlowAdapters.toFlowPublisher(FlowAdapters.toPublisher(fPub)), fPub);
     }
 }

@@ -1,4 +1,4 @@
-description = 'reactive-streams-flow-bridge'
+description = 'reactive-streams-flow-adapters'
 
 dependencies {
     compile project(':reactive-streams')

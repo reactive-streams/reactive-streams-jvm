@@ -11,7 +11,7 @@
 
 package org.reactivestreams.tck.flow;
 
-import org.reactivestreams.ReactiveStreamsFlowBridge;
+import org.reactivestreams.FlowAdapters;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.tck.SubscriberWhiteboxVerification;
 import org.reactivestreams.tck.TestEnvironment;
@@ -35,7 +35,7 @@ public abstract class FlowSubscriberWhiteboxVerification<T> extends SubscriberWh
 
   @Override
   final public Subscriber<T> createSubscriber(WhiteboxSubscriberProbe<T> probe) {
-    return ReactiveStreamsFlowBridge.toSubscriber(createFlowSubscriber(probe));
+    return FlowAdapters.toSubscriber(createFlowSubscriber(probe));
   }
   /**
    * This is the main method you must implement in your test incarnation.

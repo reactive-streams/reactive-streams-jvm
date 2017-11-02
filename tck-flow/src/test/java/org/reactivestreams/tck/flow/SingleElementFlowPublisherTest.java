@@ -14,7 +14,7 @@ package org.reactivestreams.tck.flow;
 import java.util.concurrent.Flow;
 import java.util.concurrent.Flow.Publisher;
 
-import org.reactivestreams.ReactiveStreamsFlowBridge;
+import org.reactivestreams.FlowAdapters;
 import org.reactivestreams.example.unicast.AsyncIterablePublisher;
 import org.reactivestreams.tck.TestEnvironment;
 import org.testng.annotations.AfterClass;
@@ -42,7 +42,7 @@ public class SingleElementFlowPublisherTest extends FlowPublisherVerification<In
 
   @Override
   public Flow.Publisher<Integer> createFlowPublisher(long elements) {
-    return ReactiveStreamsFlowBridge.toFlowPublisher(new AsyncIterablePublisher<Integer>(Collections.singleton(1), ex));
+    return FlowAdapters.toFlowPublisher(new AsyncIterablePublisher<Integer>(Collections.singleton(1), ex));
   }
 
   @Override

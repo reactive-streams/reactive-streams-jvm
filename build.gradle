@@ -50,7 +50,7 @@ subprojects {
                  "reactive-streams-tck", 
                  "reactive-streams-tck-flow",
                  "reactive-streams-examples",
-                 "reactive-streams-flow-bridge"]) {
+                 "reactive-streams-flow-adapters"]) {
         apply plugin: "maven"
         apply plugin: "signing"
 
