@@ -1,1 +1,7 @@
 description = "reactive-streams"
+
+jar {
+    manifest {
+        attributes('Automatic-Module-Name': 'org.reactivestreams.api')
+    }
+}
