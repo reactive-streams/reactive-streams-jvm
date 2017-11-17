@@ -3,4 +3,11 @@ dependencies {
     compile project(':reactive-streams')
     testCompile project(':reactive-streams-tck')
 }
+
+jar {
+    manifest {
+        attributes('Automatic-Module-Name': 'org.reactivestreams.examples')
+    }
+}
+
 test.useTestNG()
