@@ -4,4 +4,11 @@ dependencies {
     compile project(':reactive-streams-tck')
     compile project(':reactive-streams-flow-adapters')
 }
+
+jar {
+    manifest {
+        attributes('Automatic-Module-Name': 'org.reactivestreams.tckflow')
+    }
+}
+
 test.useTestNG()
