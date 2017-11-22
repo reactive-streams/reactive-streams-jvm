@@ -39,4 +39,5 @@ akarnokd       | David Karnok, akarnokd@gmail.com
 egetman        | Evgeniy Getman, getman.eugene@gmail.com
 patriknw       | Patrik Nordwall, patrik.nordwall@gmail.com, Lightbend Inc
 angelsanz      | Ángel Sanz, angelsanz@users.noreply.github.com
+shenghaiyang   | 盛海洋, shenghaiyang@aliyun.com
 kiiadi         | Kyle Thomson, kylthoms@amazon.com, Amazon.com
