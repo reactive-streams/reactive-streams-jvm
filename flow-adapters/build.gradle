@@ -16,5 +16,5 @@ jar {
 test.useTestNG()
 
 javadoc {
-    options.links("http://download.java.net/java/jdk9/docs/api")
+    options.links("https://docs.oracle.com/javase/9/docs/api")
 }
