@@ -15,12 +15,6 @@ jar {
 
 test.useTestNG()
 
-jar {
-    manifest {
-        attributes('Automatic-Module-Name': 'org.reactivestreams.flowbridge')
-    }
-}
-
 javadoc {
     options.links("http://download.java.net/java/jdk9/docs/api")
 }
