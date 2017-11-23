@@ -189,6 +189,16 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
       return Long.MAX_VALUE;
   }
 
+  /**
+   * Override this method and return {@code true} if the {@link Processor} returned by the
+   * {@link #createIdentityProcessor(int)} coordinates its {@link Subscriber}s
+   * request amounts and only delivers onNext signals if all Subscribers have
+   * indicated (via their Subscription#request(long)) they are ready to receive elements.
+   */
+  public boolean doesCoordinatedEmission() {
+    return false;
+  }
+
   ////////////////////// TEST ENV CLEANUP /////////////////////////////////////
 
   @BeforeMethod
@@ -415,17 +425,33 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
           final ManualSubscriberWithErrorCollection<T> sub2 = new ManualSubscriberWithErrorCollection<T>(env);
           env.subscribe(processor, sub2);
 
-          sub1.request(1);
-          expectRequest();
-          final T x = sendNextTFromUpstream();
-          expectNextElement(sub1, x);
-          sub1.request(1);
-
-          // sub1 has received one element, and has one demand pending
-          // sub2 has not yet requested anything
-
           final Exception ex = new RuntimeException("Test exception");
-          sendError(ex);
+
+          if (doesCoordinatedEmission()) {
+            sub1.request(1);
+            sub2.request(1);
+
+            final T x = sendNextTFromUpstream();
+
+            expectNextElement(sub1, x);
+            expectNextElement(sub2, x);
+
+            sub1.request(1);
+            sub2.request(1);
+
+            sendError(ex);
+          } else {
+            sub1.request(1);
+            expectRequest();
+            final T x = sendNextTFromUpstream();
+            expectNextElement(sub1, x);
+            sub1.request(1);
+
+            // sub1 has received one element, and has one demand pending
+            // sub2 has not yet requested anything
+
+            sendError(ex);
+          }
           sub1.expectError(ex);
           sub2.expectError(ex);
 
@@ -673,15 +699,29 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
           // sub1 now has 18 pending
           // sub2 has 0 pending
 
-          final T z = sendNextTFromUpstream();
-          expectNextElement(sub1, z);
-          sub2.expectNone(); // since sub2 hasn't requested anything yet
+          if (doesCoordinatedEmission()) {
+            sub2.expectNone(); // since sub2 hasn't requested anything yet
 
-          sub2.request(1);
-          expectNextElement(sub2, z);
+            sub2.request(1);
 
-          if (totalRequests == 3) {
-            expectRequest();
+            final T z = sendNextTFromUpstream();
+            expectNextElement(sub1, z);
+            expectNextElement(sub2, z);
+
+            if (totalRequests == 3) {
+              expectRequest();
+            }
+          } else {
+            final T z = sendNextTFromUpstream();
+            expectNextElement(sub1, z);
+            sub2.expectNone(); // since sub2 hasn't requested anything yet
+
+            sub2.request(1);
+            expectNextElement(sub2, z);
+
+            if (totalRequests == 3) {
+              expectRequest();
+            }
           }
 
           // to avoid error messages during test harness shutdown
