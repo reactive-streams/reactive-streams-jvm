@@ -411,8 +411,27 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
     publisherVerification.required_spec317_mustNotSignalOnErrorWhenPendingAboveLongMaxValue();
   }
 
-  // Verifies rule: https://github.com/reactive-streams/reactive-streams-jvm#1.4
-  // for multiple subscribers
+
+  /**
+   * Asks for a {@code Processor} that supports at least 2 {@code Subscriber}s at once and checks if two {@code Subscriber}s
+   * receive the same items and a terminal {@code Exception}.
+   * <p>
+   * If the {@code Processor} requests and/or emits items only when all of its {@code Subscriber}s have requested,
+   * override {@link #doesCoordinatedEmission()} and return {@code true} to indicate this property.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.4'>1.4</a> with multiple
+   * {@code Subscriber}s.
+   * <p>
+   * The test is not executed if {@link IdentityProcessorVerification#maxSupportedSubscribers()} is less than 2.
+   * <p>
+   * If this test fails, the following could be checked within the {@code Publisher} implementation:
+   * <ul>
+   * <li>The {@code TestEnvironment} has large enough timeout specified in case the {@code Processor} has some time-delay behavior.</li>
+   * <li>The {@code Processor} is able to fulfill requests of its {@code Subscriber}s independently of each other's requests or
+   * else override {@link #doesCoordinatedEmission()} and return {@code true} to indicate the test {@code Subscriber}s
+   * both have to request first.</li>
+   * </ul>
+   */
   @Test
   public void required_spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError() throws Throwable {
     optionalMultipleSubscribersTest(2, new Function<Long,TestSetup>() {
@@ -669,8 +688,26 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
 
   /////////////////////// ADDITIONAL "COROLLARY" TESTS //////////////////////
 
-  // A Processor
-  //   must trigger `requestFromUpstream` for elements that have been requested 'long ago'
+  /**
+   * Asks for a {@code Processor} that supports at least 2 {@code Subscriber}s at once and checks requests
+   * from {@code Subscriber}s will eventually lead to requests towards the upstream of the {@code Processor}.
+   * <p>
+   * If the {@code Processor} requests and/or emits items only when all of its {@code Subscriber}s have requested,
+   * override {@link #doesCoordinatedEmission()} and return {@code true} to indicate this property.
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#1.4'>2.1</a> with multiple
+   * {@code Subscriber}s.
+   * <p>
+   * The test is not executed if {@link IdentityProcessorVerification#maxSupportedSubscribers()} is less than 2.
+   * <p>
+   * If this test fails, the following could be checked within the {@code Publisher} implementation:
+   * <ul>
+   * <li>The {@code TestEnvironment} has large enough timeout specified in case the {@code Processor} has some time-delay behavior.</li>
+   * <li>The {@code Processor} is able to fulfill requests of its {@code Subscriber}s independently of each other's requests or
+   * else override {@link #doesCoordinatedEmission()} and return {@code true} to indicate the test {@code Subscriber}s
+   * both have to request first.</li>
+   * </ul>
+   */
   @Test
   public void required_mustRequestFromUpstreamForElementsThatHaveBeenRequestedLongAgo() throws Throwable {
     optionalMultipleSubscribersTest(2, new Function<Long,TestSetup>() {
