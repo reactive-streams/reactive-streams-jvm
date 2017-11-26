@@ -12,9 +12,11 @@
 package org.reactivestreams.tck.flow;
 
 import org.reactivestreams.tck.TestEnvironment;
+import org.testng.annotations.Test;
 
 import java.util.concurrent.*;
 
+@Test
 public class SubmissionPublisherTest extends FlowPublisherVerification<Integer> {
 
     public SubmissionPublisherTest() {
@@ -22,23 +24,26 @@ public class SubmissionPublisherTest extends FlowPublisherVerification<Integer> 
     }
 
     @Override
-    public Flow.Publisher<Integer> createFlowPublisher(long elements) {
-        SubmissionPublisher<Integer> sp = new SubmissionPublisher<>();
+    public Flow.Publisher<Integer> createFlowPublisher(final long elements) {
+        final SubmissionPublisher<Integer> sp = new SubmissionPublisher<Integer>();
 
-        ForkJoinPool.commonPool().submit(() -> {
-            while (sp.getNumberOfSubscribers() == 0) {
-                try {
-                    Thread.sleep(1);
-                } catch (InterruptedException ex) {
-                    return;
+        ForkJoinPool.commonPool().submit(new Runnable() {
+            @Override
+            public void run() {
+                while (sp.getNumberOfSubscribers() == 0) {
+                    try {
+                        Thread.sleep(1);
+                    } catch (InterruptedException ex) {
+                        return;
+                    }
                 }
-            }
 
-            for (int i = 0; i < elements; i++) {
-                sp.submit(i);
-            }
+                for (int i = 0; i < elements; i++) {
+                    sp.submit(i);
+                }
 
-            sp.close();
+                sp.close();
+            }
         });
 
         return sp;
@@ -46,7 +51,7 @@ public class SubmissionPublisherTest extends FlowPublisherVerification<Integer> 
 
     @Override
     public Flow.Publisher<Integer> createFailedFlowPublisher() {
-        SubmissionPublisher<Integer> sp = new SubmissionPublisher<>();
+        SubmissionPublisher<Integer> sp = new SubmissionPublisher<Integer>();
         sp.closeExceptionally(new Exception());
         return sp;
     }
