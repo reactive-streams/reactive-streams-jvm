@@ -457,8 +457,6 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
 
             sub1.request(1);
             sub2.request(1);
-
-            sendError(ex);
           } else {
             sub1.request(1);
             expectRequest();
@@ -468,9 +466,9 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
 
             // sub1 has received one element, and has one demand pending
             // sub2 has not yet requested anything
-
-            sendError(ex);
           }
+          sendError(ex);
+
           sub1.expectError(ex);
           sub2.expectError(ex);
 
@@ -744,10 +742,6 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
             final T z = sendNextTFromUpstream();
             expectNextElement(sub1, z);
             expectNextElement(sub2, z);
-
-            if (totalRequests == 3) {
-              expectRequest();
-            }
           } else {
             final T z = sendNextTFromUpstream();
             expectNextElement(sub1, z);
@@ -755,10 +749,9 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
 
             sub2.request(1);
             expectNextElement(sub2, z);
-
-            if (totalRequests == 3) {
-              expectRequest();
-            }
+          }
+          if (totalRequests == 3) {
+            expectRequest();
           }
 
           // to avoid error messages during test harness shutdown
