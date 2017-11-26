@@ -27,7 +27,7 @@ public class SubmissionPublisherTest extends FlowPublisherVerification<Integer> 
     public Flow.Publisher<Integer> createFlowPublisher(final long elements) {
         final SubmissionPublisher<Integer> sp = new SubmissionPublisher<Integer>();
 
-        ForkJoinPool.commonPool().submit(new Runnable() {
+        Thread t = new Thread(new Runnable() {
             @Override
             public void run() {
                 while (sp.getNumberOfSubscribers() == 0) {
@@ -45,6 +45,8 @@ public class SubmissionPublisherTest extends FlowPublisherVerification<Integer> 
                 sp.close();
             }
         });
+        t.setDaemon(true);
+        t.start();
 
         return sp;
     }
