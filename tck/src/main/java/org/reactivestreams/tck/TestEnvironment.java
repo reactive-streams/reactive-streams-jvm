@@ -511,6 +511,10 @@ public class TestEnvironment {
       received.expectCompletion(timeoutMillis, errorMsg);
     }
 
+    public boolean tryExpectCompletion(long timeoutMillis) throws InterruptedException {
+      return received.tryExpectCompletion(timeoutMillis);
+    }
+
     public <E extends Throwable> void expectErrorWithMessage(Class<E> expected, String requiredMessagePart) throws Exception {
       expectErrorWithMessage(expected, requiredMessagePart, env.defaultTimeoutMillis());
     }
@@ -990,6 +994,22 @@ public class TestEnvironment {
       } else if (value.isDefined()) {
         env.flop(String.format("Expected end-of-stream but got element [%s]", value.get()));
       } // else, ok
+    }
+
+    public boolean tryExpectCompletion(long timeoutMillis) throws InterruptedException {
+      long end = System.currentTimeMillis() + timeoutMillis;
+      do {
+        Optional<T> value = abq.peek();
+        if (value != null) {
+          if (!value.isDefined()) {
+            abq.poll();
+            return true;
+          }
+          return false;
+        }
+        Thread.sleep(1);
+      } while (System.currentTimeMillis() < end);
+      return false;
     }
 
     @SuppressWarnings("unchecked")

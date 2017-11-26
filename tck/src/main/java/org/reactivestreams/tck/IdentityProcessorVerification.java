@@ -11,6 +11,8 @@
 
 package org.reactivestreams.tck;
 
+import java.util.*;
+
 import org.reactivestreams.Processor;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
@@ -24,9 +26,6 @@ import org.reactivestreams.tck.flow.support.SubscriberWhiteboxVerificationRules;
 import org.reactivestreams.tck.flow.support.PublisherVerificationRules;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import java.util.HashSet;
-import java.util.Set;
 
 public abstract class IdentityProcessorVerification<T> extends WithHelperPublisher<T>
   implements SubscriberWhiteboxVerificationRules, PublisherVerificationRules {
@@ -189,6 +188,19 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
       return Long.MAX_VALUE;
   }
 
+  /**
+   * Indicates that the tested implementation keeps a strict event ordering in respect to
+   * {@code onNext} and {@code onError}.
+   * Some {@code Processor} implementation may emit all {@code onNext}s received before emitting 
+   * any {@code onError}, similar to how {@code onComplete} is usually emitted after all
+   * previous {@code onNext} items have been emitted. The default implementation returns false,
+   * indicating that {@code onError} may cut ahead and get emitted even if there are
+   * {@code onNext} events ready for consumption (via {@code request()}) by the {@code Subscriber}.
+   */
+  public boolean strictEventOrdering() {
+      return false;
+  }
+  
   ////////////////////// TEST ENV CLEANUP /////////////////////////////////////
 
   @BeforeMethod
@@ -427,6 +439,14 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
           final Exception ex = new RuntimeException("Test exception");
           sendError(ex);
           sub1.expectError(ex);
+          
+          // some Processors may only emit the terminal error if
+          // all previously submitted onNext value has been
+          // consumed by the Subscriber
+          if (strictEventOrdering()) {
+              sub2.request(1);
+              expectNextElement(sub2, x);
+          }
           sub2.expectError(ex);
 
           env.verifyNoAsyncErrorsNoDelay();
@@ -678,7 +698,10 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
           sub2.expectNone(); // since sub2 hasn't requested anything yet
 
           sub2.request(1);
-          expectNextElement(sub2, z);
+          // some processors could emit items from the beginning, some may
+          // cache for a limited time or count, therefore
+          // any of the first 3 items may appear after requesing one
+          expectAnyNextElement(sub2, new HashSet<T>(Arrays.asList(x, y, z)));
 
           if (totalRequests == 3) {
             expectRequest();
@@ -687,7 +710,20 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
           // to avoid error messages during test harness shutdown
           sendCompletion();
           sub1.expectCompletion(env.defaultTimeoutMillis());
-          sub2.expectCompletion(env.defaultTimeoutMillis());
+          
+          // sub2 may not complete because it still has pending y or z
+          if (!sub2.tryExpectCompletion(env.defaultTimeoutMillis())) {
+              sub2.request(1);
+              expectAnyNextElement(sub2, new HashSet<T>(Arrays.asList(y, z)));
+              
+              // z may still be pending
+              if (!sub2.tryExpectCompletion(env.defaultTimeoutMillis())) {
+                  sub2.request(1);
+                  expectNextElement(sub2, z);
+                  // after z, it should get onComplete reasonably quickly
+                  sub2.expectCompletion(env.defaultTimeoutMillis());
+              }
+          }
 
           env.verifyNoAsyncErrorsNoDelay();
         }};
@@ -745,6 +781,20 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
       final T elem = sub.nextElement(String.format("timeout while awaiting %s", expected));
       if (!elem.equals(expected)) {
         env.flop(String.format("Received `onNext(%s)` on downstream but expected `onNext(%s)`", elem, expected));
+      }
+    }
+
+    public void expectAnyNextElement(ManualSubscriber<T> sub, Set<T> expected) throws InterruptedException {
+      final T elem = sub.nextElement(String.format("timeout while awaiting %s", expected));
+      if (!expected.contains(elem)) {
+        StringBuilder sb = new StringBuilder();
+        for (T t : expected) {
+            if (sb.length() > 0) {
+                sb.append(", ");
+            }
+            sb.append(String.format("`onNext(%s)`", t));
+        }
+        env.flop(String.format("Received `onNext(%s)` on downstream but expected any of %s", elem, sb));
       }
     }
 
