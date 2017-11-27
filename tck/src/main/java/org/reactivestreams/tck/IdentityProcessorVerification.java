@@ -464,13 +464,13 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
 
             expectRequest(env.defaultTimeoutMillis(),
                     "If the Processor coordinates requests/emissions when having multiple Subscribers"
-                    + " at once, please override doesCoordinatedEmission() in this "
+                    + " at once, please override doesCoordinatedEmission() to return true in this "
                     + "IdentityProcessorVerification to allow this test to pass.");
 
             final T x = sendNextTFromUpstream();
             expectNextElement(sub1, x,
                     "If the Processor coordinates requests/emissions when having multiple Subscribers"
-                            + " at once, please override doesCoordinatedEmission() in this "
+                            + " at once, please override doesCoordinatedEmission() to return true in this "
                             + "IdentityProcessorVerification to allow this test to pass.");
 
             sub1.request(1);
@@ -757,7 +757,7 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
             final T z = sendNextTFromUpstream();
             expectNextElement(sub1, z,
                     "If the Processor coordinates requests/emissions when having multiple Subscribers"
-                            + " at once, please override doesCoordinatedEmission() in this "
+                            + " at once, please override doesCoordinatedEmission() to return true in this "
                             + "IdentityProcessorVerification to allow this test to pass.");
             sub2.expectNone(); // since sub2 hasn't requested anything yet
 
