@@ -450,6 +450,8 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
             sub1.request(1);
             sub2.request(1);
 
+            expectRequest();
+
             final T x = sendNextTFromUpstream();
 
             expectNextElement(sub1, x);
@@ -459,9 +461,18 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
             sub2.request(1);
           } else {
             sub1.request(1);
-            expectRequest();
+
+            expectRequest(env.defaultTimeoutMillis(),
+                    "If the Processor coordinates requests/emissions when having multiple Subscribers"
+                    + " at once, please override doesCoordinatedEmission() in this "
+                    + "IdentityProcessorVerification to allow this test to pass.");
+
             final T x = sendNextTFromUpstream();
-            expectNextElement(sub1, x);
+            expectNextElement(sub1, x,
+                    "If the Processor coordinates requests/emissions when having multiple Subscribers"
+                            + " at once, please override doesCoordinatedEmission() in this "
+                            + "IdentityProcessorVerification to allow this test to pass.");
+
             sub1.request(1);
 
             // sub1 has received one element, and has one demand pending
@@ -744,7 +755,10 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
             expectNextElement(sub2, z);
           } else {
             final T z = sendNextTFromUpstream();
-            expectNextElement(sub1, z);
+            expectNextElement(sub1, z,
+                    "If the Processor coordinates requests/emissions when having multiple Subscribers"
+                            + " at once, please override doesCoordinatedEmission() in this "
+                            + "IdentityProcessorVerification to allow this test to pass.");
             sub2.expectNone(); // since sub2 hasn't requested anything yet
 
             sub2.request(1);
@@ -813,6 +827,13 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
 
     public void expectNextElement(ManualSubscriber<T> sub, T expected) throws InterruptedException {
       final T elem = sub.nextElement(String.format("timeout while awaiting %s", expected));
+      if (!elem.equals(expected)) {
+        env.flop(String.format("Received `onNext(%s)` on downstream but expected `onNext(%s)`", elem, expected));
+      }
+    }
+
+    public void expectNextElement(ManualSubscriber<T> sub, T expected, String errorMessageAddendum) throws InterruptedException {
+      final T elem = sub.nextElement(String.format("timeout while awaiting %s. %s", expected, errorMessageAddendum));
       if (!elem.equals(expected)) {
         env.flop(String.format("Received `onNext(%s)` on downstream but expected `onNext(%s)`", elem, expected));
       }
