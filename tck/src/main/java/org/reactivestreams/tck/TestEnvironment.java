@@ -763,6 +763,17 @@ public class TestEnvironment {
       }
     }
 
+
+    public long expectRequest(long timeoutMillis, String errorMessageAddendum) throws InterruptedException {
+      long requested = requests.next(timeoutMillis, String.format("Did not receive expected `request` call. %s", errorMessageAddendum));
+      if (requested <= 0) {
+        return env.<Long>flopAndFail(String.format("Requests cannot be zero or negative but received request(%s)", requested));
+      } else {
+        pendingDemand += requested;
+        return requested;
+      }
+    }
+
     public void expectExactRequest(long expected) throws InterruptedException {
       expectExactRequest(expected, env.defaultTimeoutMillis());
     }
