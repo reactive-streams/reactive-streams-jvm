@@ -507,6 +507,24 @@ The `IdentityProcessorVerification` also runs additional "sanity" verifications,
 Specification rules, but help to verify that a `Processor` won't "get stuck" or face similar problems. Please refer to the
 sources for details on the tests included.
 
+### Verifying Processors with request-coordinating behavior
+
+A request-coordinating `Processor` is a kind of a `Processor` implementation which may either 
+
+- coordinate the request amounts of their `Subscriber`s and request only from upstream when all `Subscriber`s requested something; or
+- coordinate emissions, requesting a bounded amount upfront from the upstream and then emitting only when all `Subscriber`s have requested something.
+
+From the downstream `Subscriber`s' perspective (and the TCK), both manifest as lack of emissions, and thus
+the following test methods will likely fail with `timeout while awaiting X` error:
+
+- `required_spec104_mustCallOnErrorOnAllItsSubscribersIfItEncountersANonRecoverableError`
+- `required_mustRequestFromUpstreamForElementsThatHaveBeenRequestedLongAgo`
+
+To verify such `Processor` implementations, override the `IdentityProcessorVerification.doesCoordinatedEmission()`
+method and return `true`, which will instruct the tests above to request from both of their `TestSubscriber`s before
+asserting the arrival of the required elements. 
+
+
 ## Ignoring tests
 Since the tests are inherited instead of user defined it's not possible to use the usual `@Ignore` annotations
 to skip certain tests (which may be perfectly reasonable if the implementation has some know constraints on what it

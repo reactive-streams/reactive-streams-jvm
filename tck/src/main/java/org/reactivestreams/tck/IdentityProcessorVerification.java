@@ -424,7 +424,7 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
    * <p>
    * The test is not executed if {@link IdentityProcessorVerification#maxSupportedSubscribers()} is less than 2.
    * <p>
-   * If this test fails, the following could be checked within the {@code Publisher} implementation:
+   * If this test fails, the following could be checked within the {@code Processor} implementation:
    * <ul>
    * <li>The {@code TestEnvironment} has large enough timeout specified in case the {@code Processor} has some time-delay behavior.</li>
    * <li>The {@code Processor} is able to fulfill requests of its {@code Subscriber}s independently of each other's requests or
@@ -709,7 +709,7 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
    * <p>
    * The test is not executed if {@link IdentityProcessorVerification#maxSupportedSubscribers()} is less than 2.
    * <p>
-   * If this test fails, the following could be checked within the {@code Publisher} implementation:
+   * If this test fails, the following could be checked within the {@code Processor} implementation:
    * <ul>
    * <li>The {@code TestEnvironment} has large enough timeout specified in case the {@code Processor} has some time-delay behavior.</li>
    * <li>The {@code Processor} is able to fulfill requests of its {@code Subscriber}s independently of each other's requests or
