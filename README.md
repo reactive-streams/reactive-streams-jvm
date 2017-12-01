@@ -8,12 +8,12 @@ The latest release is available on Maven Central as
 <dependency>
   <groupId>org.reactivestreams</groupId>
   <artifactId>reactive-streams</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.2-RC1</version>
 </dependency>
 <dependency>
   <groupId>org.reactivestreams</groupId>
   <artifactId>reactive-streams-tck</artifactId>
-  <version>1.0.1</version>
+  <version>1.0.2-RC1</version>
   <scope>test</scope>
 </dependency>
 ```
@@ -84,7 +84,7 @@ followed by a possibly unbounded number of `onNext` signals (as requested by `Su
 
 ### SPECIFICATION
 
-#### 1. Publisher ([Code](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.1/api/src/main/java/org/reactivestreams/Publisher.java))
+#### 1. Publisher ([Code](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.2-RC1/api/src/main/java/org/reactivestreams/Publisher.java))
 
 ```java
 public interface Publisher<T> {
@@ -117,7 +117,7 @@ public interface Publisher<T> {
 | <a name="1.11">11</a>     | A `Publisher` MAY support multiple `Subscriber`s and decides whether each `Subscription` is unicast or multicast. |
 | [:bulb:](#1.11 "1.11 explained") | *The intent of this rule is to give Publisher implementations the flexibility to decide how many, if any, Subscribers they will support, and how elements are going to be distributed.* |
 
-#### 2. Subscriber ([Code](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.1/api/src/main/java/org/reactivestreams/Subscriber.java))
+#### 2. Subscriber ([Code](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.2-RC1/api/src/main/java/org/reactivestreams/Subscriber.java))
 
 ```java
 public interface Subscriber<T> {
@@ -157,7 +157,7 @@ public interface Subscriber<T> {
 | <a name="2.13">13</a>     | Calling `onSubscribe`, `onNext`, `onError` or `onComplete` MUST [return normally](#term_return_normally) except when any provided parameter is `null` in which case it MUST throw a `java.lang.NullPointerException` to the caller, for all other situations the only legal way for a `Subscriber` to signal failure is by cancelling its `Subscription`. In the case that this rule is violated, any associated `Subscription` to the `Subscriber` MUST be considered as cancelled, and the caller MUST raise this error condition in a fashion that is adequate for the runtime environment. |
 | [:bulb:](#2.13 "2.13 explained") | *The intent of this rule is to establish the semantics for the methods of Subscriber and what the Publisher is allowed to do in which case this rule is violated. «Raise this error condition in a fashion that is adequate for the runtime environment» could mean logging the error—or otherwise make someone or something aware of the situation—as the error cannot be signalled to the faulty Subscriber.* |
 
-#### 3. Subscription ([Code](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.1/api/src/main/java/org/reactivestreams/Subscription.java))
+#### 3. Subscription ([Code](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.2-RC1/api/src/main/java/org/reactivestreams/Subscription.java))
 
 ```java
 public interface Subscription {
@@ -205,7 +205,7 @@ public interface Subscription {
 
 A `Subscription` is shared by exactly one `Publisher` and one `Subscriber` for the purpose of mediating the data exchange between this pair. This is the reason why the `subscribe()` method does not return the created `Subscription`, but instead returns `void`; the `Subscription` is only passed to the `Subscriber` via the `onSubscribe` callback.
 
-#### 4.Processor ([Code](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.1/api/src/main/java/org/reactivestreams/Processor.java))
+#### 4.Processor ([Code](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.2-RC1/api/src/main/java/org/reactivestreams/Processor.java))
 
 ```java
 public interface Processor<T, R> extends Subscriber<T>, Publisher<R> {
