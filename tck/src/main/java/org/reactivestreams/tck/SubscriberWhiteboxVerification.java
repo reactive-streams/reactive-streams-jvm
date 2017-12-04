@@ -539,6 +539,7 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
         probe = new WhiteboxSubscriberProbe<T>(env, subscriber);
         subscribe(createSubscriber(probe));
         probe.puppet.expectCompletion(env.defaultTimeoutMillis(), String.format("Subscriber %s did not `registerOnSubscribe`", sub()));
+        env.verifyNoAsyncErrorsNoDelay();
       }
     }
 
