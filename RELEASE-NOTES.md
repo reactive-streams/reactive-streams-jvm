@@ -2,11 +2,11 @@
 
 ---
 
-# Version 1.0.2-RC1 released on 2017-12-01
+# Version 1.0.2-RC1 released on 2017-12-05
 
 ## Announcement:
 
-This update to `Reactive Streams` brings the following improvements over `1.0.1`.
+We—the Reactive Streams community—are pleased to announce the immediate availability of `Reactive Streams 1.0.2-RC1`. This update to `Reactive Streams` brings the following improvements over `1.0.1`.
 
 ## Highlights:
 
@@ -76,6 +76,7 @@ A TCK artifact has been created to allow for direct TCK verification of `java.ut
 ## TCK alterations 1.0.2-RC1
 
 - Added support for Publisher verification of Publishers who do coordinated emission, i.e. where elements only are emitted after all current Subscribers have signalled demand. ([#284](https://github.com/reactive-streams/reactive-streams-jvm/issues/284))
+- The `SubscriberWhiteboxVerification` has been given more user friendly error messages in the case where the user forgets to call `registerOnSubscribe`. (#416)[https://github.com/reactive-streams/reactive-streams-jvm/pull/416]
 
 ## Contributors
   + Roland Kuhn [(@rkuhn)](https://github.com/rkuhn)
