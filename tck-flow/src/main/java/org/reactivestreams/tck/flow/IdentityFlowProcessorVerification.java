@@ -11,13 +11,13 @@
 
 package org.reactivestreams.tck.flow;
 
-import org.reactivestreams.Processor;
-import org.reactivestreams.Publisher;
-import org.reactivestreams.Subscriber;
+import org.reactivestreams.*;
 import org.reactivestreams.tck.IdentityProcessorVerification;
 import org.reactivestreams.tck.TestEnvironment;
 import org.reactivestreams.tck.flow.support.SubscriberWhiteboxVerificationRules;
 import org.reactivestreams.tck.flow.support.PublisherVerificationRules;
+
+import java.util.concurrent.Flow;
 
 public abstract class IdentityFlowProcessorVerification<T> extends IdentityProcessorVerification<T>
   implements SubscriberWhiteboxVerificationRules, PublisherVerificationRules {
@@ -34,39 +34,18 @@ public abstract class IdentityFlowProcessorVerification<T> extends IdentityProce
     super(env, publisherReferenceGCTimeoutMillis, processorBufferSize);
   }
 
-  protected abstract Publisher<T> createFailedFlowPublisher();
+  protected abstract Flow.Publisher<T> createFailedFlowPublisher();
 
-  protected abstract Processor<T,T> createIdentityFlowProcessor(int bufferSize);
-
-  protected abstract Subscriber<T> createFlowSubscriber(FlowSubscriberWhiteboxVerification.WhiteboxSubscriberProbe<T> probe);
-
-  protected abstract Publisher<T> createFlowHelperPublisher(long elements);
-
-  protected abstract Publisher<T> createFlowPublisher(long elements);
-
-  @Override
-  public final Publisher<T> createHelperPublisher(long elements) {
-    return createFlowHelperPublisher(elements);
-  }
+  protected abstract Flow.Processor<T,T> createIdentityFlowProcessor(int bufferSize);
 
   @Override
   public final Processor<T, T> createIdentityProcessor(int bufferSize) {
-    return createIdentityFlowProcessor(bufferSize);
+    return FlowAdapters.toProcessor(createIdentityFlowProcessor(bufferSize));
   }
 
   @Override
   public final Publisher<T> createFailedPublisher() {
-    return createFailedFlowPublisher();
-  }
-
-  @Override
-    public final Publisher<T> createPublisher(long elements) {
-      return createFlowPublisher(elements);
-    }
-
-  @Override
-  public final Subscriber<T> createSubscriber(FlowSubscriberWhiteboxVerification.WhiteboxSubscriberProbe<T> probe) {
-    return createFlowSubscriber(probe);
+    return FlowAdapters.toPublisher(createFailedFlowPublisher());
   }
 
 }
