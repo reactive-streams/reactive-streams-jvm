@@ -128,7 +128,7 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
 
   /**
    * This is the main method you must implement in your test incarnation.
-   * It must create a Publisher, which simply forwards all stream elements from its upstream
+   * It must create a {@link Processor}, which simply forwards all stream elements from its upstream
    * to its downstream. It must be able to internally buffer the given number of elements.
    *
    * @param bufferSize number of elements the processor is required to be able to buffer.
