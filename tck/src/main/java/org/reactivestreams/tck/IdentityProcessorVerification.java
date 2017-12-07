@@ -141,7 +141,7 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
    * The expected behaviour of the {@link Publisher} returned by this method is hand out a subscription,
    * followed by signalling {@code onError} on it, as specified by Rule 1.9.
    *
-   * If you ignore these additional tests, return {@code null} from this method.
+   * If you want to ignore these additional tests, return {@code null} from this method.
    */
   public abstract Publisher<T> createFailedPublisher();
 
