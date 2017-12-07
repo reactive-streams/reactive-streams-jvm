@@ -2,6 +2,12 @@
 
 ---
 
+# Version 1.0.2-RC2 released on 2017-12-07
+
+- Addresses [some oversights](https://github.com/reactive-streams/reactive-streams-jvm/pull/419) in the Flow-TCK for Flow.Processor
+
+For more information on the 1.0.2 version, see below.
+
 # Version 1.0.2-RC1 released on 2017-12-05
 
 ## Announcement:
