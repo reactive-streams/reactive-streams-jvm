@@ -2,72 +2,66 @@
 
 ---
 
-# Version 1.0.2-RC2 released on 2017-12-07
-
-- Addresses [some oversights](https://github.com/reactive-streams/reactive-streams-jvm/pull/419) in the Flow-TCK for Flow.Processor
-
-For more information on the 1.0.2 version, see below.
-
-# Version 1.0.2-RC1 released on 2017-12-05
+# Version 1.0.2 released on 2017-12-19
 
 ## Announcement:
 
-We—the Reactive Streams community—are pleased to announce the immediate availability of `Reactive Streams 1.0.2-RC1`. This update to `Reactive Streams` brings the following improvements over `1.0.1`.
+We—the Reactive Streams community—are pleased to announce the immediate availability of `Reactive Streams 1.0.2`. This update to `Reactive Streams` brings the following improvements over `1.0.1`.
 
 ## Highlights:
 
 - Specification
   + Glossary term added for `Thread-safe`
   + No breaking/semantical changes
-  + Rule [clarifications](#specification-clarifications-102-rc1)
+  + Rule [clarifications](#specification-clarifications-102)
 - Interfaces
   + No changes
 - Technology Compatibility Kit (TCK)
-  + Improved [coverage](#tck-alterations-102-rc1)
-    * Supports Publishers/Processors which do [coordinated emission](http://www.reactive-streams.org/reactive-streams-tck-1.0.2-RC1-javadoc/org/reactivestreams/tck/PublisherVerification.html#doesCoordinatedEmission--).
+  + Improved [coverage](#tck-alterations-102)
+    * Supports Publishers/Processors which do [coordinated emission](http://www.reactive-streams.org/reactive-streams-tck-1.0.2-javadoc/org/reactivestreams/tck/PublisherVerification.html#doesCoordinatedEmission--).
   + Improved JavaDoc
 - Examples
-  + New example [RangePublisher](http://www.reactive-streams.org/reactive-streams-examples-1.0.2-RC1-javadoc/org/reactivestreams/example/unicast/RangePublisher.html)
+  + New example [RangePublisher](http://www.reactive-streams.org/reactive-streams-examples-1.0.2-javadoc/org/reactivestreams/example/unicast/RangePublisher.html)
 - Artifacts
   + NEW! [Flow adapters](#flow-adapters)
   + NEW! [Flow TCK](#flow-tck)
   + Java 9 [Automatic-Module-Name](#automatic-module-name) added for all artifacts
 
-## Specification clarifications 1.0.2-RC1
+## Specification clarifications 1.0.2
 
 ## Subscriber Rule 2
 
 **1.0.1:** The intent of this rule is that a Subscriber should not obstruct the progress of the Publisher from an execution point-of-view. In other words, the Subscriber should not starve the Publisher from CPU cycles.
 
-**1.0.2-RC1:** The intent of this rule is that a Subscriber should not obstruct the progress of the Publisher from an execution point-of-view. In other words, the Subscriber should not starve the Publisher from receiving CPU cycles.
+**1.0.2:** The intent of this rule is that a Subscriber should not obstruct the progress of the Publisher from an execution point-of-view. In other words, the Subscriber should not starve the Publisher from receiving CPU cycles.
 
 ## Subscriber Rule 8
 
 **1.0.1:** The intent of this rule is to highlight that there may be a delay between calling `cancel` the Publisher seeing that.
 
-**1.0.2-RC1** The intent of this rule is to highlight that there may be a delay between calling `cancel` and the Publisher observing that cancellation.
+**1.0.2** The intent of this rule is to highlight that there may be a delay between calling `cancel` and the Publisher observing that cancellation.
 
 ## Flow adapters
 
-An adapter library has been created to convert `org.reactivestreams` to `java.util.concurrent.Flow` and vice versa. Read more about it [here](http://www.reactive-streams.org/reactive-streams-flow-adapters-1.0.2-RC1-javadoc)
+An adapter library has been created to convert `org.reactivestreams` to `java.util.concurrent.Flow` and vice versa. Read more about it [here](http://www.reactive-streams.org/reactive-streams-flow-adapters-1.0.2-javadoc)
 
 ~~~xml
 <dependency>
    <groupId>org.reactivestreams</groupId>
    <artifactId>reactive-streams-flow-adapters</artifactId>
-  <version>1.0.2-RC1</version>
+  <version>1.0.2</version>
 </dependency>
 ~~~
 
 ## Flow TCK
 
-A TCK artifact has been created to allow for direct TCK verification of `java.util.concurrent.Flow` implementations. Read more about it [here](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.2-RC1/tck-flow/README.md)
+A TCK artifact has been created to allow for direct TCK verification of `java.util.concurrent.Flow` implementations. Read more about it [here](https://github.com/reactive-streams/reactive-streams-jvm/blob/v1.0.2/tck-flow/README.md)
 
 ~~~xml
 <dependency>
    <groupId>org.reactivestreams</groupId>
    <artifactId>reactive-streams-tck-flow</artifactId>
-  <version>1.0.2-RC1</version>
+  <version>1.0.2</version>
 </dependency>
 ~~~
 
@@ -79,7 +73,7 @@ A TCK artifact has been created to allow for direct TCK verification of `java.ut
   * `org.reactivestreams:reactive-streams-flow-adapters` => `org.reactivestreams.flowadapters`
   * `org.reactivestreams:reactive-streams-tck-flow` => `org.reactivestreams.tckflow`
 
-## TCK alterations 1.0.2-RC1
+## TCK alterations 1.0.2
 
 - Added support for Publisher verification of Publishers who do coordinated emission, i.e. where elements only are emitted after all current Subscribers have signalled demand. ([#284](https://github.com/reactive-streams/reactive-streams-jvm/issues/284))
 - The `SubscriberWhiteboxVerification` has been given more user friendly error messages in the case where the user forgets to call `registerOnSubscribe`. (#416)[https://github.com/reactive-streams/reactive-streams-jvm/pull/416]
