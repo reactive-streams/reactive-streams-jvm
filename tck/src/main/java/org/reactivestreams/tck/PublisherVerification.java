@@ -11,6 +11,23 @@
 
 package org.reactivestreams.tck;
 
+import static org.testng.Assert.assertEquals;
+import static org.testng.Assert.assertTrue;
+
+import java.io.PrintWriter;
+import java.io.StringWriter;
+import java.lang.ref.ReferenceQueue;
+import java.lang.ref.WeakReference;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Random;
+import java.util.TreeMap;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
+
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
@@ -24,20 +41,6 @@ import org.reactivestreams.tck.flow.support.PublisherVerificationRules;
 import org.testng.SkipException;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
-
-import java.lang.Override;
-import java.lang.ref.ReferenceQueue;
-import java.lang.ref.WeakReference;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.List;
-import java.util.Random;
-import java.util.concurrent.atomic.AtomicInteger;
-import java.util.concurrent.atomic.AtomicReference;
-
-import static org.testng.Assert.assertEquals;
-import static org.testng.Assert.assertTrue;
 
 /**
  * Provides tests for verifying {@code Publisher} specification rules.
@@ -233,18 +236,15 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
 
   @Override @Test
   public void required_spec102_maySignalLessThanRequestedAndTerminateSubscription() throws Throwable {
-    final int elements = 3;
-    final int requested = 10;
-
-    activePublisherTest(elements, true, new PublisherTestRun<T>() {
+    activePublisherMultiTest(true, new PublisherSubTestRun<T>() {
       @Override
-      public void run(Publisher<T> pub) throws Throwable {
+      public void run(Publisher<T> pub, long elements) throws Throwable {
         final ManualSubscriber<T> sub = env.newManualSubscriber(pub);
-        sub.request(requested);
+        sub.request(elements + 7);
         sub.nextElements(elements);
         sub.expectCompletion();
       }
-    });
+    }, 1, 2, 3, 5, 10, 20);
   }
 
   @Override @Test
@@ -1119,6 +1119,10 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
     public void run(Publisher<T> pub) throws Throwable;
   }
 
+  public interface PublisherSubTestRun<T> {
+    public void run(Publisher<T> pub, long elements) throws Throwable;
+  }
+
   /**
    * Test for feature that SHOULD/MUST be implemented, using a live publisher.
    *
@@ -1140,6 +1144,84 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
     }
   }
 
+  /**
+   * Runs the test body with multiple {@code Publisher} lengths, collects the individual failures
+   * for those lengths and throws an {@code AssertionError} if there were any failures.
+   * If the body throws a {@code SkipException} with {@code isSkip()} {@code true}, the particular length test is ignored.
+   * @param completionSignalRequired if true, the Publisher must be finite as the underlying body
+   * expects a Publisher that calls onComplete.
+   * @param body the test body to execute receiving the unique publisher created via the {@link #createPublisher(long)}
+   * and the current length under test.
+   * @param elements the vararg array of elements to test, an empty array will throw an AssertionError
+   * and a single-element array delegates to {@link #activePublisherTest(long, boolean, PublisherTestRun)}.
+   * @throws Throwable allows throwing arbitrary exceptions from the test body
+   */
+  public void activePublisherMultiTest(boolean completionSignalRequired, final PublisherSubTestRun<T> body, final long... elements) throws Throwable {
+      if (elements.length == 0) {
+          throw new AssertionError("This test requires at least one length value to be specified.");
+      }
+      if (elements.length == 1) {
+          activePublisherTest(elements[0], completionSignalRequired, new PublisherTestRun<T>() {
+              @Override
+            public void run(Publisher<T> pub) throws Throwable {
+                body.run(pub, elements[0]);
+            }
+          });
+          return;
+      }
+      long max = maxElementsFromPublisher();
+      if (completionSignalRequired && max == Long.MAX_VALUE) {
+          throw new SkipException("Unable to run this test, as it requires an onComplete signal, " +
+                                    "which this Publisher is unable to provide (as signalled by returning Long.MAX_VALUE from `maxElementsFromPublisher()`)");
+        }
+      int skipped = 0;
+      Map<Long, Throwable> failures = new TreeMap<Long, Throwable>();
+      for (long elementCount : elements) {
+          if (elementCount > max) {
+              skipped++;
+          } else {
+              env.clearAsyncErrors();
+              try {
+                  Publisher<T> pub = createPublisher(elementCount);
+                  body.run(pub, elementCount);
+                  env.verifyNoAsyncErrorsNoDelay();
+              } catch (SkipException ex) {
+                  if (ex.isSkip()) {
+                      skipped++;
+                  } else {
+                      failures.put(elementCount, ex);
+                  }
+              } catch (Throwable ex) {
+                  failures.put(elementCount, ex);
+              }
+          }
+      }
+      
+      if (skipped == elements.length) {
+          throw new SkipException(String.format("Unable to run this test, as all of the required elements nr: %s is higher than supported by given producer: %d", Arrays.toString(elements), maxElementsFromPublisher()));      
+      }
+      if (!failures.isEmpty()) {
+          StringBuilder sb = new StringBuilder();
+          
+          sb.append("Some of the length-specific sub-tests failed:\n");
+          
+          for (Map.Entry<Long, Throwable> entry : failures.entrySet()) {
+            long len = entry.getKey();
+            Throwable ex = entry.getValue();
+            sb.append("Length = ").append(len).append(": ").append(ex.getMessage()).append('\n');
+            StringWriter sw = new StringWriter();
+            ex.printStackTrace(new PrintWriter(sw, true));
+            sb.append(sw);
+            sb.append("\n");
+          }
+          if (sb.charAt(sb.length() - 1) == '\n') {
+              sb.deleteCharAt(sb.length() - 1);
+          }
+          
+          throw new AssertionError(sb);
+      }
+  }
+  
   /**
    * Test for feature that MAY be implemented. This test will be marked as SKIPPED if it fails.
    *
