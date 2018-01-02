@@ -24,6 +24,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -570,6 +571,8 @@ public class TestEnvironment {
 
   public static class ManualSubscriberWithSubscriptionSupport<T> extends ManualSubscriber<T> {
 
+    private final AtomicBoolean onSubscribeCalled = new AtomicBoolean();
+
     public ManualSubscriberWithSubscriptionSupport(TestEnvironment env) {
       super(env);
     }
@@ -587,7 +590,7 @@ public class TestEnvironment {
     @Override
     public void onComplete() {
       env.debug(this + "::onComplete()");
-      if (subscription.isCompleted()) {
+      if (onSubscribeCalled.get()) {
         super.onComplete();
       } else {
         env.flop("Subscriber::onComplete() called before Subscriber::onSubscribe");
@@ -599,6 +602,7 @@ public class TestEnvironment {
       env.debug(String.format("%s::onSubscribe(%s)", this, s));
       if (!subscription.isCompleted()) {
         subscription.complete(s);
+        onSubscribeCalled.set(true);
       } else {
         env.flop("Subscriber::onSubscribe called on an already-subscribed Subscriber");
       }
@@ -607,7 +611,7 @@ public class TestEnvironment {
     @Override
     public void onError(Throwable cause) {
       env.debug(String.format("%s::onError(%s)", this, cause));
-      if (subscription.isCompleted()) {
+      if (onSubscribeCalled.get()) {
         super.onError(cause);
       } else {
         env.flop(cause, String.format("Subscriber::onError(%s) called before Subscriber::onSubscribe", cause));
