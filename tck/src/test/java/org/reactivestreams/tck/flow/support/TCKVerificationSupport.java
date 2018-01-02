@@ -81,6 +81,18 @@ public class TCKVerificationSupport {
     throw new RuntimeException("Expected TCK to SKIP this test, instead if PASSed!");
   }
 
+  public void requireOptionalTestPass(ThrowingRunnable run) {
+    try {
+      run.run();
+    } catch (SkipException skip) {
+      throw new RuntimeException("Expected TCK to PASS this test, instead it was SKIPPED", skip.getCause());
+    } catch (Throwable throwable) {
+      throw new RuntimeException(
+          String.format("Expected TCK to PASS this test, yet it threw %s(%s) instead!",
+              throwable.getClass().getName(), throwable.getMessage()), throwable);
+    }
+  }
+
   /**
    * This publisher does NOT fulfil all Publisher spec requirements.
    * It's just the bare minimum to enable this test to fail the Subscriber tests.
