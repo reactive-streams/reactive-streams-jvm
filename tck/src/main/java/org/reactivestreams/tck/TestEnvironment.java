@@ -572,8 +572,6 @@ public class TestEnvironment {
 
   public static class ManualSubscriberWithSubscriptionSupport<T> extends ManualSubscriber<T> {
 
-    private final AtomicBoolean onSubscribeCalled = new AtomicBoolean();
-
     public ManualSubscriberWithSubscriptionSupport(TestEnvironment env) {
       super(env);
     }
@@ -591,7 +589,7 @@ public class TestEnvironment {
     @Override
     public void onComplete() {
       env.debug(this + "::onComplete()");
-      if (onSubscribeCalled.get()) {
+      if (subscription.isCompleted()) {
         super.onComplete();
       } else {
         env.flop("Subscriber::onComplete() called before Subscriber::onSubscribe");
@@ -603,7 +601,6 @@ public class TestEnvironment {
       env.debug(String.format("%s::onSubscribe(%s)", this, s));
       if (!subscription.isCompleted()) {
         subscription.complete(s);
-        onSubscribeCalled.set(true);
       } else {
         env.flop("Subscriber::onSubscribe called on an already-subscribed Subscriber");
       }
@@ -612,7 +609,7 @@ public class TestEnvironment {
     @Override
     public void onError(Throwable cause) {
       env.debug(String.format("%s::onError(%s)", this, cause));
-      if (onSubscribeCalled.get()) {
+      if (subscription.isCompleted()) {
         super.onError(cause);
       } else {
         env.flop(cause, String.format("Subscriber::onError(%s) called before Subscriber::onSubscribe", cause));
@@ -806,7 +803,7 @@ public class TestEnvironment {
     public void expectCancelling(long timeoutMillis) throws InterruptedException {
       cancelled.expectClose(timeoutMillis, "Did not receive expected cancelling of upstream subscription");
     }
-    
+
     public boolean isCancelled() throws InterruptedException {
       return cancelled.isClosed();
     }
