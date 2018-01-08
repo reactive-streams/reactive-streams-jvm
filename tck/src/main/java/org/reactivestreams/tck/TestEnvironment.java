@@ -908,7 +908,7 @@ public class TestEnvironment {
         // we add the value to the queue such to wake up any expectCompletion which was triggered before complete() was called
         abq.add(value);
       } else {
-        env.flop(String.format("Cannot complete a promise more than once! Present value: %s, attempted to set: %s", value));
+        env.flop(String.format("Cannot complete a promise more than once! Present value: %s, attempted to set: %s", _value.get(), value));
       }
     }
 
