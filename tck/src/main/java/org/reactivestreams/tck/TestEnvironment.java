@@ -25,6 +25,7 @@ import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
@@ -192,7 +193,7 @@ public class TestEnvironment {
       asyncErrors.add(thr);
     }
   }
-  
+
   /**
    * To flop means to "fail asynchronously", either by onErroring or by failing some TCK check triggered asynchronously.
    * This method does *NOT* fail the test - it's up to inspections of the error to fail the test if required.
@@ -571,8 +572,6 @@ public class TestEnvironment {
 
   public static class ManualSubscriberWithSubscriptionSupport<T> extends ManualSubscriber<T> {
 
-    private final AtomicBoolean onSubscribeCalled = new AtomicBoolean();
-
     public ManualSubscriberWithSubscriptionSupport(TestEnvironment env) {
       super(env);
     }
@@ -590,7 +589,7 @@ public class TestEnvironment {
     @Override
     public void onComplete() {
       env.debug(this + "::onComplete()");
-      if (onSubscribeCalled.get()) {
+      if (subscription.isCompleted()) {
         super.onComplete();
       } else {
         env.flop("Subscriber::onComplete() called before Subscriber::onSubscribe");
@@ -602,7 +601,6 @@ public class TestEnvironment {
       env.debug(String.format("%s::onSubscribe(%s)", this, s));
       if (!subscription.isCompleted()) {
         subscription.complete(s);
-        onSubscribeCalled.set(true);
       } else {
         env.flop("Subscriber::onSubscribe called on an already-subscribed Subscriber");
       }
@@ -611,7 +609,7 @@ public class TestEnvironment {
     @Override
     public void onError(Throwable cause) {
       env.debug(String.format("%s::onError(%s)", this, cause));
-      if (onSubscribeCalled.get()) {
+      if (subscription.isCompleted()) {
         super.onError(cause);
       } else {
         env.flop(cause, String.format("Subscriber::onError(%s) called before Subscriber::onSubscribe", cause));
@@ -805,7 +803,7 @@ public class TestEnvironment {
     public void expectCancelling(long timeoutMillis) throws InterruptedException {
       cancelled.expectClose(timeoutMillis, "Did not receive expected cancelling of upstream subscription");
     }
-    
+
     public boolean isCancelled() throws InterruptedException {
       return cancelled.isClosed();
     }
@@ -886,11 +884,12 @@ public class TestEnvironment {
     }
 
     private ArrayBlockingQueue<T> abq = new ArrayBlockingQueue<T>(1);
-    private volatile T _value = null;
+    private AtomicReference<T> _value = new AtomicReference<T>();
 
     public T value() {
-      if (isCompleted()) {
-        return _value;
+      final T value = _value.get();
+      if (value != null) {
+        return value;
       } else {
         env.flop("Cannot access promise value before completion");
         return null;
@@ -898,22 +897,28 @@ public class TestEnvironment {
     }
 
     public boolean isCompleted() {
-      return _value != null;
+      return _value.get() != null;
     }
 
     /**
      * Allows using expectCompletion to await for completion of the value and complete it _then_
      */
     public void complete(T value) {
-      abq.add(value);
+      if (_value.compareAndSet(null, value)) {
+        // we add the value to the queue such to wake up any expectCompletion which was triggered before complete() was called
+        abq.add(value);
+      } else {
+        env.flop(String.format("Cannot complete a promise more than once! Present value: %s, attempted to set: %s", _value.get(), value));
+      }
     }
 
     /**
-     * Completes the promise right away, it is not possible to expectCompletion on a Promise completed this way
+     * Same as complete.
+     *
+     * Keeping this method for binary compatibility.
      */
     public void completeImmediatly(T value) {
-      complete(value); // complete!
-      _value = value;  // immediatly!
+      complete(value);
     }
 
     public void expectCompletion(long timeoutMillis, String errorMsg) throws InterruptedException {
@@ -922,8 +927,6 @@ public class TestEnvironment {
 
         if (val == null) {
           env.flop(String.format("%s within %d ms", errorMsg, timeoutMillis));
-        } else {
-          _value = val;
         }
       }
     }
