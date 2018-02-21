@@ -60,7 +60,9 @@ public abstract class IdentityFlowProcessorVerification<T> extends IdentityProce
 
   @Override
   public final Publisher<T> createFailedPublisher() {
-    return FlowAdapters.toPublisher(createFailedFlowPublisher());
+    Flow.Publisher<T> failed = createFailedFlowPublisher();
+    if (failed == null) return null; // because `null` means "SKIP" in createFailedPublisher
+    else return FlowAdapters.toPublisher(failed);
   }
 
 }
