@@ -22,6 +22,7 @@ import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
 * Validates that the TCK's {@link org.reactivestreams.tck.SubscriberBlackboxVerification} fails with nice human readable errors.
@@ -137,9 +138,67 @@ public class SubscriberBlackboxVerificationTest extends TCKVerificationSupport {
         completion.countDown();
       }
     }).required_spec205_blackbox_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal();
-    
+
     completion.await(1, TimeUnit.SECONDS);
   }
+
+  @Test
+  public void required_spec205_blackbox_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignalConcurrently_shouldFail() throws Throwable {
+    requireTestFailure(new ThrowingRunnable() {
+      @Override public void run() throws Throwable {
+        customSubscriberVerification(
+            // THIS IS AN INCORRECT IMPLEMENTATION SINCE THE subscription ACCESS IS NOT SYNCHRONIZED:
+            new NoopSubscriber() {
+
+              Subscription sub = null; // on purpose missing volatile or any external synchronization
+
+              @Override
+              public void onSubscribe(Subscription s) {
+                if (this.sub == null) { // since sub is not volatile, this is racy, and we may accept (illegally) multiple subscriptions
+
+                  // This sleep is only here to make the "test testing the TCK" with this illegal implementation
+                  // more shockinly expose the potential race condition here. In general implementations which naively
+                  // check for sub == null, and then assign / assume this accept was valid, are prone to the race
+                  // condition of multiple publishers sending them a subscription concurrently, thus one may accidentally
+                  // accept two subscriptions -- which is illegal
+                  //
+                  // The sleep is not necessary to expose this race, however it makes this test testing the TCK more reliable on CI.
+                  try { Thread.sleep(10); }
+                  catch (InterruptedException ignored) {}
+
+                  this.sub = s;
+                  s.request(1);
+                } else {
+                  s.cancel();
+                }
+              }
+            }
+        ).required_spec205_blackbox_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignalConcurrently();
+      }
+    }, "ilegally accepted and issued request() to two subscriptions, violating rule 2.5; The accepted subscriptions are");
+  }
+
+  @Test
+  public void required_spec205_blackbox_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignalConcurrently_shouldPass() throws Throwable {
+    customSubscriberVerification(
+        new NoopSubscriber() {
+          final AtomicReference<Subscription> sub = new AtomicReference<Subscription>();
+
+          @Override
+          public void onSubscribe(Subscription s) {
+            if (sub.compareAndSet(null, s)) {
+              // successfully accepted subscription, may issue requests to it
+              s.request(1);
+              // s.cancel(); // this is fine
+            } else {
+              // all others must be cancelled
+              s.cancel();
+            }
+          }
+        }
+    ).required_spec205_blackbox_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignalConcurrently();
+  }
+
 
   @Test
   public void required_spec209_blackbox_mustBePreparedToReceiveAnOnCompleteSignalWithPrecedingRequestCall_shouldFail() throws Throwable {

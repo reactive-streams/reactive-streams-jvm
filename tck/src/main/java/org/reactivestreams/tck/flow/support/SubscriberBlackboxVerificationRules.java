@@ -133,7 +133,25 @@ public interface SubscriberBlackboxVerificationRules {
    * </ul>
    */
   void required_spec205_blackbox_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal() throws Exception;
-  
+  /**
+   * Asks for a {@code Subscriber}, signals {@code onSubscribe} from different threads ...
+   * <p>
+   * <b>Verifies rule:</b> <a href='https://github.com/reactive-streams/reactive-streams-jvm#2.5'>2.5</a>
+   * <p>
+   * Notes:
+   * <ul>
+   * <li>The test doesn't signal any other events than {@code onSubscribe} and may cause resource leak in
+   * {@code Subscriber}s that expect a finite {@code Publisher}.
+   * </ul>
+   * <p>
+   * If this test fails, the following could be checked within the {@code Subscriber} implementation:
+   * <ul>
+   * <li>if the {@code Subscribe.onSubscribe} implementation actually tries to detect multiple calls to it,</li>
+   * <li>if the second {@code Subscription} is cancelled asynchronously and that takes longer time than
+   * the {@code TestEnvironment}'s timeout permits.</li>
+   * </ul>
+   */
+  void required_spec205_blackbox_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignalConcurrently() throws Throwable;
   /**
    * Currently, this test is skipped because it requires more control over the {@code Subscriber} implementation
    * to make it cancel the {@code Subscription} for some external condition.
