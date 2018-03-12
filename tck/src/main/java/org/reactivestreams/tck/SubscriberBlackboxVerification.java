@@ -25,8 +25,11 @@ import org.testng.annotations.BeforeClass;
 import org.testng.annotations.BeforeMethod;
 import org.testng.annotations.Test;
 
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.*;
+import java.util.concurrent.atomic.AtomicInteger;
+import java.util.concurrent.atomic.AtomicReference;
 
 import static org.reactivestreams.tck.SubscriberWhiteboxVerification.BlackboxSubscriberProxy;
 import static org.testng.Assert.assertTrue;
@@ -229,6 +232,77 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
       env.verifyNoAsyncErrorsNoDelay();
       sendCompletion(); // we're done, complete the subscriber under test
     }};
+  }
+
+  @Override @Test
+  public void required_spec205_blackbox_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignalConcurrently() throws Throwable {
+    blackboxSubscriberWithoutSetupTest(new BlackboxTestStageTestRun() {
+      @Override
+      public void run(BlackboxTestStage stage) throws Throwable {
+        final Subscriber<T> sub = createSubscriber();
+
+        final AtomicInteger cancellationCounter = new AtomicInteger(0);
+        final AtomicReference<Subscription> firstAcceptedSubscription = new AtomicReference<Subscription>(null);
+        final AtomicReference<Subscription> illegallyAcceptedSubscription = new AtomicReference<Subscription>(null);
+
+        final int tasksToSubmit = 8 * Runtime.getRuntime().availableProcessors();
+
+        Callable<Void> invokeOnSubscribe = new Callable<Void>() {
+          final Subscriber<? super T> targetSubscriber = sub;
+
+          @Override
+          public Void call() throws Exception {
+            targetSubscriber.onSubscribe(new Subscription() {
+
+              // we keep around the thread name to help identify which thread's subscription was accepted first,
+              // and then illegally second
+              final String nameWithThread = "Subscription<concurrently issued on thread " + Thread.currentThread().getName() + ">";
+
+              @Override public void request(long elements) {
+                if (firstAcceptedSubscription.compareAndSet(null, this)) {
+                  env.debug(String.format("Accepted subscription %s (first)", firstAcceptedSubscription.get()));
+                  // first one accepted, this is legal
+                  // <empty on purpose, the effect we need has been achieved by the CAS above)
+                } else {
+                  // seems two subscriptions were issued a request() signal concurrently;
+                  // this is not legal, since only ONE should have been accepted; and the other one cancelled.
+                  env.flop(String.format("Subscriber %s ilegally accepted and issued request() to two subscriptions, violating rule 2.5; " +
+                      "The accepted subscriptions are: %s and %s", sub, this, firstAcceptedSubscription.get()));
+                }
+              }
+
+              @Override public void cancel() {
+                int cancelledCounter = cancellationCounter.incrementAndGet();
+                env.debug(String.format("Subscription %s rejected; All but one subscriptions are expected to be rejected here; " +
+                    "Already rejected subscriptions: %d out of %d total subscriptions.", this, cancelledCounter, tasksToSubmit));
+              }
+
+              @Override public String toString() { return nameWithThread; }
+            });
+            return null;
+          }
+        };
+
+        List<Callable<Void>> invokeOnSubscribeConcurrentlyTasks = new ArrayList<Callable<Void>>(tasksToSubmit);
+        for (int i = 0; i < tasksToSubmit; i++) {
+          invokeOnSubscribeConcurrentlyTasks.add(invokeOnSubscribe);
+        }
+
+        List<Future<Void>> futures = Executors.newFixedThreadPool(16).invokeAll(invokeOnSubscribeConcurrentlyTasks);
+        for (Future<Void> future : futures) {
+          future.get(env.defaultTimeoutMillis(), TimeUnit.MILLISECONDS);
+        }
+
+        try {
+          env.verifyNoAsyncErrors();
+        } finally {
+          Subscription accepted = firstAcceptedSubscription.get();
+          if (accepted != null) accepted.cancel();
+        }
+
+        // sendCompletion(); // we're done, complete the subscriber under test
+      }
+    });
   }
 
   @Override @Test
