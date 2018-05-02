@@ -11,12 +11,12 @@ try {
     Class.forName("java.util.concurrent.Flow")
     jdkFlow = true
     println(ANSI_GREEN + "   INFO: ------------------ JDK9 classes detected ---------------------------------" + ANSI_RESET)
-    println(ANSI_GREEN + "   INFO: Java 9 Flow API found; Including [flow-adapters, tck-flow] in build.      " + ANSI_RESET)
+    println(ANSI_GREEN + "   INFO: Java 9 Flow API found; Including [tck-flow] & FlowAdapters in build.      " + ANSI_RESET)
     println(ANSI_GREEN + "   INFO: --------------------------------------------------------------------------" + ANSI_RESET)
 } catch (Throwable ex) {
     // Flow API not available
     println(ANSI_RED + "WARNING: -------------------- JDK9 classes NOT detected -----------------------------" + ANSI_RESET)
-    println(ANSI_RED + "WARNING: Java 9 Flow API not found; Not including [flow-adapters, tck-flow] in build." + ANSI_RESET)
+    println(ANSI_RED + "WARNING: Java 9 Flow API not found; Not including [tck-flow] & FlowAdapters in build." + ANSI_RESET)
     println(ANSI_RED + "WARNING: In order to execute the complete test-suite run the build using JDK9+.      " + ANSI_RESET)
     println(ANSI_RED + "WARNING: ----------------------------------------------------------------------------" + ANSI_RESET)
 }
@@ -26,7 +26,6 @@ include ':reactive-streams-tck'
 include ':reactive-streams-examples'
 
 if (jdkFlow) {
-    include ':reactive-streams-flow-adapters'
     include ':reactive-streams-tck-flow'
 }
 
@@ -34,6 +33,5 @@ project(':reactive-streams').projectDir = "$rootDir/api" as File
 project(':reactive-streams-tck').projectDir = "$rootDir/tck" as File
 project(':reactive-streams-examples').projectDir = "$rootDir/examples" as File
 if (jdkFlow) {
-    project(':reactive-streams-flow-adapters').projectDir = "$rootDir/flow-adapters" as File
     project(':reactive-streams-tck-flow').projectDir = "$rootDir/tck-flow" as File
 }
