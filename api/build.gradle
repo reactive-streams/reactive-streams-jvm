@@ -1,4 +1,22 @@
 description = "reactive-streams"
+def jdkFlow = false
+try {
+    Class.forName("java.util.concurrent.Flow")
+    jdkFlow = true
+} catch (ClassNotFoundException cnfe) {
+
+}
+
+sourceSets {
+    main {
+        java {
+            if (jdkFlow)
+              srcDirs = ['src/main/java', 'src/main/java9']
+            else
+              srcDirs = ['src/main/java']
+        }
+    }
+}
 
 jar {
     manifest {
