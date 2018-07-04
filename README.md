@@ -131,7 +131,7 @@ public interface Subscriber<T> {
 | ID                        | Rule                                                                                                   |
 | ------------------------- | ------------------------------------------------------------------------------------------------------ |
 | <a name="2.1">1</a>       | A `Subscriber` MUST signal demand via `Subscription.request(long n)` to receive `onNext` signals. |
-| [:bulb:](#2.1 "2.1 explained") | *The intent of this rule is to establish that it is the responsibility of the Subscriber to signal when, and how many, elements it is able and willing to receive.* |
+| [:bulb:](#2.1 "2.1 explained") | *The intent of this rule is to establish that it is the responsibility of the Subscriber to signal when, and how many, elements it is able and willing to receive. It is RECOMMENDED to request as many elements as a Subscriber is prepared to receive (e.g. has preallocated buffer space for), rather than requesting "one by one".* |
 | <a name="2.2">2</a>       | If a `Subscriber` suspects that its processing of signals will negatively impact its `Publisher`´s responsivity, it is RECOMMENDED that it asynchronously dispatches its signals. |
 | [:bulb:](#2.2 "2.2 explained") | *The intent of this rule is that a Subscriber should [not obstruct](#term_non-obstructing) the progress of the Publisher from an execution point-of-view. In other words, the Subscriber should not starve the Publisher from receiving CPU cycles.* |
 | <a name="2.3">3</a>       | `Subscriber.onComplete()` and `Subscriber.onError(Throwable t)` MUST NOT call any methods on the `Subscription` or the `Publisher`. |
