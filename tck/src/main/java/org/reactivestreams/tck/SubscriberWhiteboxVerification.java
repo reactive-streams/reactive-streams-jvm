@@ -267,6 +267,7 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
       public void run(WhiteboxTestStage stage) throws InterruptedException {
         stage.puppet().triggerRequest(1);
         stage.puppet().signalCancel();
+        stage.expectRequest();
         stage.signalNext();
 
         stage.puppet().triggerRequest(1);
@@ -437,7 +438,12 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
       @Override
       public void run(WhiteboxTestStage stage) throws InterruptedException {
         stage.puppet().triggerRequest(2);
+        long requestedElements = stage.expectRequest();
         stage.probe.expectNext(stage.signalNext());
+        // Some subscribers may only request one element at a time.
+        if (requestedElements < 2) {
+          stage.expectRequest();
+        }
         stage.probe.expectNext(stage.signalNext());
 
         stage.probe.expectNone();
