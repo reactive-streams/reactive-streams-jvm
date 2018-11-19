@@ -23,7 +23,10 @@ import org.testng.annotations.Test;
 
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.concurrent.atomic.AtomicLong;
 
 /**
  * Validates that the TCK's {@link SubscriberWhiteboxVerification} fails with nice human readable errors.
@@ -31,8 +34,8 @@ import java.util.concurrent.atomic.AtomicBoolean;
  */
 public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
 
-  private ExecutorService ex;
-  @BeforeClass void before() { ex = Executors.newFixedThreadPool(4); }
+  private ScheduledExecutorService ex;
+  @BeforeClass void before() { ex = Executors.newScheduledThreadPool(4); }
   @AfterClass void after() { if (ex != null) ex.shutdown(); }
 
   @Test
@@ -218,6 +221,51 @@ public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
   }
 
   @Test
+  public void required_spec208_mustBePreparedToReceiveOnNextSignalsAfterHavingCalledSubscriptionCancel_shouldWaitForDemandBeforeSignalling() throws Throwable {
+    customSubscriberVerification(new Function<WhiteboxSubscriberProbe<Integer>, Subscriber<Integer>>() {
+      @Override
+      public Subscriber<Integer> apply(WhiteboxSubscriberProbe<Integer> probe) throws Throwable {
+
+        final AtomicBoolean demandRequested = new AtomicBoolean(false);
+
+        return new SimpleSubscriberWithProbe(probe) {
+          @Override public void onSubscribe(final Subscription s) {
+            this.subscription = s;
+            probe.registerOnSubscribe(new SubscriberPuppet() {
+              @Override public void triggerRequest(final long elements) {
+                ex.schedule(new Runnable() {
+                  @Override
+                  public void run() {
+                    demandRequested.set(true);
+                    subscription.request(elements);
+                  }
+                }, TestEnvironment.envDefaultTimeoutMillis() / 2, TimeUnit.MILLISECONDS);
+              }
+
+              @Override public void signalCancel() {
+                // Delay this too to ensure that cancel isn't invoked before request.
+                ex.schedule(new Runnable() {
+                  @Override
+                  public void run() {
+                    subscription.cancel();
+                  }
+                }, TestEnvironment.envDefaultTimeoutMillis() / 2, TimeUnit.MILLISECONDS);
+              }
+            });
+          }
+
+          @Override public void onNext(Integer element) {
+            if (!demandRequested.get()) {
+              throw new RuntimeException("onNext signalled without demand!");
+            }
+            probe.registerOnNext(element);
+          }
+        };
+      }
+    }).required_spec208_mustBePreparedToReceiveOnNextSignalsAfterHavingCalledSubscriptionCancel();
+  }
+
+  @Test
   public void required_spec209_mustBePreparedToReceiveAnOnCompleteSignalWithPrecedingRequestCall_shouldFail() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
@@ -299,7 +347,7 @@ public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
   }
   
   @Test
-  public void required_spec308_requestMustRegisterGivenNumberElementsToBeProduced_shouldFail() throws Throwable {
+  public void required_spec308_requestMustRegisterGivenNumberElementsToBeProduced_shouldPass() throws Throwable {
     // sanity checks the "happy path", that triggerRequest() propagates the right demand
     customSubscriberVerification(new Function<WhiteboxSubscriberProbe<Integer>, Subscriber<Integer>>() {
       @Override
@@ -308,6 +356,114 @@ public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
       }
     }).required_spec308_requestMustRegisterGivenNumberElementsToBeProduced();
   }
+
+  @Test
+  public void required_spec308_requestMustRegisterGivenNumberElementsToBeProduced_shouldWaitForDemandBeforeSignalling() throws Throwable {
+    customSubscriberVerification(new Function<WhiteboxSubscriberProbe<Integer>, Subscriber<Integer>>() {
+      @Override
+      public Subscriber<Integer> apply(WhiteboxSubscriberProbe<Integer> probe) throws Throwable {
+
+        final AtomicBoolean demandRequested = new AtomicBoolean(false);
+        return new SimpleSubscriberWithProbe(probe) {
+          @Override
+          public void onSubscribe(Subscription s) {
+            this.subscription = s;
+            probe.registerOnSubscribe(new SubscriberPuppet() {
+              @Override
+              public void triggerRequest(final long elements) {
+                ex.schedule(new Runnable() {
+                  @Override
+                  public void run() {
+                    demandRequested.set(true);
+                    subscription.request(elements);
+                  }
+                }, TestEnvironment.envDefaultTimeoutMillis() / 2, TimeUnit.MILLISECONDS);
+              }
+
+              @Override
+              public void signalCancel() {
+                // Delay this too to ensure that cancel isn't invoked before request.
+                ex.schedule(new Runnable() {
+                  @Override
+                  public void run() {
+                    subscription.cancel();
+                  }
+                }, TestEnvironment.envDefaultTimeoutMillis() / 2, TimeUnit.MILLISECONDS);
+              }
+            });
+          }
+
+          @Override
+          public void onNext(Integer element) {
+            if (!demandRequested.get()) {
+              throw new RuntimeException("onNext signalled without demand!");
+            }
+            probe.registerOnNext(element);
+          }
+        };
+      }
+    }).required_spec308_requestMustRegisterGivenNumberElementsToBeProduced();
+  }
+
+  @Test
+  public void required_spec308_requestMustRegisterGivenNumberElementsToBeProduced_shouldWaitForDemandTwiceForOneAtATimeSubscribers() throws Throwable {
+    customSubscriberVerification(new Function<WhiteboxSubscriberProbe<Integer>, Subscriber<Integer>>() {
+      @Override
+      public Subscriber<Integer> apply(WhiteboxSubscriberProbe<Integer> probe) throws Throwable {
+
+        final AtomicLong outstandingRequest = new AtomicLong(0);
+        final AtomicBoolean demandRequested = new AtomicBoolean();
+        return new SimpleSubscriberWithProbe(probe) {
+          @Override
+          public void onSubscribe(Subscription s) {
+            this.subscription = s;
+            probe.registerOnSubscribe(new SubscriberPuppet() {
+              @Override
+              public void triggerRequest(final long elements) {
+                outstandingRequest.getAndAdd(elements);
+                ex.schedule(new Runnable() {
+                  @Override
+                  public void run() {
+                    demandRequested.set(true);
+                    subscription.request(1);
+                  }
+                }, TestEnvironment.envDefaultTimeoutMillis() / 2, TimeUnit.MILLISECONDS);
+              }
+
+              @Override
+              public void signalCancel() {
+                // Delay this too to ensure that cancel isn't invoked before request.
+                ex.schedule(new Runnable() {
+                  @Override
+                  public void run() {
+                    subscription.cancel();
+                  }
+                }, TestEnvironment.envDefaultTimeoutMillis() / 2, TimeUnit.MILLISECONDS);
+              }
+            });
+          }
+
+          @Override
+          public void onNext(Integer element) {
+            if (!demandRequested.getAndSet(false)) {
+              throw new RuntimeException("onNext signalled without demand!");
+            }
+            if (outstandingRequest.decrementAndGet() > 0) {
+              ex.schedule(new Runnable() {
+                @Override
+                public void run() {
+                  demandRequested.set(true);
+                  subscription.request(1);
+                }
+              }, TestEnvironment.envDefaultTimeoutMillis() / 2, TimeUnit.MILLISECONDS);
+            }
+            probe.registerOnNext(element);
+          }
+        };
+      }
+    }).required_spec308_requestMustRegisterGivenNumberElementsToBeProduced();
+  }
+
 
   // FAILING IMPLEMENTATIONS //
 
