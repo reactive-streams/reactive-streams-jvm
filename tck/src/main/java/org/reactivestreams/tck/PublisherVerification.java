@@ -772,7 +772,9 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
 
             signalsReceived += 1;
             stackDepthCounter.set(stackDepthCounter.get() + 1);
-            env.debug(String.format("%s(recursion depth: %d)::onNext(%s)", this, stackDepthCounter.get(), element));
+            if (env.debugEnabled()) {
+              env.debug(String.format("%s(recursion depth: %d)::onNext(%s)", this, stackDepthCounter.get(), element));
+            }
 
             final long callsUntilNow = stackDepthCounter.get();
             if (callsUntilNow > boundedDepthOfOnNextAndRequestRecursion()) {
@@ -1082,7 +1084,9 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
 
           @Override
           public void onNext(T element) {
-            env.debug(String.format("%s::onNext(%s)", this, element));
+            if (env.debugEnabled()) {
+              env.debug(String.format("%s::onNext(%s)", this, element));
+            }
             if (subscription.isCompleted()) {
               if (callsCounter > 0) {
                 subscription.value().request(Long.MAX_VALUE - 1);

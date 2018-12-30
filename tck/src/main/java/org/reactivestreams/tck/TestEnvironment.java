@@ -320,8 +320,13 @@ public class TestEnvironment {
 
   /** If {@code TestEnvironment#printlnDebug} is true, print debug message to std out. */
   public void debug(String msg) {
-    if (printlnDebug)
+    if (debugEnabled()) {
       System.out.printf("[TCK-DEBUG] %s%n", msg);
+    }
+  }
+
+  public final boolean debugEnabled() {
+    return printlnDebug;
   }
 
   /**
@@ -578,7 +583,9 @@ public class TestEnvironment {
 
     @Override
     public void onNext(T element) {
-      env.debug(String.format("%s::onNext(%s)", this, element));
+      if (env.debugEnabled()) {
+        env.debug(String.format("%s::onNext(%s)", this, element));
+      }
       if (subscription.isCompleted()) {
         super.onNext(element);
       } else {
@@ -588,7 +595,9 @@ public class TestEnvironment {
 
     @Override
     public void onComplete() {
-      env.debug(this + "::onComplete()");
+      if (env.debugEnabled()) {
+        env.debug(this + "::onComplete()");
+      }
       if (subscription.isCompleted()) {
         super.onComplete();
       } else {
@@ -598,7 +607,9 @@ public class TestEnvironment {
 
     @Override
     public void onSubscribe(Subscription s) {
-      env.debug(String.format("%s::onSubscribe(%s)", this, s));
+      if (env.debugEnabled()) {
+        env.debug(String.format("%s::onSubscribe(%s)", this, s));
+      }
       if (!subscription.isCompleted()) {
         subscription.complete(s);
       } else {
@@ -608,7 +619,9 @@ public class TestEnvironment {
 
     @Override
     public void onError(Throwable cause) {
-      env.debug(String.format("%s::onError(%s)", this, cause));
+      if (env.debugEnabled()) {
+        env.debug(String.format("%s::onError(%s)", this, cause));
+      }
       if (subscription.isCompleted()) {
         super.onError(cause);
       } else {
@@ -631,7 +644,9 @@ public class TestEnvironment {
 
     @Override
     public void onNext(T element) {
-      env.debug(String.format("%s::onNext(%s)", this, element));
+      if (env.debugEnabled()) {
+        env.debug(String.format("%s::onNext(%s)", this, element));
+      }
       if (!subscription.isCompleted()) {
         env.flop(String.format("Subscriber::onNext(%s) called before Subscriber::onSubscribe", element));
       }
