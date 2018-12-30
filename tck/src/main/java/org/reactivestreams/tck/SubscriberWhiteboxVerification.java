@@ -795,8 +795,23 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
    * make implement these calls.
    */
   public interface SubscriberPuppet {
+
     /**
-     * Trigger {@code request(elements)} on your {@link Subscriber}
+     * Ensure that at least {@code elements} are eventually requested by your {@link Subscriber}, if it hasn't already
+     * requested that many elements.
+     * <p>
+     * This does not necessarily have to correlate 1:1 with a {@code Subscription.request(elements)} call, but the sum
+     * of the elements requested by your {@code Subscriber} must eventually be at least the the sum of the elements
+     * triggered to be requested by all the invocations of this method.
+     * <p>
+     * Additionally, subscribers are permitted to delay requesting elements until previous requests for elements have
+     * been fulfilled. For example, a subscriber that only requests one element at a time may fulfill the request made
+     * by this method by requesting one element {@code elements} times, waiting for each element to arrive before the
+     * next request is made.
+     * <p>
+     * Before sending any element to the subscriber, the TCK must wait for the subscriber to request that element, and
+     * must be prepared for the subscriber to only request one element at a time, it is not enough for the TCK to
+     * simply invoke this method before sending elements.
      */
     void triggerRequest(long elements);
 
