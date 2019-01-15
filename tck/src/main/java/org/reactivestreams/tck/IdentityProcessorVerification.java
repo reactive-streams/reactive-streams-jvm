@@ -504,7 +504,9 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
 
           @Override
           public void onSubscribe(final Subscription subscription) {
-            env.debug(String.format("whiteboxSubscriber::onSubscribe(%s)", subscription));
+            if (env.debugEnabled()) {
+              env.debug(String.format("whiteboxSubscriber::onSubscribe(%s)", subscription));
+            }
             if (subs.isCompleted()) subscription.cancel(); // the Probe must also pass subscriber verification
 
             probe.registerOnSubscribe(new SubscriberWhiteboxVerification.SubscriberPuppet() {
@@ -523,19 +525,25 @@ public abstract class IdentityProcessorVerification<T> extends WithHelperPublish
 
           @Override
           public void onNext(T element) {
-            env.debug(String.format("whiteboxSubscriber::onNext(%s)", element));
+            if (env.debugEnabled()) {
+              env.debug(String.format("whiteboxSubscriber::onNext(%s)", element));
+            }
             probe.registerOnNext(element);
           }
 
           @Override
           public void onComplete() {
-            env.debug("whiteboxSubscriber::onComplete()");
+            if (env.debugEnabled()) {
+              env.debug("whiteboxSubscriber::onComplete()");
+            }
             probe.registerOnComplete();
           }
 
           @Override
           public void onError(Throwable cause) {
-            env.debug(String.format("whiteboxSubscriber::onError(%s)", cause));
+            if (env.debugEnabled()) {
+              env.debug(String.format("whiteboxSubscriber::onError(%s)", cause));
+            }
             probe.registerOnError(cause);
           }
         });
