@@ -142,7 +142,7 @@ public interface Subscriber<T> {
 | <a name="2.6">6</a>       | A `Subscriber` MUST call `Subscription.cancel()` if the `Subscription` is no longer needed. |
 | [:bulb:](#2.6 "2.6 explained") | *The intent of this rule is to establish that Subscribers cannot just throw Subscriptions away when they are no longer needed, they have to call `cancel` so that resources held by that Subscription can be safely, and timely, reclaimed. An example of this would be a Subscriber which is only interested in a specific element, which would then cancel its Subscription to signal its completion to the Publisher.* |
 | <a name="2.7">7</a>       | A Subscriber MUST ensure that all calls on its Subscription's request and cancel methods are performed [serially](#term_serially). |
-| [:bulb:](#2.7 "2.7 explained") | *The intent of this rule is TODO.* |
+| [:bulb:](#2.7 "2.7 explained") | *The intent of this rule is to permit the calling of the request and cancel methods if and only if a happens-before relation between each of the calls is established..* |
 | <a name="2.8">8</a>       | A `Subscriber` MUST be prepared to receive one or more `onNext` signals after having called `Subscription.cancel()` if there are still requested elements pending [see [3.12](#3.12)]. `Subscription.cancel()` does not guarantee to perform the underlying cleaning operations immediately. |
 | [:bulb:](#2.8 "2.8 explained") | *The intent of this rule is to highlight that there may be a delay between calling `cancel` and the Publisher observing that cancellation.* |
 | <a name="2.9">9</a>       | A `Subscriber` MUST be prepared to receive an `onComplete` signal with or without a preceding `Subscription.request(long n)` call. |
