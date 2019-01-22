@@ -81,6 +81,7 @@ followed by a possibly unbounded number of `onNext` signals (as requested by `Su
 | <a name="term_nop">NOP</a> | Execution that has no detectable effect to the calling thread, and can as such safely be called any number of times.|
 | <a name="term_ext_sync">External synchronization</a> | Access coordination for thread safety purposes implemented outside of the constructs defined in this specification, using techniques such as, but not limited to, `atomics`, `monitors`, or `locks`. |
 | <a name="term_thread-safe">Thread-safe</a> | Can be safely invoked synchronously, or asychronously, without requiring external synchronization to ensure program correctness. |
+| <a name='term_serially">Serial(ly)</a> | In the context of a [Signal](#term_signal), are non-overlapping. In the context of the JVM, calls to methods on an object are serial if and only if there is a happens-before relationship between those calls. This is the case if they are called [Synchronously](#term_sync), but when performed asynchronously, coordination to establish the happens-before relationship (which ensures the calls do not overlap) is to be implemented using techniques such as, but not limited to, atomics, monitors, or locks. |
 
 ### SPECIFICATION
 
