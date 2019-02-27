@@ -276,7 +276,6 @@ Queue bounds can be controlled by a subscriber signaling demand for the appropri
 
 Then the maximum number of elements that may arrive—until more demand is signaled to the Publisher—is `P - N`. In the case that the subscriber also knows the number of elements B in its input buffer then this bound can be refined to `P - B - N`.
 
-These bounds must be respected by a publisher independent of whether the source it represents can be backpressured or not. In the case of sources whose production rate cannot be influenced—for example clock ticks or mouse movement—the publisher must choose to either buffer or drop elements to obey the imposed bounds.
 
 Subscribers signaling a demand for one element after the reception of an element effectively implement a Stop-and-Wait protocol where the demand signal is equivalent to acknowledgement. By providing demand for multiple elements the cost of acknowledgement is amortized. It is worth noting that the subscriber is allowed to signal demand at any point in time, allowing it to avoid unnecessary delays between the publisher and the subscriber (i.e. keeping its input buffer filled without having to wait for full round-trips).
 
@@ -297,4 +296,3 @@ This project is a collaboration between engineers from Kaazing, Lightbend, Netfl
   This work is published from:
   <span property="vcard:Country" datatype="dct:ISO3166" content="US" about="http://www.reactive-streams.org/">United States</span>.
 </p>
-
