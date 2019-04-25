@@ -209,32 +209,39 @@ within the TCK which await for something to happen. The other timeout is `publis
 [Rule 3.13](https://github.com/reactive-streams/reactive-streams-jvm#3.13) which defines that `Subscriber` references MUST be dropped
 by the Publisher.
 
-Note that the TCK differenciates between timeouts for "waiting for a signal" (``defaultTimeoutMillis``),
-and "asserting no signals happen during a given amount of time" (``envDefaultNoSignalsTimeoutMillis``).
-While the latter defaults to the prior, it may be useful to tweak them independently when running on continious 
-integration servers (for example, keeping the no-signals timeout significantly lower).
+Note that the TCK differentiates between timeouts for "waiting for a signal"
+(`defaultTimeoutMillis`), and "asserting no signals happen during a given amount of time"
+(`defaultNoSignalsTimeoutMillis`). While the latter defaults to the prior, it may be useful to tweak
+them independently when running on continuous integration servers (for example, keeping the
+no-signals timeout significantly lower). Another configuration option is the "poll timeout" which is
+used whenever an operation has to poll for a `defaultTimeoutMillis` for a signal to appear (most
+often errors), it can then poll and check using the `defaultPollTimeoutMillis`, for the expected
+error, rather than blocking for the full default timeout.
 
-In order to configure these timeouts (for example when running on a slow continious integtation machine), you can either:
+In order to configure these timeouts (for example when running on a slow continuous integration
+machine), you can either:
 
 **Use env variables** to set these timeouts, in which case the you can do:
 
 ```bash
 export DEFAULT_TIMEOUT_MILLIS=100
 export DEFAULT_NO_SIGNALS_TIMEOUT_MILLIS=100
+export DEFAULT_POLL_TIMEOUT_MILLIS=20
 export PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS=300
 ```
 
 Or **define the timeouts explicitly in code**:
 
 ```java
-public class RangePublisherTest extends FlowPublisherVerification<Integer> {
+public class RangePublisherTest extends PublisherVerification<Integer> {
 
   public static final long DEFAULT_TIMEOUT_MILLIS = 100L;
   public static final long DEFAULT_NO_SIGNALS_TIMEOUT_MILLIS = DEFAULT_TIMEOUT_MILLIS;
-  public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 500L;
+  public static final long DEFAULT_POLL_TIMEOUT_MILLIS = 20;
+  public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 300L;
 
   public RangePublisherTest() {
-    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS, DEFAULT_TIMEOUT_MILLIS), PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS);
+    super(new TestEnvironment(DEFAULT_TIMEOUT_MILLIS, DEFAULT_TIMEOUT_MILLIS, DEFAULT_POLL_TIMEOUT_MILLIS), PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS);
   }
 
   // ...
