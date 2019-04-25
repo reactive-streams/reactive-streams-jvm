@@ -233,7 +233,7 @@ export PUBLISHER_REFERENCE_GC_TIMEOUT_MILLIS=300
 Or **define the timeouts explicitly in code**:
 
 ```java
-public class RangePublisherTest extends PublisherVerification<Integer> {
+public class RangePublisherTest extends FlowPublisherVerification<Integer> {
 
   public static final long DEFAULT_TIMEOUT_MILLIS = 100L;
   public static final long DEFAULT_NO_SIGNALS_TIMEOUT_MILLIS = DEFAULT_TIMEOUT_MILLIS;
