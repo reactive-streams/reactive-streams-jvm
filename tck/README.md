@@ -237,7 +237,7 @@ public class RangePublisherTest extends PublisherVerification<Integer> {
 
   public static final long DEFAULT_TIMEOUT_MILLIS = 100L;
   public static final long DEFAULT_NO_SIGNALS_TIMEOUT_MILLIS = DEFAULT_TIMEOUT_MILLIS;
-  public static final long DEFAULT_POLL_TIMEOUT_MILLIS = 20;
+  public static final long DEFAULT_POLL_TIMEOUT_MILLIS = 20L;
   public static final long PUBLISHER_REFERENCE_CLEANUP_TIMEOUT_MILLIS = 300L;
 
   public RangePublisherTest() {

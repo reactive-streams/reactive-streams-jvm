@@ -1107,7 +1107,7 @@ public class TestEnvironment {
     }
 
     @SuppressWarnings("unchecked")
-    final <E extends Throwable> E expectError(Class<E> clazz, long totalTimeoutMillis,
+    final <E extends Throwable> E expectError(Class<E> clazz, final long totalTimeoutMillis,
                                               long pollTimeoutMillis,
                                               String errorMsg) throws Exception {
       long totalTimeoutRemainingNs = MILLISECONDS.toNanos(totalTimeoutMillis);
