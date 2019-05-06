@@ -14,8 +14,8 @@ package org.reactivestreams.tck;
 import org.reactivestreams.Publisher;
 import org.reactivestreams.Subscriber;
 import org.reactivestreams.Subscription;
-import org.reactivestreams.tck.flow.support.SubscriberBufferOverflowException;
 import org.reactivestreams.tck.flow.support.Optional;
+import org.reactivestreams.tck.flow.support.SubscriberBufferOverflowException;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -24,9 +24,10 @@ import java.util.concurrent.ArrayBlockingQueue;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicReference;
 
+import static java.util.concurrent.TimeUnit.MILLISECONDS;
+import static java.util.concurrent.TimeUnit.NANOSECONDS;
 import static org.testng.Assert.assertTrue;
 import static org.testng.Assert.fail;
 
@@ -37,8 +38,10 @@ public class TestEnvironment {
   private static final long DEFAULT_TIMEOUT_MILLIS = 100;
 
   private static final String DEFAULT_NO_SIGNALS_TIMEOUT_MILLIS_ENV = "DEFAULT_NO_SIGNALS_TIMEOUT_MILLIS";
+  private static final String DEFAULT_POLL_TIMEOUT_MILLIS_ENV = "DEFAULT_POLL_TIMEOUT_MILLIS_ENV";
 
   private final long defaultTimeoutMillis;
+  private final long defaultPollTimeoutMillis;
   private final long defaultNoSignalsTimeoutMillis;
   private final boolean printlnDebug;
 
@@ -51,12 +54,44 @@ public class TestEnvironment {
    * run the tests.
    * @param defaultTimeoutMillis default timeout to be used in all expect* methods
    * @param defaultNoSignalsTimeoutMillis default timeout to be used when no further signals are expected anymore
+   * @param defaultPollTimeoutMillis default amount of time to poll for events if {@code defaultTimeoutMillis} isn't
+    *                                preempted by an asynchronous event.
+   * @param printlnDebug         if true, signals such as OnNext / Request / OnComplete etc will be printed to standard output,
+   */
+  public TestEnvironment(long defaultTimeoutMillis, long defaultNoSignalsTimeoutMillis, long defaultPollTimeoutMillis,
+                         boolean printlnDebug) {
+    this.defaultTimeoutMillis = defaultTimeoutMillis;
+    this.defaultPollTimeoutMillis = defaultPollTimeoutMillis;
+    this.defaultNoSignalsTimeoutMillis = defaultNoSignalsTimeoutMillis;
+    this.printlnDebug = printlnDebug;
+  }
+
+  /**
+   * Tests must specify the timeout for expected outcome of asynchronous
+   * interactions. Longer timeout does not invalidate the correctness of
+   * the implementation, but can in some cases result in longer time to
+   * run the tests.
+   * @param defaultTimeoutMillis default timeout to be used in all expect* methods
+   * @param defaultNoSignalsTimeoutMillis default timeout to be used when no further signals are expected anymore
    * @param printlnDebug         if true, signals such as OnNext / Request / OnComplete etc will be printed to standard output,
    */
   public TestEnvironment(long defaultTimeoutMillis, long defaultNoSignalsTimeoutMillis, boolean printlnDebug) {
-    this.defaultTimeoutMillis = defaultTimeoutMillis;
-    this.defaultNoSignalsTimeoutMillis = defaultNoSignalsTimeoutMillis;
-    this.printlnDebug = printlnDebug;
+    this(defaultTimeoutMillis, defaultNoSignalsTimeoutMillis, defaultTimeoutMillis, printlnDebug);
+  }
+
+  /**
+   * Tests must specify the timeout for expected outcome of asynchronous
+   * interactions. Longer timeout does not invalidate the correctness of
+   * the implementation, but can in some cases result in longer time to
+   * run the tests.
+   *
+   * @param defaultTimeoutMillis default timeout to be used in all expect* methods
+   * @param defaultNoSignalsTimeoutMillis default timeout to be used when no further signals are expected anymore
+   * @param defaultPollTimeoutMillis default amount of time to poll for events if {@code defaultTimeoutMillis} isn't
+   *                                 preempted by an asynchronous event.
+   */
+  public TestEnvironment(long defaultTimeoutMillis, long defaultNoSignalsTimeoutMillis, long defaultPollTimeoutMillis) {
+      this(defaultTimeoutMillis, defaultNoSignalsTimeoutMillis, defaultPollTimeoutMillis, false);
   }
 
   /**
@@ -69,7 +104,7 @@ public class TestEnvironment {
    * @param defaultNoSignalsTimeoutMillis default timeout to be used when no further signals are expected anymore
    */
   public TestEnvironment(long defaultTimeoutMillis, long defaultNoSignalsTimeoutMillis) {
-    this(defaultTimeoutMillis, defaultNoSignalsTimeoutMillis, false);
+    this(defaultTimeoutMillis, defaultTimeoutMillis, defaultNoSignalsTimeoutMillis);
   }
 
   /**
@@ -81,7 +116,7 @@ public class TestEnvironment {
    * @param defaultTimeoutMillis default timeout to be used in all expect* methods
    */
   public TestEnvironment(long defaultTimeoutMillis) {
-    this(defaultTimeoutMillis, defaultTimeoutMillis, false);
+    this(defaultTimeoutMillis, defaultTimeoutMillis, defaultTimeoutMillis);
   }
 
   /**
@@ -97,7 +132,7 @@ public class TestEnvironment {
    *                     often helpful to pinpoint simple race conditions etc.
    */
   public TestEnvironment(boolean printlnDebug) {
-    this(envDefaultTimeoutMillis(), envDefaultNoSignalsTimeoutMillis(), printlnDebug);
+    this(envDefaultTimeoutMillis(), envDefaultNoSignalsTimeoutMillis(), envDefaultPollTimeoutMillis(), printlnDebug);
   }
 
   /**
@@ -127,6 +162,14 @@ public class TestEnvironment {
   }
 
   /**
+   * The default amount of time to poll for events if {@code defaultTimeoutMillis} isn't preempted by an asynchronous
+   * event.
+   */
+  public long defaultPollTimeoutMillis() {
+    return defaultPollTimeoutMillis;
+  }
+
+  /**
    * Tries to parse the env variable {@code DEFAULT_TIMEOUT_MILLIS} as long and returns the value if present OR its default value.
    *
    * @throws java.lang.IllegalArgumentException when unable to parse the env variable
@@ -153,6 +196,21 @@ public class TestEnvironment {
       return Long.parseLong(envMillis);
     } catch (NumberFormatException ex) {
       throw new IllegalArgumentException(String.format("Unable to parse %s env value [%s] as long!", DEFAULT_NO_SIGNALS_TIMEOUT_MILLIS_ENV, envMillis), ex);
+    }
+  }
+
+  /**
+   * Tries to parse the env variable {@code DEFAULT_POLL_TIMEOUT_MILLIS_ENV} as long and returns the value if present OR its default value.
+   *
+   * @throws java.lang.IllegalArgumentException when unable to parse the env variable
+   */
+  public static long envDefaultPollTimeoutMillis() {
+    final String envMillis = System.getenv(DEFAULT_POLL_TIMEOUT_MILLIS_ENV);
+    if (envMillis == null) return envDefaultTimeoutMillis();
+    else try {
+      return Long.parseLong(envMillis);
+    } catch (NumberFormatException ex) {
+      throw new IllegalArgumentException(String.format("Unable to parse %s env value [%s] as long!", DEFAULT_POLL_TIMEOUT_MILLIS_ENV, envMillis), ex);
     }
   }
 
@@ -277,7 +335,7 @@ public class TestEnvironment {
   }
 
   /**
-   * Waits for {@link TestEnvironment#defaultTimeoutMillis()} and then verifies that no asynchronous errors
+   * Waits for {@link TestEnvironment#defaultNoSignalsTimeoutMillis()} and then verifies that no asynchronous errors
    * were signalled pior to, or during that time (by calling {@code flop()}).
    */
   public void verifyNoAsyncErrors() {
@@ -519,26 +577,32 @@ public class TestEnvironment {
     }
 
     public <E extends Throwable> void expectErrorWithMessage(Class<E> expected, String requiredMessagePart) throws Exception {
-      expectErrorWithMessage(expected, requiredMessagePart, env.defaultTimeoutMillis());
+      expectErrorWithMessage(expected, Collections.singletonList(requiredMessagePart), env.defaultTimeoutMillis(), env.defaultPollTimeoutMillis());
     }
     public <E extends Throwable> void expectErrorWithMessage(Class<E> expected, List<String> requiredMessagePartAlternatives) throws Exception {
-      expectErrorWithMessage(expected, requiredMessagePartAlternatives, env.defaultTimeoutMillis());
+      expectErrorWithMessage(expected, requiredMessagePartAlternatives, env.defaultTimeoutMillis(), env.defaultPollTimeoutMillis());
     }
 
     @SuppressWarnings("ThrowableResultOfMethodCallIgnored")
     public <E extends Throwable> void expectErrorWithMessage(Class<E> expected, String requiredMessagePart, long timeoutMillis) throws Exception {
       expectErrorWithMessage(expected, Collections.singletonList(requiredMessagePart), timeoutMillis);
     }
+
     public <E extends Throwable> void expectErrorWithMessage(Class<E> expected, List<String> requiredMessagePartAlternatives, long timeoutMillis) throws Exception {
-      final E err = expectError(expected, timeoutMillis);
+      expectErrorWithMessage(expected, requiredMessagePartAlternatives, timeoutMillis, timeoutMillis);
+    }
+
+    public <E extends Throwable> void expectErrorWithMessage(Class<E> expected, List<String> requiredMessagePartAlternatives,
+                                                             long totalTimeoutMillis, long pollTimeoutMillis) throws Exception {
+      final E err = expectError(expected, totalTimeoutMillis, pollTimeoutMillis);
       final String message = err.getMessage();
-      
+
       boolean contains = false;
-      for (String requiredMessagePart : requiredMessagePartAlternatives) 
+      for (String requiredMessagePart : requiredMessagePartAlternatives)
         if (message.contains(requiredMessagePart)) contains = true; // not short-circuting loop, it is expected to
       assertTrue(contains,
-                 String.format("Got expected exception [%s] but missing message part [%s], was: %s",
-                               err.getClass(), "anyOf: " + requiredMessagePartAlternatives, err.getMessage()));
+              String.format("Got expected exception [%s] but missing message part [%s], was: %s",
+                      err.getClass(), "anyOf: " + requiredMessagePartAlternatives, err.getMessage()));
     }
 
     public <E extends Throwable> E expectError(Class<E> expected) throws Exception {
@@ -546,7 +610,7 @@ public class TestEnvironment {
     }
 
     public <E extends Throwable> E expectError(Class<E> expected, long timeoutMillis) throws Exception {
-      return expectError(expected, timeoutMillis, String.format("Expected onError(%s)", expected.getName()));
+      return expectError(expected, timeoutMillis, env.defaultPollTimeoutMillis());
     }
 
     public <E extends Throwable> E expectError(Class<E> expected, String errorMsg) throws Exception {
@@ -554,7 +618,16 @@ public class TestEnvironment {
     }
 
     public <E extends Throwable> E expectError(Class<E> expected, long timeoutMillis, String errorMsg) throws Exception {
-      return received.expectError(expected, timeoutMillis, errorMsg);
+      return expectError(expected, timeoutMillis, env.defaultPollTimeoutMillis(), errorMsg);
+    }
+
+    public <E extends Throwable> E expectError(Class<E> expected, long totalTimeoutMillis, long pollTimeoutMillis) throws Exception {
+      return expectError(expected, totalTimeoutMillis, pollTimeoutMillis, String.format("Expected onError(%s)", expected.getName()));
+    }
+
+    public <E extends Throwable> E expectError(Class<E> expected, long totalTimeoutMillis, long pollTimeoutMillis,
+                                               String errorMsg) throws Exception {
+      return received.expectError(expected, totalTimeoutMillis, pollTimeoutMillis, errorMsg);
     }
 
     public void expectNone() throws InterruptedException {
@@ -1025,22 +1098,44 @@ public class TestEnvironment {
       } // else, ok
     }
 
-    @SuppressWarnings("unchecked")
+    /**
+     * @deprecated Deprecated in favor of {@link #expectError(Class, long, long, String)}.
+     */
+    @Deprecated
     public <E extends Throwable> E expectError(Class<E> clazz, long timeoutMillis, String errorMsg) throws Exception {
-      Thread.sleep(timeoutMillis);
+      return expectError(clazz, timeoutMillis, timeoutMillis, errorMsg);
+    }
 
-      if (env.asyncErrors.isEmpty()) {
-        return env.flopAndFail(String.format("%s within %d ms", errorMsg, timeoutMillis));
-      } else {
-        // ok, there was an expected error
-        Throwable thrown = env.asyncErrors.remove(0);
+    @SuppressWarnings("unchecked")
+    final <E extends Throwable> E expectError(Class<E> clazz, final long totalTimeoutMillis,
+                                              long pollTimeoutMillis,
+                                              String errorMsg) throws Exception {
+      long totalTimeoutRemainingNs = MILLISECONDS.toNanos(totalTimeoutMillis);
+      long timeStampANs = System.nanoTime();
+      long timeStampBNs;
 
-        if (clazz.isInstance(thrown)) {
-          return (E) thrown;
+      for (;;) {
+        Thread.sleep(Math.min(pollTimeoutMillis, NANOSECONDS.toMillis(totalTimeoutRemainingNs)));
+
+        if (env.asyncErrors.isEmpty()) {
+          timeStampBNs = System.nanoTime();
+          totalTimeoutRemainingNs =- timeStampBNs - timeStampANs;
+          timeStampANs = timeStampBNs;
+
+          if (totalTimeoutRemainingNs <= 0) {
+            return env.flopAndFail(String.format("%s within %d ms", errorMsg, totalTimeoutMillis));
+          }
         } else {
+          // ok, there was an expected error
+          Throwable thrown = env.asyncErrors.remove(0);
 
-          return env.flopAndFail(String.format("%s within %d ms; Got %s but expected %s",
-                                               errorMsg, timeoutMillis, thrown.getClass().getCanonicalName(), clazz.getCanonicalName()));
+          if (clazz.isInstance(thrown)) {
+            return (E) thrown;
+          } else {
+
+            return env.flopAndFail(String.format("%s within %d ms; Got %s but expected %s",
+                    errorMsg, totalTimeoutMillis, thrown.getClass().getCanonicalName(), clazz.getCanonicalName()));
+          }
         }
       }
     }
