@@ -231,7 +231,7 @@ public final class FlowAdapters {
     }
 
     /**
-     * Wraps a Reactive Streams Subscriber and forwards methods of the Flow Subscriber to it.
+     * Wraps a Flow Subscriber and forwards methods of the Reactive Streams Subscriber to it.
      * @param <T> the element type
      */
     static final class ReactiveToFlowSubscriber<T> implements org.reactivestreams.Subscriber<T> {
