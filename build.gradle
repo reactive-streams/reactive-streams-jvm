@@ -52,6 +52,7 @@ subprojects {
                  "reactive-streams-examples"]) {
         apply plugin: "maven"
         apply plugin: "signing"
+        apply plugin: "maven-publish"
 
         signing {
             sign configurations.archives
@@ -65,6 +66,17 @@ subprojects {
         task javadocJar(type: Jar) {
             classifier "javadoc"
             from javadoc
+        }
+
+        publishing {
+          publications {
+            mavenJava(MavenPublication) {
+              from components.java
+            }
+          }
+          repositories {
+            mavenLocal()
+          }
         }
 
         artifacts {
