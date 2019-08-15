@@ -821,7 +821,7 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
 
     /**
      * Trigger {@code cancel()} on your {@link Subscriber}.
-     * <p/>
+     * <p>
      * An invocation of this method may be coalesced into any outstanding requests, as requested by
      * {@link #triggerRequest(long)}, such that only a cancel signal is emitted.
      */
