@@ -4,7 +4,7 @@
 
 ## Announcement:
 
-We—the Reactive Streams community—are pleased to announce the immediate availability of `Reactive Streams 1.0.3-RC1`. This update to `Reactive Streams` brings the following improvements over `1.0.3-RC1`.
+We—the Reactive Streams community—are pleased to announce the immediate availability of `Reactive Streams 1.0.3-RC1`. This update to `Reactive Streams` brings the following improvements over `1.0.2`.
 
 ## Highlights:
 
@@ -66,7 +66,7 @@ We—the Reactive Streams community—are pleased to announce the immediate avai
 
 *The intent of this rule is to establish that external synchronization must be added if a Subscriber will be using a Subscription concurrently by two or more threads.*
 
-**1.0.3-RC1:* A Subscriber MUST ensure that all calls on its Subscription's request and cancel methods are performed serially.
+**1.0.3-RC1:** A Subscriber MUST ensure that all calls on its Subscription's request and cancel methods are performed serially.
 
 *The intent of this rule is to permit the calling of the request and cancel methods (including from multiple threads) if and only if a happens-before relation between each of the calls is established.*
 
