@@ -1,10 +1,10 @@
 # Release notes for Reactive Streams
 
-# Version 1.0.3-RC1 released on 2019-08-15
+# Version 1.0.3 released on 2019-08-23
 
 ## Announcement:
 
-We—the Reactive Streams community—are pleased to announce the immediate availability of `Reactive Streams 1.0.3-RC1`. This update to `Reactive Streams` brings the following improvements over `1.0.2`.
+We—the Reactive Streams community—are pleased to announce the immediate availability of `Reactive Streams 1.0.3`. This update to `Reactive Streams` brings the following improvements over `1.0.2`.
 
 ## Highlights:
 
@@ -22,7 +22,7 @@ We—the Reactive Streams community—are pleased to announce the immediate avai
 - Artifacts
   + FlowAdapters artifact removed, FlowAdapters moved into the core jar ([#424](https://github.com/reactive-streams/reactive-streams-jvm/issues/424))
 
-## Specification clarifications 1.0.3-RC1
+## Specification clarifications 1.0.3
 
 ## Glossary term "External synchronization" replaced by "Serial(ly)"
 
@@ -36,7 +36,7 @@ We—the Reactive Streams community—are pleased to announce the immediate avai
 
 *The intent of this rule is to make it clear that external synchronization must be employed if the Publisher intends to send signals from multiple/different threads.*
 
-**1.0.3-RC1:** `onSubscribe`, `onNext`, `onError` and `onComplete` signaled to a `Subscriber` MUST be signaled serially.
+**1.0.3:** `onSubscribe`, `onNext`, `onError` and `onComplete` signaled to a `Subscriber` MUST be signaled serially.
 
 *The intent of this rule is to permit the signalling of signals (including from multiple threads) if and only if a happens-before relation between each of the signals is established.*
 
@@ -46,7 +46,7 @@ We—the Reactive Streams community—are pleased to announce the immediate avai
 
 *The intent of this rule is to establish that it is the responsibility of the Subscriber to signal when, and how many, elements it is able and willing to receive.*
 
-**1.0.3-RC1:** A `Subscriber` MUST signal demand via `Subscription.request(long n)` to receive `onNext` signals.
+**1.0.3:** A `Subscriber` MUST signal demand via `Subscription.request(long n)` to receive `onNext` signals.
 
 *The intent of this rule is to establish that it is the responsibility of the Subscriber to decide when and how many elements it is able and willing to receive. To avoid signal reordering caused by reentrant Subscription methods, it is strongly RECOMMENDED for synchronous Subscriber implementations to invoke Subscription methods at the very end of any signal processing. It is RECOMMENDED that Subscribers request the upper limit of what they are able to process, as requesting only one element at a time results in an inherently inefficient "stop-and-wait" protocol.*
 
@@ -56,7 +56,7 @@ We—the Reactive Streams community—are pleased to announce the immediate avai
 
 *The intent of this rule is to prevent that two, or more, separate Publishers from thinking that they can interact with the same Subscriber. Enforcing this rule means that resource leaks are prevented since extra Subscriptions will be cancelled.*
 
-**1.0.3-RC1:** A `Subscriber` MUST call `Subscription.cancel()` on the given `Subscription` after an `onSubscribe` signal if it already has an active `Subscription`
+**1.0.3:** A `Subscriber` MUST call `Subscription.cancel()` on the given `Subscription` after an `onSubscribe` signal if it already has an active `Subscription`
 
 *The intent of this rule is to prevent that two, or more, separate Publishers from trying to interact with the same Subscriber. Enforcing this rule means that resource leaks are prevented since extra Subscriptions will be cancelled. Failure to conform to this rule may lead to violations of Publisher rule 1, amongst others. Such violations can lead to hard-to-diagnose bugs.*
 
@@ -66,11 +66,11 @@ We—the Reactive Streams community—are pleased to announce the immediate avai
 
 *The intent of this rule is to establish that external synchronization must be added if a Subscriber will be using a Subscription concurrently by two or more threads.*
 
-**1.0.3-RC1:** A Subscriber MUST ensure that all calls on its Subscription's request and cancel methods are performed serially.
+**1.0.3:** A Subscriber MUST ensure that all calls on its Subscription's request and cancel methods are performed serially.
 
 *The intent of this rule is to permit the calling of the request and cancel methods (including from multiple threads) if and only if a happens-before relation between each of the calls is established.*
 
-## TCK alterations 1.0.3-RC1
+## TCK alterations 1.0.3
 
 - `PublisherVerification.optional_spec105_emptyStreamMustTerminateBySignallingOnComplete` fails if the publisher completes synchronously ([#422](https://github.com/reactive-streams/reactive-streams-jvm/issues/422))
 - IdentityFlowProcessorVerification throws NPE when `createFailedFlowPublisher` returns null ([#425](https://github.com/reactive-streams/reactive-streams-jvm/issues/425))
