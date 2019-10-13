@@ -327,7 +327,7 @@ public class MyFlowSubscriberWhiteboxVerificationTest extends FlowSubscriberWhit
   // class SyncSubscriber<T> extends Flow.Subscriber<T> { /* ... */ }
 
   @Override
-  public Flow.Subscriber<Integer> createSubscriber(final WhiteboxSubscriberProbe<Integer> probe) {
+  public Flow.Subscriber<Integer> createFlowSubscriber(final WhiteboxSubscriberProbe<Integer> probe) {
     // in order to test the SyncSubscriber we must instrument it by extending it,
     // and calling the WhiteboxSubscriberProbe in all of the Subscribers methods:
     return new SyncSubscriber<Integer>() {
@@ -402,7 +402,7 @@ public class MyFlowSubscriberBlackboxVerificationTest extends FlowSubscriberBlac
   }
 
   @Override
-  public Flow.Subscriber<Integer> createSubscriber() {
+  public Flow.Subscriber<Integer> createFlowSubscriber() {
     return new MySubscriber<Integer>();
   }
 
