@@ -2,6 +2,7 @@ description = 'reactive-streams-tck-flow'
 dependencies {
     api group: 'org.testng', name: 'testng', version:'7.0.0'
     implementation project(':reactive-streams-tck')
+    implementation project(':reactive-streams-examples')
 }
 
 jar {
