@@ -45,4 +45,5 @@ jroper         | James Roper, james@jazzy.id.au, Lightbend Inc.
 olegdokuka     | Oleh Dokuka, shadowgun@.i.ua, Netifi Inc.
 Scottmitch     | Scott Mitchell, scott_mitchell@apple.com, Apple Inc.
 retronym       | Jason Zaugg, jzaugg@gmail.com, Lightbend Inc.
+sullis         | Sean Sullivan, github@seansullivan.com
 
