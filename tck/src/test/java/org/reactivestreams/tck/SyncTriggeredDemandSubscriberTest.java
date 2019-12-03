@@ -11,15 +11,11 @@
 
 package org.reactivestreams.tck;
 
+import java.util.concurrent.*;
+
 import org.reactivestreams.Subscriber;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
-
 import org.reactivestreams.tck.flow.support.SyncTriggeredDemandSubscriber;
-
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
+import org.testng.annotations.*;
 
 @Test // Must be here for TestNG to find and run this, do not remove
 public class SyncTriggeredDemandSubscriberTest extends SubscriberBlackboxVerification<Integer> {
@@ -32,6 +28,7 @@ public class SyncTriggeredDemandSubscriberTest extends SubscriberBlackboxVerific
     super(new TestEnvironment());
   }
 
+  @Test(enabled = false) // TestNG tries to inject here but this is a helper method
   @Override public void triggerRequest(final Subscriber<? super Integer> subscriber) {
     ((SyncTriggeredDemandSubscriber<? super Integer>)subscriber).triggerDemand(1);
   }

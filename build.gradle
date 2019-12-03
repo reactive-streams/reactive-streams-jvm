@@ -1,6 +1,19 @@
+buildscript {
+    repositories { 
+        jcenter()
+        mavenCentral()
+        maven {
+            url "https://plugins.gradle.org/m2/"
+        }
+    }
+    dependencies {
+        classpath "biz.aQute.bnd:biz.aQute.bnd.gradle:4.3.1"
+    }
+}
+
 subprojects {
-    apply plugin: "java"
-    apply plugin: "osgi"
+    apply plugin: "java-library"
+    apply plugin: 'biz.aQute.bnd.builder'
 
     group = "org.reactivestreams"
     version = "1.0.3"
@@ -34,16 +47,6 @@ subprojects {
 
     repositories {
         mavenCentral()
-    }
-
-
-    jar {
-        manifest {
-            instructionReplace "Bundle-Vendor", "Reactive Streams SIG"
-            instructionReplace "Bundle-Description", "Reactive Streams API"
-            instructionReplace "Bundle-DocURL", "http://reactive-streams.org"
-            instructionReplace "Bundle-Version", "1.0.3"
-        }
     }
 
     if (name in ["reactive-streams",
