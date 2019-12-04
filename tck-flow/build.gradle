@@ -1,7 +1,6 @@
 description = 'reactive-streams-tck-flow'
 dependencies {
-    api group: 'org.testng', name: 'testng', version:'7.0.0'
-    implementation project(':reactive-streams-tck')
+    api project(':reactive-streams-tck')
     implementation project(':reactive-streams-examples')
 }
 
@@ -11,7 +10,6 @@ jar {
             'Bundle-Description': 'Reactive Streams TCK Flow',
             'Bundle-DocURL': 'http://reactive-streams.org',
             'Bundle-Version': project.version,
-            'Import-Package': '!org.junit,!junit.framework,!org.mockito.*,!org.testng.*,*',
             'Export-Package': 'org.reactivestreams.tck.flow.*',
             'Automatic-Module-Name': 'org.reactivestreams.tckflow'
     )

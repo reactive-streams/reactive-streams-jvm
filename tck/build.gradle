@@ -11,7 +11,6 @@ jar {
             'Bundle-Description': 'Reactive Streams TCK',
             'Bundle-DocURL': 'http://reactive-streams.org',
             'Bundle-Version': project.version,
-            'Import-Package': '!org.junit,!junit.framework,!org.mockito.*,!org.testng.*,*',
             'Export-Package': 'org.reactivestreams.tck.*',
             'Automatic-Module-Name': 'org.reactivestreams.tck'
     )

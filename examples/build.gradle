@@ -10,7 +10,6 @@ jar {
             'Bundle-Description': 'Reactive Streams Examples',
             'Bundle-DocURL': 'http://reactive-streams.org',
             'Bundle-Version': project.version,
-            'Import-Package': '!org.junit,!junit.framework,!org.mockito.*,!org.testng.*,*',
             'Export-Package': 'org.reactivestreams.example.*',
             'Automatic-Module-Name': 'org.reactivestreams.examples'
     )
