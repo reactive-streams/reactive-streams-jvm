@@ -46,3 +46,5 @@ olegdokuka     | Oleh Dokuka, shadowgun@.i.ua, Netifi Inc.
 Scottmitch     | Scott Mitchell, scott_mitchell@apple.com, Apple Inc.
 retronym       | Jason Zaugg, jzaugg@gmail.com, Lightbend Inc.
 lucav76        | Luca Venturi, lventuri76@gmail.com
+sullis         | Sean Sullivan, github@seansullivan.com
+

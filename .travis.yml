@@ -14,7 +14,8 @@ before_install:
 
 matrix:
   include:
-    - jdk: openjdk7
+# JDK 7 no longer supported by Gradle 6+
+#    - jdk: openjdk7
     - jdk: oraclejdk8 # JDK 1.8.0_131-b11
     - jdk: oraclejdk9
 

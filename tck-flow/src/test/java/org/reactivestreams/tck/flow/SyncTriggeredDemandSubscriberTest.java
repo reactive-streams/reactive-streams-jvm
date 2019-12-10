@@ -33,6 +33,7 @@ public class SyncTriggeredDemandSubscriberTest extends FlowSubscriberBlackboxVer
     super(new TestEnvironment());
   }
 
+  @Test(enabled = false)
   @Override
   public void triggerFlowRequest(Flow.Subscriber<? super Integer> subscriber) {
     ((SyncTriggeredDemandFlowSubscriber<? super Integer>) subscriber).triggerDemand(1);
