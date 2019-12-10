@@ -1,13 +1,18 @@
 description = 'reactive-streams-tck-flow'
 dependencies {
-    compile group: 'org.testng', name: 'testng', version:'5.14.10'
-    compile project(':reactive-streams-tck')
+    api project(':reactive-streams-tck')
+    implementation project(':reactive-streams-examples')
 }
 
 jar {
-    manifest {
-        attributes('Automatic-Module-Name': 'org.reactivestreams.tckflow')
-    }
+    bnd ('Bundle-Name': 'reactive-streams-jvm',
+            'Bundle-Vendor': 'Reactive Streams SIG',
+            'Bundle-Description': 'Reactive Streams TCK Flow',
+            'Bundle-DocURL': 'http://reactive-streams.org',
+            'Bundle-Version': project.version,
+            'Export-Package': 'org.reactivestreams.tck.flow.*',
+            'Automatic-Module-Name': 'org.reactivestreams.tckflow'
+    )
 }
 
 test.useTestNG()

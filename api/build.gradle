@@ -19,7 +19,13 @@ sourceSets {
 }
 
 jar {
-    manifest {
-        attributes('Automatic-Module-Name': 'org.reactivestreams')
-    }
+    bnd ('Bundle-Name': 'reactive-streams-jvm',
+            'Bundle-Vendor': 'Reactive Streams SIG',
+            'Bundle-Description': 'Reactive Streams API',
+            'Bundle-DocURL': 'http://reactive-streams.org',
+            'Bundle-Version': project.version,
+            'Export-Package': 'org.reactivestreams.*',
+            'Automatic-Module-Name': 'org.reactivestreams'
+    )
 }
+

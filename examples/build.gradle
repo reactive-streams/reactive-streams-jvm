@@ -1,13 +1,18 @@
 description = 'reactive-streams-examples'
 dependencies {
-    compile project(':reactive-streams')
-    testCompile project(':reactive-streams-tck')
+    implementation project(':reactive-streams')
+    testImplementation project(':reactive-streams-tck')
 }
 
 jar {
-    manifest {
-        attributes('Automatic-Module-Name': 'org.reactivestreams.examples')
-    }
+    bnd ('Bundle-Name': 'reactive-streams-jvm',
+            'Bundle-Vendor': 'Reactive Streams SIG',
+            'Bundle-Description': 'Reactive Streams Examples',
+            'Bundle-DocURL': 'http://reactive-streams.org',
+            'Bundle-Version': project.version,
+            'Export-Package': 'org.reactivestreams.example.*',
+            'Automatic-Module-Name': 'org.reactivestreams.examples'
+    )
 }
 
 test.useTestNG()
