@@ -223,7 +223,7 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
             sub.request(2);
             sub.nextElements(3, env.defaultTimeoutMillis(), String.format("Publisher %s produced less than 3 elements after two respective `request` calls", pub));
 
-            sub.expectNone(String.format("Publisher %sproduced unrequested ", pub));
+            sub.expectNone(String.format("Publisher %s produced unrequested ", pub));
         } finally {
             sub.cancel();
         }
