@@ -11,17 +11,11 @@
 
 package org.reactivestreams.tck;
 
-import org.reactivestreams.Subscriber;
-import org.reactivestreams.Subscription;
-import org.reactivestreams.tck.flow.support.TCKVerificationSupport;
-import org.testng.annotations.AfterClass;
-import org.testng.annotations.BeforeClass;
-import org.testng.annotations.Test;
+import java.util.concurrent.*;
 
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
+import org.reactivestreams.*;
+import org.reactivestreams.tck.flow.support.*;
+import org.testng.annotations.*;
 
 /**
 * Validates that the TCK's {@link org.reactivestreams.tck.SubscriberBlackboxVerification} fails with nice human readable errors.
@@ -96,6 +90,166 @@ public class SubscriberBlackboxVerificationTest extends TCKVerificationSupport {
         }).required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnError();
       }
     }, "Subscription::cancel MUST NOT be called from Subscriber::onError (Rule 2.3)!");
+  }
+
+  @Test
+  public void required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_shouldPass_unrelatedCancelFromOnComplete() throws Throwable {
+    customSubscriberVerification(new Subscriber<Integer>() {
+      @Override
+      public void onSubscribe(final Subscription s) {
+        // emulate unrelated calls by issuing them from a method named `onComplete`
+        new Subscriber<Object>() {
+          @Override
+          public void onSubscribe(Subscription s) {
+          }
+
+          @Override
+          public void onNext(Object t) {
+          }
+
+          @Override
+          public void onError(Throwable t) {
+          }
+
+          @Override
+          public void onComplete() {
+            s.cancel();
+          }
+        }.onComplete();
+      }
+
+      @Override
+      public void onNext(Integer t) {
+      }
+
+      @Override
+      public void onError(Throwable t) {
+      }
+
+      @Override
+      public void onComplete() {
+      }
+    }).required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete();
+  }
+
+  @Test
+  public void required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_shouldPass_unrelatedRequestFromOnComplete() throws Throwable {
+    customSubscriberVerification(new Subscriber<Integer>() {
+      @Override
+      public void onSubscribe(final Subscription s) {
+        // emulate unrelated calls by issuing them from a method named `onComplete`
+        new Subscriber<Object>() {
+          @Override
+          public void onSubscribe(Subscription s) {
+          }
+
+          @Override
+          public void onNext(Object t) {
+          }
+
+          @Override
+          public void onError(Throwable t) {
+          }
+
+          @Override
+          public void onComplete() {
+            s.request(1);
+          }
+        }.onComplete();
+      }
+
+      @Override
+      public void onNext(Integer t) {
+      }
+
+      @Override
+      public void onError(Throwable t) {
+      }
+
+      @Override
+      public void onComplete() {
+      }
+    }).required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete();
+  }
+
+  @Test
+  public void required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_shouldPass_unrelatedCancelFromOnError() throws Throwable {
+    customSubscriberVerification(new Subscriber<Integer>() {
+      @Override
+      public void onSubscribe(final Subscription s) {
+        // emulate unrelated calls by issuing them from a method named `onComplete`
+        new Subscriber<Object>() {
+          @Override
+          public void onSubscribe(Subscription s) {
+          }
+
+          @Override
+          public void onNext(Object t) {
+          }
+
+          @Override
+          public void onError(Throwable t) {
+              s.cancel();
+          }
+
+          @Override
+          public void onComplete() {
+          }
+        }.onError(null);
+      }
+
+      @Override
+      public void onNext(Integer t) {
+      }
+
+      @Override
+      public void onError(Throwable t) {
+      }
+
+      @Override
+      public void onComplete() {
+      }
+    }).required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnError();
+  }
+
+  @Test
+  public void required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_shouldPass_unrelatedRequestFromOnError() throws Throwable {
+    customSubscriberVerification(new Subscriber<Integer>() {
+      @Override
+      public void onSubscribe(final Subscription s) {
+        // emulate unrelated calls by issuing them from a method named `onComplete`
+        new Subscriber<Object>() {
+          @Override
+          public void onSubscribe(Subscription s) {
+          }
+
+          @Override
+          public void onNext(Object t) {
+          }
+
+          @Override
+          public void onError(Throwable t) {
+              s.request(1);
+          }
+
+          @Override
+          public void onComplete() {
+          }
+        }.onError(null);
+      }
+
+      @Override
+      public void onNext(Integer t) {
+      }
+
+      @Override
+      public void onError(Throwable t) {
+      }
+
+      @Override
+      public void onComplete() {
+      }
+    }).required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnError();
   }
 
   @Test
