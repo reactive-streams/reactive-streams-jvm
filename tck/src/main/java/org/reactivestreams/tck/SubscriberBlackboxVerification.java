@@ -128,7 +128,7 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
     blackboxSubscriberWithoutSetupTest(new BlackboxTestStageTestRun() {
       @Override
       public void run(BlackboxTestStage stage) throws Throwable {
-        final String onCompleteMethod = "required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_call";
+        final String onCompleteMethod = "required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_call";
 
         final Subscription subs = new Subscription() {
           @Override
@@ -154,13 +154,13 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
 
         final Subscriber<T> sub = createSubscriber();
         sub.onSubscribe(subs);
-        required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_call(sub);
+        required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_call(sub);
 
         env.verifyNoAsyncErrorsNoDelay();
       }
 
       /** Makes sure the onComplete is initiated with a recognizable stacktrace element on the current thread. */
-      void required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_call(Subscriber<?> sub) {
+      void required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_call(Subscriber<?> sub) {
         sub.onComplete();
       }
     });
@@ -171,7 +171,7 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
     blackboxSubscriberWithoutSetupTest(new BlackboxTestStageTestRun() {
       @Override
       public void run(BlackboxTestStage stage) throws Throwable {
-        final String onErrorMethod = "required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError_call";
+        final String onErrorMethod = "required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnError_call";
 
         final Subscription subs = new Subscription() {
           @Override
@@ -197,13 +197,13 @@ public abstract class SubscriberBlackboxVerification<T> extends WithHelperPublis
 
         final Subscriber<T> sub = createSubscriber();
         sub.onSubscribe(subs);
-        required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError_call(sub);
+        required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnError_call(sub);
 
         env.verifyNoAsyncErrorsNoDelay();
       }
 
       /** Makes sure the onError is initiated with a recognizable stacktrace element on the current thread. */
-      void required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError_call(Subscriber<?> sub) {
+      void required_spec203_blackbox_mustNotCallMethodsOnSubscriptionOrPublisherInOnError_call(Subscriber<?> sub) {
         sub.onError(new TestException());
       }
     });
