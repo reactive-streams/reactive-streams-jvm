@@ -31,7 +31,7 @@ public interface Subscription {
      * A {@link Publisher} can send less than is requested if the stream ends but
      * then must emit either {@link Subscriber#onError(Throwable)} or {@link Subscriber#onComplete()}.
      * 
-     * @param n the strictly positive number of elements to requests to the upstream {@link Publisher}.
+     * @param n the strictly positive number of elements to requests to the upstream {@link Publisher}
      */
     public void request(long n);
 
