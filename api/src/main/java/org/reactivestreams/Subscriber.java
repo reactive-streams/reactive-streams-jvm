@@ -27,6 +27,7 @@ package org.reactivestreams;
  * @param <T> the type of element signaled.
  */
 public interface Subscriber<T> {
+
     /**
      * Invoked after calling {@link Publisher#subscribe(Subscriber)}.
      * <p>
@@ -36,15 +37,14 @@ public interface Subscriber<T> {
      * <p>
      * The {@link Publisher} will send notifications only in response to {@link Subscription#request(long)}.
      * 
-     * @param s
-     *            {@link Subscription} that allows requesting data via {@link Subscription#request(long)}
+     * @param s the {@link Subscription} that allows requesting data via {@link Subscription#request(long)}.
      */
     public void onSubscribe(Subscription s);
 
     /**
      * Data notification sent by the {@link Publisher} in response to requests to {@link Subscription#request(long)}.
      * 
-     * @param t the element signaled
+     * @param t the element signaled.
      */
     public void onNext(T t);
 
@@ -53,7 +53,7 @@ public interface Subscriber<T> {
      * <p>
      * No further events will be sent even if {@link Subscription#request(long)} is invoked again.
      *
-     * @param t the throwable signaled
+     * @param t the throwable signaled.
      */
     public void onError(Throwable t);
 

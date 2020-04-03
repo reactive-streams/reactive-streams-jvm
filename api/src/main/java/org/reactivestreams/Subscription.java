@@ -17,9 +17,9 @@ package org.reactivestreams;
  * It can only be used once by a single {@link Subscriber}.
  * <p>
  * It is used to both signal desire for data and cancel demand (and allow resource cleanup).
- *
  */
 public interface Subscription {
+
     /**
      * No events will be sent by a {@link Publisher} until demand is signaled via this method.
      * <p>
@@ -31,7 +31,7 @@ public interface Subscription {
      * A {@link Publisher} can send less than is requested if the stream ends but
      * then must emit either {@link Subscriber#onError(Throwable)} or {@link Subscriber#onComplete()}.
      * 
-     * @param n the strictly positive number of elements to requests to the upstream {@link Publisher}
+     * @param n the strictly positive number of elements to requests to the upstream {@link Publisher}.
      */
     public void request(long n);
 
