@@ -12,7 +12,7 @@
 package org.reactivestreams;
 
 /**
- * A Processor represents a processing stage—which is both a {@link Subscriber}
+ * A {@link Processor} represents a processing stage—which is both a {@link Subscriber}
  * and a {@link Publisher} and obeys the contracts of both.
  *
  * @param <T> the type of element signaled to the {@link Subscriber}

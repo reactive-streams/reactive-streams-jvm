@@ -24,9 +24,10 @@ package org.reactivestreams;
  * <p>
  * Demand can be signaled via {@link Subscription#request(long)} whenever the {@link Subscriber} instance is capable of handling more.
  *
- * @param <T> the type of element signaled.
+ * @param <T> the type of element signaled
  */
 public interface Subscriber<T> {
+
     /**
      * Invoked after calling {@link Publisher#subscribe(Subscriber)}.
      * <p>
@@ -36,8 +37,7 @@ public interface Subscriber<T> {
      * <p>
      * The {@link Publisher} will send notifications only in response to {@link Subscription#request(long)}.
      * 
-     * @param s
-     *            {@link Subscription} that allows requesting data via {@link Subscription#request(long)}
+     * @param s the {@link Subscription} that allows requesting data via {@link Subscription#request(long)}
      */
     public void onSubscribe(Subscription s);
 

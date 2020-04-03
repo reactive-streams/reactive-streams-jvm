@@ -15,10 +15,10 @@ package org.reactivestreams;
  * A {@link Publisher} is a provider of a potentially unbounded number of sequenced elements, publishing them according to
  * the demand received from its {@link Subscriber}(s).
  * <p>
- * A {@link Publisher} can serve multiple {@link Subscriber}s subscribed {@link #subscribe(Subscriber)} dynamically
+ * A {@link Publisher} can serve multiple {@link Subscriber}s subscribed {@link Publisher#subscribe(Subscriber)} dynamically
  * at various points in time.
  *
- * @param <T> the type of element signaled.
+ * @param <T> the type of element signaled
  */
 public interface Publisher<T> {
 
@@ -32,7 +32,7 @@ public interface Publisher<T> {
      * A {@link Subscriber} should only subscribe once to a single {@link Publisher}.
      * <p>
      * If the {@link Publisher} rejects the subscription attempt or otherwise fails it will
-     * signal the error via {@link Subscriber#onError}.
+     * signal the error via {@link Subscriber#onError(Throwable)}.
      *
      * @param s the {@link Subscriber} that will consume signals from this {@link Publisher}
      */
