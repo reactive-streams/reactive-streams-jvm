@@ -133,10 +133,12 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
     subscriberTestWithoutSetup(new TestStageTestRun() {
       @Override
       public void run(WhiteboxTestStage stage) throws Throwable {
+        final String onCompleteMethod = "required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_call";
+        
         final Subscription subs = new Subscription() {
           @Override
           public void request(long n) {
-            final Optional<StackTraceElement> onCompleteStackTraceElement = env.findCallerMethodInStackTrace("onComplete");
+            final Optional<StackTraceElement> onCompleteStackTraceElement = env.findCallerMethodInStackTrace(onCompleteMethod);
             if (onCompleteStackTraceElement.isDefined()) {
               final StackTraceElement stackElem = onCompleteStackTraceElement.get();
               env.flop(String.format("Subscription::request MUST NOT be called from Subscriber::onComplete (Rule 2.3)! (Caller: %s::%s line %d)",
@@ -146,7 +148,7 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
 
           @Override
           public void cancel() {
-            final Optional<StackTraceElement> onCompleteStackElement = env.findCallerMethodInStackTrace("onComplete");
+            final Optional<StackTraceElement> onCompleteStackElement = env.findCallerMethodInStackTrace(onCompleteMethod);
             if (onCompleteStackElement.isDefined()) {
               final StackTraceElement stackElem = onCompleteStackElement.get();
               env.flop(String.format("Subscription::cancel MUST NOT be called from Subscriber::onComplete (Rule 2.3)! (Caller: %s::%s line %d)",
@@ -159,9 +161,14 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
         final Subscriber<T> sub = createSubscriber(stage.probe);
 
         sub.onSubscribe(subs);
-        sub.onComplete();
+        required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_call(sub);
 
         env.verifyNoAsyncErrorsNoDelay();
+      }
+
+      /** Makes sure the onComplete is initiated with a recognizable stacktrace element on the current thread. */
+      void required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_call(Subscriber<?> sub) {
+        sub.onComplete();
       }
     });
   }
@@ -172,26 +179,26 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
     subscriberTestWithoutSetup(new TestStageTestRun() {
       @Override
       public void run(WhiteboxTestStage stage) throws Throwable {
+        final String onErrorMethod = "required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError_call";
+
         final Subscription subs = new Subscription() {
           @Override
           public void request(long n) {
-            Throwable thr = new Throwable();
-            for (StackTraceElement stackElem : thr.getStackTrace()) {
-              if (stackElem.getMethodName().equals("onError")) {
-                env.flop(String.format("Subscription::request MUST NOT be called from Subscriber::onError (Rule 2.3)! (Caller: %s::%s line %d)",
+            final Optional<StackTraceElement> onCompleteStackElement = env.findCallerMethodInStackTrace(onErrorMethod);
+            if (onCompleteStackElement.isDefined()) {
+              final StackTraceElement stackElem = onCompleteStackElement.get();
+              env.flop(String.format("Subscription::request MUST NOT be called from Subscriber::onError (Rule 2.3)! (Caller: %s::%s line %d)",
                                        stackElem.getClassName(), stackElem.getMethodName(), stackElem.getLineNumber()));
-              }
             }
           }
 
           @Override
           public void cancel() {
-            Throwable thr = new Throwable();
-            for (StackTraceElement stackElem : thr.getStackTrace()) {
-              if (stackElem.getMethodName().equals("onError")) {
-                env.flop(String.format("Subscription::cancel MUST NOT be called from Subscriber::onError (Rule 2.3)! (Caller: %s::%s line %d)",
-                                       stackElem.getClassName(), stackElem.getMethodName(), stackElem.getLineNumber()));
-              }
+            final Optional<StackTraceElement> onCompleteStackElement = env.findCallerMethodInStackTrace(onErrorMethod);
+            if (onCompleteStackElement.isDefined()) {
+              final StackTraceElement stackElem = onCompleteStackElement.get();
+              env.flop(String.format("Subscription::cancel MUST NOT be called from Subscriber::onError (Rule 2.3)! (Caller: %s::%s line %d)",
+                                      stackElem.getClassName(), stackElem.getMethodName(), stackElem.getLineNumber()));
             }
           }
         };
@@ -200,9 +207,14 @@ public abstract class SubscriberWhiteboxVerification<T> extends WithHelperPublis
         final Subscriber<T> sub = createSubscriber(stage.probe);
 
         sub.onSubscribe(subs);
-        sub.onError(new TestException());
+        required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError_call(sub);
 
         env.verifyNoAsyncErrorsNoDelay();
+      }
+
+      /** Makes sure the onError is initiated with a recognizable stacktrace element on the current thread. */
+      void required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError_call(Subscriber<?> sub) {
+        sub.onError(new TestException());
       }
     });
   }

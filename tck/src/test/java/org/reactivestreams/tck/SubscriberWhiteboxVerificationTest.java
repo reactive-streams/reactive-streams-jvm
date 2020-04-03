@@ -160,6 +160,142 @@ public class SubscriberWhiteboxVerificationTest extends TCKVerificationSupport {
   }
 
   @Test
+  public void required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_shouldPass_unrelatedCancelFromOnComplete() throws Throwable {
+    customSubscriberVerification(new Function<WhiteboxSubscriberProbe<Integer>, Subscriber<Integer>>() {
+      @Override
+      public Subscriber<Integer> apply(WhiteboxSubscriberProbe<Integer> probe) throws Throwable {
+        return new SimpleSubscriberWithProbe(probe) {
+          @Override
+          public void onSubscribe(final Subscription s) {
+            super.onSubscribe(s);
+            // emulate unrelated calls by issuing them from a method named `onComplete`
+            new Subscriber<Object>() {
+              @Override
+              public void onSubscribe(Subscription s) {
+              }
+
+              @Override
+              public void onNext(Object t) {
+              }
+
+              @Override
+              public void onError(Throwable t) {
+              }
+
+              @Override
+              public void onComplete() {
+                s.cancel();
+              }
+            }.onComplete();
+          }
+        };
+      }
+    }).required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete();
+  }
+
+  @Test
+  public void required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_shouldPass_unrelatedRequestFromOnComplete() throws Throwable {
+    customSubscriberVerification(new Function<WhiteboxSubscriberProbe<Integer>, Subscriber<Integer>>() {
+      @Override
+      public Subscriber<Integer> apply(WhiteboxSubscriberProbe<Integer> probe) throws Throwable {
+        return new SimpleSubscriberWithProbe(probe) {
+          @Override
+          public void onSubscribe(final Subscription s) {
+            super.onSubscribe(s);
+            // emulate unrelated calls by issuing them from a method named `onComplete`
+            new Subscriber<Object>() {
+              @Override
+              public void onSubscribe(Subscription s) {
+              }
+
+              @Override
+              public void onNext(Object t) {
+              }
+
+              @Override
+              public void onError(Throwable t) {
+              }
+
+              @Override
+              public void onComplete() {
+                s.request(1);
+              }
+            }.onComplete();
+          }
+        };
+      }
+    }).required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete();
+  }
+
+  @Test
+  public void required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_shouldPass_unrelatedCancelFromOnError() throws Throwable {
+    customSubscriberVerification(new Function<WhiteboxSubscriberProbe<Integer>, Subscriber<Integer>>() {
+      @Override
+      public Subscriber<Integer> apply(WhiteboxSubscriberProbe<Integer> probe) throws Throwable {
+        return new SimpleSubscriberWithProbe(probe) {
+          @Override
+          public void onSubscribe(final Subscription s) {
+            super.onSubscribe(s);
+            // emulate unrelated calls by issuing them from a method named `onComplete`
+            new Subscriber<Object>() {
+              @Override
+              public void onSubscribe(Subscription s) {
+              }
+
+              @Override
+              public void onNext(Object t) {
+              }
+
+              @Override
+              public void onError(Throwable t) {
+                  s.cancel();
+              }
+
+              @Override
+              public void onComplete() {
+              }
+            }.onError(null);
+          }
+        };
+      }
+    }).required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError();
+  }
+
+  @Test
+  public void required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnComplete_shouldPass_unrelatedRequestFromOnError() throws Throwable {
+    customSubscriberVerification(new Function<WhiteboxSubscriberProbe<Integer>, Subscriber<Integer>>() {
+      @Override
+      public Subscriber<Integer> apply(WhiteboxSubscriberProbe<Integer> probe) throws Throwable {
+        return new SimpleSubscriberWithProbe(probe) {
+          @Override
+          public void onSubscribe(final Subscription s) {
+            super.onSubscribe(s);
+            // emulate unrelated calls by issuing them from a method named `onComplete`
+            new Subscriber<Object>() {
+              @Override
+              public void onSubscribe(Subscription s) {
+              }
+
+              @Override
+              public void onNext(Object t) {
+              }
+
+              @Override
+              public void onError(Throwable t) {
+                  s.request(1);
+              }
+
+              @Override
+              public void onComplete() {
+              }
+            }.onError(null);
+          }
+        };
+      }
+    }).required_spec203_mustNotCallMethodsOnSubscriptionOrPublisherInOnError();
+  }
+
+  @Test
   public void required_spec205_mustCallSubscriptionCancelIfItAlreadyHasAnSubscriptionAndReceivesAnotherOnSubscribeSignal_shouldFail() throws Throwable {
     requireTestFailure(new ThrowingRunnable() {
       @Override public void run() throws Throwable {
