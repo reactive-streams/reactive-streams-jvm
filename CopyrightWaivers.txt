@@ -47,4 +47,5 @@ Scottmitch     | Scott Mitchell, scott_mitchell@apple.com, Apple Inc.
 retronym       | Jason Zaugg, jzaugg@gmail.com, Lightbend Inc.
 sullis         | Sean Sullivan, github@seansullivan.com
 tomislavhofman | Tomislav Hofman, tomislav.hofman@gmail.com
+niteshkant     | Nitesh Kant, nitesh1706@gmail.com, Apple Inc.
 
