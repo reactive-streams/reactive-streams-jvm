@@ -30,7 +30,7 @@ ldaley         | Luke Daley, luke.daley@gradleware.com, Gradleware Inc.
 colinrgodsey   | Colin Godsey, crgodsey@gmail.com, MediaMath Inc.
 davidmoten     | Dave Moten, davidmoten@gmail.com
 briantopping   | Brian Topping, brian.topping@gmail.com, Mauswerks LLC
-rstoyanchev    | Rossen Stoyanchev, rstoyanchev@pivotal.io, Pivotal
+rstoyanchev    | Rossen Stoyanchev, rstoyanchev@vmware.com, VMware
 BjornHamels    | Björn Hamels, bjorn@hamels.nl
 JakeWharton    | Jake Wharton, jakewharton@gmail.com
 anthonyvdotbe  | Anthony Vanelverdinghe, anthonyv.be@outlook.com
