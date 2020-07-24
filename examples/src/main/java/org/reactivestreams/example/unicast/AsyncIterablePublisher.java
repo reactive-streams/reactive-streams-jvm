@@ -18,8 +18,8 @@ import org.reactivestreams.Subscription;
 import java.util.Iterator;
 import java.util.Collections;
 import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * AsyncIterablePublisher is an implementation of Reactive Streams `Publisher`
@@ -59,7 +59,6 @@ public class AsyncIterablePublisher<T> implements Publisher<T> {
   // These represent the protocol of the `AsyncIterablePublishers` SubscriptionImpls
   static interface Signal {};
   enum Cancel implements Signal { Instance; };
-  enum Subscribe implements Signal { Instance; };
   enum Send implements Signal { Instance; };
   static final class Request implements Signal {
     final long n;
@@ -87,7 +86,7 @@ public class AsyncIterablePublisher<T> implements Publisher<T> {
 
     // We are using this `AtomicBoolean` to make sure that this `Subscription` doesn't run concurrently with itself,
     // which would violate rule 1.3 among others (no concurrent notifications).
-    private final AtomicBoolean on = new AtomicBoolean(false);
+    private final AtomicInteger wip = new AtomicInteger(0);
 
     // This method will register inbound demand from our `Subscriber` and validate it against rule 3.9 and rule 3.17
     private void doRequest(final long n) {
@@ -205,25 +204,27 @@ public class AsyncIterablePublisher<T> implements Publisher<T> {
 
     // This is the main "event loop" if you so will
     @Override public final void run() {
-      if(on.get()) { // establishes a happens-before relationship with the end of the previous run
-        try {
-          final Signal s = inboundSignals.poll(); // We take a signal off the queue
-          if (!cancelled) { // to make sure that we follow rule 1.8, 3.6 and 3.7
+      int remainingWork = 1;
+      for (;;) {
 
-            // Below we simply unpack the `Signal`s and invoke the corresponding methods
-            if (s instanceof Request)
-              doRequest(((Request)s).n);
-            else if (s == Send.Instance)
-              doSend();
-            else if (s == Cancel.Instance)
-              doCancel();
-            else if (s == Subscribe.Instance)
-              doSubscribe();
+        Signal s;
+        while ((s = inboundSignals.poll()) != null) {
+          if (cancelled) { // to make sure that we follow rule 1.8, 3.6 and 3.7
+            return;
           }
-        } finally {
-          on.set(false); // establishes a happens-before relationship with the beginning of the next run
-          if(!inboundSignals.isEmpty()) // If we still have signals to process
-            tryScheduleToExecute(); // Then we try to schedule ourselves to execute again
+
+          // Below we simply unpack the `Signal`s and invoke the corresponding methods
+          if (s instanceof Request)
+            doRequest(((Request) s).n);
+          else if (s == Send.Instance)
+            doSend();
+          else if (s == Cancel.Instance)
+            doCancel();
+        }
+
+        remainingWork = wip.addAndGet(-remainingWork); // establishes a happens-before relationship with the beginning of the next run
+        if (remainingWork == 0) {
+          return;
         }
       }
     }
@@ -231,20 +232,19 @@ public class AsyncIterablePublisher<T> implements Publisher<T> {
     // This method makes sure that this `Subscription` is only running on one Thread at a time,
     // this is important to make sure that we follow rule 1.3
     private final void tryScheduleToExecute() {
-      if(on.compareAndSet(false, true)) {
-        try {
-          executor.execute(this);
-        } catch(Throwable t) { // If we can't run on the `Executor`, we need to fail gracefully
-          if (!cancelled) {
-            doCancel(); // First of all, this failure is not recoverable, so we need to follow rule 1.4 and 1.6
-            try {
-              terminateDueTo(new IllegalStateException("Publisher terminated due to unavailable Executor.", t));
-            } finally {
-              inboundSignals.clear(); // We're not going to need these anymore
-              // This subscription is cancelled by now, but letting it become schedulable again means
-              // that we can drain the inboundSignals queue if anything arrives after clearing
-              on.set(false);
-            }
+      if (wip.getAndIncrement() != 0) { // ensure happens-before with already running work
+        return;
+      }
+
+      try {
+        executor.execute(this);
+      } catch(Throwable t) { // If we can't run on the `Executor`, we need to fail gracefully
+        if (!cancelled) {
+          doCancel(); // First of all, this failure is not recoverable, so we need to follow rule 1.4 and 1.6
+          try {
+            terminateDueTo(new IllegalStateException("Publisher terminated due to unavailable Executor.", t));
+          } finally {
+            inboundSignals.clear(); // We're not going to need these anymore
           }
         }
       }
@@ -263,7 +263,7 @@ public class AsyncIterablePublisher<T> implements Publisher<T> {
     // method is only intended to be invoked once, and immediately after the constructor has
     // finished.
     void init() {
-      signal(Subscribe.Instance);
+      doSubscribe();
     }
   };
 }
