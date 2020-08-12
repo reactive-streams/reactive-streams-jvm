@@ -11,4 +11,5 @@ OlegDokuka     | Oleh Dokuka,  oleh.dokuka@icloud.com,
 2m             | Martynas Mickevičius, self@2m.lt, Argyle Inc.
 rkuhn          | Dr. Roland Kuhn, dr.roland.kuhn@gmail.com, Actyx AG
 anthonyvdotbe  | Anthony Vanelverdinghe, dev@anthonyv.be
+angelsanz      | Ángel Sanz, angelsanz@users.noreply.github.com
 shenghaiyang   | 盛海洋, shenghaiyang@aliyun.com
