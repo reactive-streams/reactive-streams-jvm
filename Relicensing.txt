@@ -13,3 +13,4 @@ rkuhn          | Dr. Roland Kuhn, dr.roland.kuhn@gmail.com, Actyx AG
 anthonyvdotbe  | Anthony Vanelverdinghe, dev@anthonyv.be
 angelsanz      | Ángel Sanz, angelsanz@users.noreply.github.com
 shenghaiyang   | 盛海洋, shenghaiyang@aliyun.com
+colinrgodsey   | Colin Godsey, crgodsey@gmail.com
