@@ -1,0 +1,7 @@
+The following copyright holders agree that all of their contributions originally submitted to this project under Creative Commons
+Zero 1.0 Universal (SPDX: CC0-1.0) license are hereby relicensed to MIT No Attribution (SPDX: MIT-0) license, and are submitted pursuant to the Developer Certificate of Origin, version 1.1:
+
+
+github name    | Real Name, Email Address used for git commits, Company
+---------------+----------------------------------------------------------------------------
+viktorklang    | Viktor Klang, viktor.klang@gmail.com, Lightbend Inc.
