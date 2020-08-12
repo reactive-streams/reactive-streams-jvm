@@ -33,7 +33,7 @@ briantopping   | Brian Topping, brian.topping@gmail.com, Mauswerks LLC
 rstoyanchev    | Rossen Stoyanchev, rstoyanchev@vmware.com, VMware
 BjornHamels    | Björn Hamels, bjorn@hamels.nl
 JakeWharton    | Jake Wharton, jakewharton@gmail.com
-anthonyvdotbe  | Anthony Vanelverdinghe, anthonyv.be@outlook.com
+anthonyvdotbe  | Anthony Vanelverdinghe, dev@anthonyv.be
 seratch        | Kazuhiro Sera, seratch@gmail.com, SmartNews, Inc.
 akarnokd       | David Karnok, akarnokd@gmail.com
 egetman        | Evgeniy Getman, getman.eugene@gmail.com
