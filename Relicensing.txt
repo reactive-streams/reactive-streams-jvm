@@ -14,3 +14,4 @@ anthonyvdotbe  | Anthony Vanelverdinghe, dev@anthonyv.be
 angelsanz      | Ángel Sanz, angelsanz@users.noreply.github.com
 shenghaiyang   | 盛海洋, shenghaiyang@aliyun.com
 colinrgodsey   | Colin Godsey, crgodsey@gmail.com
+ldaley         | Luke Daley, luke@gradle.com, Gradle Inc.
