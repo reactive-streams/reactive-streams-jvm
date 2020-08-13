@@ -14,6 +14,7 @@ anthonyvdotbe  | Anthony Vanelverdinghe, dev@anthonyv.be
 angelsanz      | Ángel Sanz, angelsanz@users.noreply.github.com
 shenghaiyang   | 盛海洋, shenghaiyang@aliyun.com
 colinrgodsey   | Colin Godsey, crgodsey@gmail.com
+retronym       | Jason Zaugg, jzaugg@gmail.com, Lightbend Inc.
 ldaley         | Luke Daley, luke@gradle.com, Gradle Inc.
 davidmoten     | Dave Moten, davidmoten@gmail.com
 tomislavhofman | Tomislav Hofman, tomislav.hofman@gmail.com
