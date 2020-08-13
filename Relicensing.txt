@@ -15,3 +15,4 @@ angelsanz      | Ángel Sanz, angelsanz@users.noreply.github.com
 shenghaiyang   | 盛海洋, shenghaiyang@aliyun.com
 colinrgodsey   | Colin Godsey, crgodsey@gmail.com
 rstoyanchev    | Rossen Stoyanchev, rstoyanchev@vmware.com, VMware
+ouertani       | Slim Ouertani, ouertani@gmail.com
