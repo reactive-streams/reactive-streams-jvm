@@ -21,3 +21,4 @@ davidmoten     | Dave Moten, davidmoten@gmail.com
 tomislavhofman | Tomislav Hofman, tomislav.hofman@gmail.com
 rstoyanchev    | Rossen Stoyanchev, rstoyanchev@vmware.com, VMware
 ouertani       | Slim Ouertani, ouertani@gmail.com
+ktoso          | Konrad Malawski, konrad.malawski@project13.pl
