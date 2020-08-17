@@ -23,3 +23,4 @@ rstoyanchev    | Rossen Stoyanchev, rstoyanchev@vmware.com, VMware
 ouertani       | Slim Ouertani, ouertani@gmail.com
 egetman        | Evgeniy Getman, getman.eugene@gmail.com
 ktoso          | Konrad Malawski, konrad.malawski@project13.pl
+jroper         | James Roper, james@jazzy.id.au, Lightbend Inc.
