@@ -24,3 +24,4 @@ ouertani       | Slim Ouertani, ouertani@gmail.com
 egetman        | Evgeniy Getman, getman.eugene@gmail.com
 ktoso          | Konrad Malawski, konrad.malawski@project13.pl
 sullis         | Sean Sullivan, github@seansullivan.com
+jroper         | James Roper, james@jazzy.id.au, Lightbend Inc.
