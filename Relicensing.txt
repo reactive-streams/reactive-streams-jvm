@@ -28,3 +28,4 @@ jroper         | James Roper, james@jazzy.id.au, Lightbend Inc.
 smaldini       | Stephane Maldini, smaldini@netflix.com, Netflix
 dl             | Doug Lea dl@cs.oswego.edu
 benjchristensen| Ben Christensen, benjchristensen@gmail.com
+bjornhamels    | Björn Hamels, bjorn@hamels.nl
