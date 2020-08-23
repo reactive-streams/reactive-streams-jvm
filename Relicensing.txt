@@ -30,3 +30,4 @@ dl             | Doug Lea dl@cs.oswego.edu
 benjchristensen| Ben Christensen, benjchristensen@gmail.com
 bjornhamels    | Björn Hamels, bjorn@hamels.nl
 Scottmitch     | Scott Mitchell, scott_mitchell@apple.com
+seratch        | Kazuhiro Sera, seratch@gmail.com
