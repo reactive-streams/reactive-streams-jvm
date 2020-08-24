@@ -31,3 +31,4 @@ benjchristensen| Ben Christensen, benjchristensen@gmail.com
 bjornhamels    | Björn Hamels, bjorn@hamels.nl
 Scottmitch     | Scott Mitchell, scott_mitchell@apple.com
 seratch        | Kazuhiro Sera, seratch@gmail.com
+briantopping   | Brian Topping, brian.topping@gmail.com, Mauswerks LLC
