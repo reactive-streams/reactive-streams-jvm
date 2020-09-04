@@ -104,7 +104,7 @@ public class TestEnvironment {
    * @param defaultNoSignalsTimeoutMillis default timeout to be used when no further signals are expected anymore
    */
   public TestEnvironment(long defaultTimeoutMillis, long defaultNoSignalsTimeoutMillis) {
-    this(defaultTimeoutMillis, defaultTimeoutMillis, defaultNoSignalsTimeoutMillis);
+    this(defaultTimeoutMillis, defaultNoSignalsTimeoutMillis, defaultTimeoutMillis);
   }
 
   /**
