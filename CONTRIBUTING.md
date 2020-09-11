@@ -1,10 +1,6 @@
 # Contributing to the Reactive Streams Project
 
-The Reactive Streams project welcomes contributions from anybody who wants to participate in moving this initiative forward. All code or documentation that is contributed will have to be covered by a waiver of all copyrights and other rights as detailed by the LICENSE and COPYING files at each repository root, the rationale for this is that the APIs defined by this project shall be freely implementable and usable by everyone.
-
-## Copyright Statement
-
-The aforementioned waiver of copyrights and other rights is represented by the addition of a line to the file [CopyrightWaivers.txt](https://github.com/reactive-streams/reactive-streams-jvm/blob/master/CopyrightWaivers.txt). For a pull request to be considered every contributor must have signed the copyright statement in this way; this may be included within that same pull request.
+The Reactive Streams project welcomes contributions from anybody who wants to participate in moving this initiative forward. All code or documentation that is contributed will have to be covered by the **MIT No Attribution** (SPDX: MIT-0) license, the rationale for this is that the APIs defined by this project shall be freely implementable and usable by everyone. For more detail, see [LICENSE](https://github.com/reactive-streams/reactive-streams-jvm/blob/master/LICENSE).
 
 ## Gatekeepers
 
@@ -28,16 +24,15 @@ Gatekeepers commit to the following:
 
 ## General Workflow
 
-1. Make sure you have signed the Copyright Statement, see above.
-2. Before starting to work on a change, make sure that:
+1. Before starting to work on a change, make sure that:
     1. There is a ticket for your work in the project's issue tracker. If not, create it first. It can help accelerating the pull request acceptance process if the change is agreed upon beforehand within the ticket, but in some cases it may be preferable to discuss the necessity of the change in consideration of a concrete proposal.
     2. The ticket has been scheduled for the current milestone.
-3. You should always perform your work in a Git feature branch within your own fork of the repository your are targeting (even if you should have push rights to the target repository).
-4. When the change is completed you should open a [Pull Request](https://help.github.com/articles/using-pull-requests) on GitHub.
-5. Anyone can comment on the pull request while it is open, and you are expected to answer questions or incorporate feedback.
-6. Once at least two thirds of the gatekeepers have signaled their consent, the pull request is merged by one of the gatekeepers into the branch and repository it is targeting. Consent is signaled by commenting on the pull request with the text “LGTM”, and it suffices for one representative of a gatekeeper to signal consent for that gatekeeper to be counted towards the two thirds quorum.
-7. It is not allowed to force-push to the branch on which the pull request is based. Replacing or adding to the commits on that branch will invalidate all previous consenting comments and consent needs to be re-established.
-8. Before merging a branch that contains multiple commits, it is recommended that these are squashed into a single commit before performing the merge. To aid in verification that no new changes are introduced, a new pull request should be opened in this case, targeting the same branch and repository and containing just one commit which encompasses the full change set of the original pull request.
+2. You should always perform your work in a Git feature branch within your own fork of the repository your are targeting (even if you should have push rights to the target repository).
+3. When the change is completed you should open a [Pull Request](https://help.github.com/articles/using-pull-requests) on GitHub.
+4. Anyone can comment on the pull request while it is open, and you are expected to answer questions or incorporate feedback.
+5. Once at least two thirds of the gatekeepers have signaled their consent, the pull request is merged by one of the gatekeepers into the branch and repository it is targeting. Consent is signaled by commenting on the pull request with the text “LGTM”, and it suffices for one representative of a gatekeeper to signal consent for that gatekeeper to be counted towards the two thirds quorum.
+6. It is not allowed to force-push to the branch on which the pull request is based. Replacing or adding to the commits on that branch will invalidate all previous consenting comments and consent needs to be re-established.
+7. Before merging a branch that contains multiple commits, it is recommended that these are squashed into a single commit before performing the merge. To aid in verification that no new changes are introduced, a new pull request should be opened in this case, targeting the same branch and repository and containing just one commit which encompasses the full change set of the original pull request.
 
 ## Pull Request Requirements
 
@@ -68,7 +63,6 @@ Example:
 
     * clarify how pull requests should look like
     * describe the acceptance process
-    * define the Copyright Statement signing process
 
 ## Performing Official Releases
 

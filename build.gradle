@@ -131,8 +131,8 @@ subprojects {
 
                         licenses {
                             license {
-                                name "CC0"
-                                url "http://creativecommons.org/publicdomain/zero/1.0/"
+                                name "MIT-0"
+                                url "https://spdx.org/licenses/MIT-0.html"
                                 distribution "repo"
                             }
                         }
