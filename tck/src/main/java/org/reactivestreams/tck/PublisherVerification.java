@@ -299,9 +299,11 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
                 concurrentAccessBarrier.enterSignal(signal);
 
                 subs = s;
-                subs.request(1);
 
                 concurrentAccessBarrier.leaveSignal(signal);
+
+                //request after leave signal since request may be offloaded so it is going to be false positive racing
+                subs.request(1);
               }
 
               @Override
@@ -1092,7 +1094,7 @@ public abstract class PublisherVerification<T> implements PublisherVerificationR
             }
           }
         };
-        env.subscribe(pub, sub, env.defaultTimeoutMillis());
+        env.subscribe(pub, sub);
 
         // eventually triggers `onNext`, which will then trigger up to `callsCounter` times `request(Long.MAX_VALUE - 1)`
         // we're pretty sure to overflow from those
