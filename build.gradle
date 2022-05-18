@@ -16,7 +16,7 @@ subprojects {
     apply plugin: 'biz.aQute.bnd.builder'
 
     group = "org.reactivestreams"
-    version = "1.0.3"
+    version = "1.0.4"
 
     sourceCompatibility = 1.6
     targetCompatibility = 1.6
