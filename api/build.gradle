@@ -25,7 +25,8 @@ jar {
             'Bundle-DocURL': 'http://reactive-streams.org',
             'Bundle-Version': project.version,
             'Export-Package': 'org.reactivestreams.*',
-            'Automatic-Module-Name': 'org.reactivestreams'
+            'Automatic-Module-Name': 'org.reactivestreams',
+            'Bundle-SymbolicName': 'org.reactivestreams.reactive-streams'
     )
 }
 
