@@ -1112,7 +1112,7 @@ public class TestEnvironment {
 
         if (env.asyncErrors.isEmpty()) {
           timeStampBNs = System.nanoTime();
-          totalTimeoutRemainingNs =- timeStampBNs - timeStampANs;
+          totalTimeoutRemainingNs -= (timeStampBNs - timeStampANs);
           timeStampANs = timeStampBNs;
 
           if (totalTimeoutRemainingNs <= 0) {
