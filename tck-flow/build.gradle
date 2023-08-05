@@ -11,7 +11,8 @@ jar {
             'Bundle-DocURL': 'http://reactive-streams.org',
             'Bundle-Version': project.version,
             'Export-Package': 'org.reactivestreams.tck.flow.*',
-            'Automatic-Module-Name': 'org.reactivestreams.tckflow'
+            'Automatic-Module-Name': 'org.reactivestreams.tckflow',
+            'Bundle-SymbolicName': 'org.reactivestreams.tckflow'
     )
 }
 
