@@ -138,7 +138,7 @@ public class TestEnvironment {
    * or the default value ({@link TestEnvironment#DEFAULT_TIMEOUT_MILLIS}) will be used.
    */
   public TestEnvironment() {
-    this(envDefaultTimeoutMillis(), envDefaultNoSignalsTimeoutMillis());
+    this(false);
   }
 
   /** This timeout is used when waiting for a signal to arrive. */
