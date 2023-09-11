@@ -290,28 +290,20 @@ public class TestEnvironment {
 
 
   public <T> void subscribe(Publisher<T> pub, TestSubscriber<T> sub) throws InterruptedException {
-    subscribe(pub, sub, defaultTimeoutMillis);
-  }
-
-  public <T> void subscribe(Publisher<T> pub, TestSubscriber<T> sub, long timeoutMillis) throws InterruptedException {
     pub.subscribe(sub);
-    sub.subscription.expectCompletion(timeoutMillis, String.format("Could not subscribe %s to Publisher %s", sub, pub));
+    sub.subscription.expectCompletion(0, String.format("Could not subscribe %s to Publisher %s", sub, pub));
     verifyNoAsyncErrorsNoDelay();
   }
 
   public <T> ManualSubscriber<T> newBlackholeSubscriber(Publisher<T> pub) throws InterruptedException {
     ManualSubscriberWithSubscriptionSupport<T> sub = new BlackholeSubscriberWithSubscriptionSupport<T>(this);
-    subscribe(pub, sub, defaultTimeoutMillis());
+    subscribe(pub, sub);
     return sub;
   }
 
   public <T> ManualSubscriber<T> newManualSubscriber(Publisher<T> pub) throws InterruptedException {
-    return newManualSubscriber(pub, defaultTimeoutMillis());
-  }
-
-  public <T> ManualSubscriber<T> newManualSubscriber(Publisher<T> pub, long timeoutMillis) throws InterruptedException {
     ManualSubscriberWithSubscriptionSupport<T> sub = new ManualSubscriberWithSubscriptionSupport<T>(this);
-    subscribe(pub, sub, timeoutMillis);
+    subscribe(pub, sub);
     return sub;
   }
 
