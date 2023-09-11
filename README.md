@@ -222,6 +222,20 @@ public interface Processor<T, R> extends Subscriber<T>, Publisher<R> {
 While not mandated, it can be a good idea to cancel a `Processor`´s upstream `Subscription` when/if its last `Subscriber` cancels their `Subscription`,
 to let the cancellation signal propagate upstream.
 
+#### 5.MonoPublisher ([Code](https://github.com/reactive-streams/reactive-streams-jvm/blob/master/api/src/main/java/org/reactivestreams/MonoPublisher.java))
+
+```java
+public interface MonoPublisher<T> extends Publisher<T> {
+}
+````
+
+| ID                       | Rule                                                                                                   |
+| ------------------------ | ------------------------------------------------------------------------------------------------------ |
+| <a name="5.1">1</a>      | A `MonoPublisher` represents a `Publisher` specialization and MUST obey its contract.  |
+| [:bulb:](#5.1 "5.1 explained") | *The intent of this rule is to establish that `MonoPublisher` can be used in place of any other `Publisher`.* |
+| <a name="5.2">2</a>       | The total number of `onNext`´s signalled by a `MonoPublisher` to a `Subscriber` MUST be less than or equal to one, regardless of the total number requested by that `Subscriber`´s `Subscription` at all times. |
+| [:bulb:](#5.2 "5.2 explained") | *The intent of this rule is to make it clear that MonoPublishers cannot signal more than one element per `Subscriber`´s `Subscription`.* |
+
 ### Asynchronous vs Synchronous Processing ###
 
 The Reactive Streams API prescribes that all processing of elements (`onNext`) or termination signals (`onError`, `onComplete`) MUST NOT *block* the `Publisher`. However, each of the `on*` handlers can process the events synchronously or asynchronously.
