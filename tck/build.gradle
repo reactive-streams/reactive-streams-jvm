@@ -10,6 +10,7 @@ jar {
             'Bundle-Vendor': 'Reactive Streams SIG',
             'Bundle-Description': 'Reactive Streams TCK',
             'Bundle-DocURL': 'http://reactive-streams.org',
+            'Bundle-License': 'https://spdx.org/licenses/MIT-0.html',
             'Bundle-Version': project.version,
             'Export-Package': 'org.reactivestreams.tck.*',
             'Automatic-Module-Name': 'org.reactivestreams.tck',
