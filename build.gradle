@@ -11,6 +11,12 @@ buildscript {
     }
 }
 
+def sonatypeRepo = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+def sonatypeSnapshots = 'https://oss.sonatype.org/content/repositories/snapshots/'
+
+def distributionRepository = properties["distributionRepository"] ?: sonatypeRepo
+def snapshotsRepository = properties["snapshotsRepository"] ?: sonatypeSnapshots
+
 subprojects {
     apply plugin: "java-library"
     apply plugin: 'biz.aQute.bnd.builder'
@@ -18,8 +24,10 @@ subprojects {
     group = "org.reactivestreams"
     version = "1.0.4"
 
-    sourceCompatibility = 1.6
-    targetCompatibility = 1.6
+    tasks.compileJava {
+        sourceCompatibility = 1.6
+        targetCompatibility = 1.6
+    }
 
     tasks.withType(JavaCompile) {
         configure(options) {
@@ -53,14 +61,15 @@ subprojects {
                  "reactive-streams-tck",
                  "reactive-streams-tck-flow",
                  "reactive-streams-examples"]) {
-        apply plugin: "maven"
         apply plugin: "signing"
+        apply plugin: "publishing"
         apply plugin: "maven-publish"
 
         signing {
             sign configurations.archives
-            required { gradle.taskGraph.hasTask(uploadArchives) }
+            required { gradle.taskGraph.hasTask("publish") }
         }
+
         task sourcesJar(type: Jar) {
             classifier "sources"
             from sourceSets.main.allSource
@@ -79,39 +88,35 @@ subprojects {
           }
           repositories {
             mavenLocal()
+
+            gradle.taskGraph.whenReady { taskGraph ->
+              if (taskGraph.hasTask("publish")) {
+                  def userProp = "sonatypeOssUsername"
+                  def passwordProp = "sonatypeOssPassword"
+                  def user = project.properties[userProp]
+                  def password = project.properties[passwordProp]
+
+                  if ((user == null || password == null) && distributionRepository == sonatypeRepo) {
+                      throw new InvalidUserDataException(
+                         "Cannot perform $uploadArchives.path due to missing credentials.\n" +
+                         "Run with command line args `-P$userProp=«username» -P$passwordProp=«password»` or add these properties to $gradle.gradleUserHomeDir/gradle.properties.\n")
+                  }
+
+                  repository(url: distributionRepository) {
+                    authentication(userName: user, password: password)
+                  }
+                  if (sonatypeSnapshots != "") {
+                    snapshotRepository(url: snapshotsRepository) {
+                      authentication(userName: user, password: password)
+                    }
+                  }
+              }
+            }
           }
         }
 
         artifacts {
             archives sourcesJar, javadocJar
-        }
-
-        uploadArchives {
-            repositories {
-                mavenDeployer {
-                    gradle.taskGraph.whenReady { taskGraph ->
-                        if (taskGraph.hasTask(uploadArchives)) {
-                            def userProp = "sonatypeOssUsername"
-                            def passwordProp = "sonatypeOssPassword"
-                            def user = project.properties[userProp]
-                            def password = project.properties[passwordProp]
-
-                            if (user == null || password == null) {
-                                throw new InvalidUserDataException(
-                                        "Cannot perform $uploadArchives.path due to missing credentials.\n" +
-                                        "Run with command line args `-P$userProp=«username» -P$passwordProp=«password»` or add these properties to $gradle.gradleUserHomeDir/gradle.properties.\n")
-                            }
-
-                            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                                authentication(userName: user, password: password)
-                            }
-                            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-                                authentication(userName: user, password: password)
-                            }
-                        }
-                    }
-                }
-            }
         }
 
         tasks.withType(Upload) {
