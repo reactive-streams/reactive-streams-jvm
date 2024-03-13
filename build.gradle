@@ -50,11 +50,14 @@ subprojects {
         }
     }
 
-    tasks.withType(Test) {
-      testLogging {
-        exceptionFormat "full"
-        events "failed", "started", "standard_out", "standard_error"
-      }
+    testlogger {
+        theme 'mocha-parallel'
+        showExceptions true
+        showStackTraces true
+        showPassed true
+        showSkipped false
+        showFailed true
+        showStandardStreams false
     }
 
     repositories {
@@ -122,40 +125,8 @@ subprojects {
         artifacts {
             archives sourcesJar, javadocJar
         }
+        signing {
 
-        tasks.withType(Upload) {
-            repositories.withType(MavenResolver) {
-                it.beforeDeployment { signing.signPom(it) }
-                it.pom.whenConfigured { pom ->
-                    pom.project {
-                        url "http://www.reactive-streams.org/"
-                        name "reactive-streams"
-                        description "A Protocol for Asynchronous Non-Blocking Data Sequence"
-                        inceptionYear "2014"
-
-                        scm {
-                            url "git@github.com:reactive-streams/reactive-streams.git"
-                            connection "scm:git:git@github.com:reactive-streams/reactive-streams.git"
-                        }
-
-                        licenses {
-                            license {
-                                name "MIT-0"
-                                url "https://spdx.org/licenses/MIT-0.html"
-                                distribution "repo"
-                            }
-                        }
-
-                        developers {
-                            developer {
-                                id "reactive-streams-sig"
-                                name "Reactive Streams SIG"
-                                url "http://www.reactive-streams.org/"
-                            }
-                        }
-                    }
-                }
-            }
         }
     } else {
         uploadArchives.enabled = false
