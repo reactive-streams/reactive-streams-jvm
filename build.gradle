@@ -1,5 +1,6 @@
 plugins {
-    id "biz.aQute.bnd.builder" version "7.0.0" apply false
+    alias(libs.plugins.bnd) apply false
+    alias(libs.plugins.testlogger) apply false
 }
 
 def sonatypeRepo = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
@@ -8,12 +9,12 @@ def sonatypeSnapshots = 'https://oss.sonatype.org/content/repositories/snapshots
 def distributionRepository = properties["distributionRepository"] ?: sonatypeRepo
 def snapshotsRepository = properties["snapshotsRepository"] ?: sonatypeSnapshots
 
-def baselineToolchain = properties["javaBaseline"] ?: '11'
-def javaMaximumTarget = properties["javaTarget"] ?: '21'
+def baselineToolchain = properties["javaBaseline"] ?: libs.versions.java.baseline.get()
 
 subprojects {
     apply plugin: "java-library"
-    apply plugin: 'biz.aQute.bnd.builder'
+    apply plugin: libs.plugins.bnd.get().pluginId
+    apply plugin: libs.plugins.testlogger.get().pluginId
 
     group = "org.reactivestreams"
     version = "1.0.4"
