@@ -1,11 +1,4 @@
 description = "reactive-streams"
-def isJdk9OrGreater = false
-try {
-    Class.forName("java.util.concurrent.Flow")
-    isJdk9OrGreater = true
-} catch (ClassNotFoundException cnfe) {
-
-}
 
 sourceSets {
     main {
@@ -13,7 +6,7 @@ sourceSets {
             srcDirs = ['src/main/java']
         }
     }
-    if (isJdk9OrGreater) java9 {
+    java9 {
         java {
             srcDirs = ['src/main/java', 'src/main/java9']
         }
@@ -25,14 +18,15 @@ configurations {
 }
 
 jar {
-    if (isJdk9OrGreater) into('META-INF/versions/9') {
+    into('META-INF/versions/9') {
         from(sourceSets.java9.output) {
             include '**/FlowAdapters*'
             include '**/module-info.class'
         }
     }
 
-    bnd ('Bundle-Name': 'reactive-streams-jvm',
+    bundle {
+        bnd('Bundle-Name': 'reactive-streams-jvm',
             'Bundle-Vendor': 'Reactive Streams SIG',
             'Bundle-Description': 'Reactive Streams API',
             'Bundle-DocURL': 'http://reactive-streams.org',
@@ -41,34 +35,28 @@ jar {
             'Multi-Release': true,
             'Bundle-SymbolicName': 'org.reactivestreams.reactive-streams',
             '-fixupmessages': '^Classes found in the wrong directory: .*'
-    )
+        )
+    }
 }
 
 artifacts { mrjarArtifact jar }
 
-compileJava {
+compileJava9Java {
     group = "build"
-    description = "Compile Java 1.6 classes"
+    description = "Compile Java 9 classes for MR JAR"
+
+    sourceCompatibility = 9
+    targetCompatibility = 9
 }
 
-if (isJdk9OrGreater) {
-    compileJava9Java {
-        group = "build"
-        description = "Compile Java 9 classes for MR JAR"
+tasks.register('validateModularJar', Exec) {
+    dependsOn jar
+    inputs.file jar.outputs.files.asPath
 
-        sourceCompatibility = 9
-        targetCompatibility = 9
-    }
+    executable = "jar"
+    args = ['--describe-module', '--file', jar.outputs.files.asPath]
+}
 
-    tasks.register('validateModularJar', Exec) {
-        dependsOn jar
-        inputs.file jar.outputs.files.asPath
-
-        executable = "jar"
-        args = ['--describe-module', '--file', jar.outputs.files.asPath]
-    }
-
-    tasks.check {
-        finalizedBy validateModularJar
-    }
+tasks.check {
+    finalizedBy validateModularJar
 }

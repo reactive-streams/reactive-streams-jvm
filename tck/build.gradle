@@ -6,15 +6,34 @@ dependencies {
 }
 
 jar {
-    bnd ('Bundle-Name': 'reactive-streams-jvm',
-            'Bundle-Vendor': 'Reactive Streams SIG',
-            'Bundle-Description': 'Reactive Streams TCK',
-            'Bundle-DocURL': 'http://reactive-streams.org',
-            'Bundle-Version': project.version,
-            'Export-Package': 'org.reactivestreams.tck.*',
-            'Automatic-Module-Name': 'org.reactivestreams.tck',
-            'Bundle-SymbolicName': 'org.reactivestreams.tck'
-    )
+    bundle {
+        bnd ('Bundle-Name': 'reactive-streams-jvm',
+                'Bundle-Vendor': 'Reactive Streams SIG',
+                'Bundle-Description': 'Reactive Streams TCK',
+                'Bundle-DocURL': 'http://reactive-streams.org',
+                'Bundle-Version': project.version,
+                'Export-Package': 'org.reactivestreams.tck.*',
+                'Automatic-Module-Name': 'org.reactivestreams.tck',
+                'Bundle-SymbolicName': 'org.reactivestreams.tck'
+        )
+    }
+}
+
+compileTestJava {
+    sourceCompatibility = 6
+    targetCompatibility = 6
+
+    javaCompiler = javaToolchains.compilerFor {
+        // Always compile the TCK baseline tests on JDK 11.
+        languageVersion = JavaLanguageVersion.of(11)
+    }
+}
+
+test {
+    javaLauncher = javaToolchains.launcherFor {
+        // Always run the TCK baseline tests on JDK 11.
+        languageVersion = JavaLanguageVersion.of(11)
+    }
 }
 
 test.useTestNG()

@@ -1,14 +1,5 @@
-buildscript {
-    repositories { 
-        jcenter()
-        mavenCentral()
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-    dependencies {
-        classpath "biz.aQute.bnd:biz.aQute.bnd.gradle:4.3.1"
-    }
+plugins {
+    id "biz.aQute.bnd.builder" version "7.0.0" apply false
 }
 
 def sonatypeRepo = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
@@ -16,6 +7,9 @@ def sonatypeSnapshots = 'https://oss.sonatype.org/content/repositories/snapshots
 
 def distributionRepository = properties["distributionRepository"] ?: sonatypeRepo
 def snapshotsRepository = properties["snapshotsRepository"] ?: sonatypeSnapshots
+
+def baselineToolchain = properties["javaBaseline"] ?: '11'
+def javaMaximumTarget = properties["javaTarget"] ?: '21'
 
 subprojects {
     apply plugin: "java-library"
@@ -25,8 +19,13 @@ subprojects {
     version = "1.0.4"
 
     tasks.compileJava {
+        group = "build"
+        description = "Compile Java 1.6 classes"
         sourceCompatibility = 1.6
         targetCompatibility = 1.6
+        javaCompiler = javaToolchains.compilerFor {
+            languageVersion = JavaLanguageVersion.of(baselineToolchain)
+        }
     }
 
     tasks.withType(JavaCompile) {
@@ -71,12 +70,12 @@ subprojects {
         }
 
         task sourcesJar(type: Jar) {
-            classifier "sources"
+            archiveClassifier = "sources"
             from sourceSets.main.allSource
         }
 
         task javadocJar(type: Jar) {
-            classifier "javadoc"
+            archiveClassifier = "javadoc"
             from javadoc
         }
 
