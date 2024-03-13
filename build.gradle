@@ -3,6 +3,7 @@ plugins {
     alias(libs.plugins.testlogger) apply false
 }
 
+def projectVersion = properties["releaseVersion"] ?: "1.0.4"
 def sonatypeRepo = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
 def sonatypeSnapshots = 'https://oss.sonatype.org/content/repositories/snapshots/'
 
@@ -17,7 +18,7 @@ subprojects {
     apply plugin: libs.plugins.testlogger.get().pluginId
 
     group = "org.reactivestreams"
-    version = "1.0.4"
+    version = projectVersion
 
     dependencyLocking {
         lockAllConfigurations()
