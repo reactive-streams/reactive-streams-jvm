@@ -18,6 +18,10 @@ subprojects {
     group = "org.reactivestreams"
     version = "1.0.4"
 
+    dependencyLocking {
+        lockAllConfigurations()
+    }
+
     tasks.compileJava {
         group = "build"
         description = "Compile Java 1.6 classes"
