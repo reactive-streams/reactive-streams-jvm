@@ -13,6 +13,10 @@ sourceSets {
     }
 }
 
+def jpmsMinimumTarget = 9
+def javaMaximumTarget = 21
+def javaTestTargets = [11, 17, javaMaximumTarget]
+
 configurations {
   mrjarArtifact
 }
@@ -45,8 +49,8 @@ compileJava9Java {
     group = "build"
     description = "Compile Java 9 classes for MR JAR"
 
-    sourceCompatibility = 9
-    targetCompatibility = 9
+    sourceCompatibility = jpmsMinimumTarget
+    targetCompatibility = jpmsMinimumTarget
 }
 
 tasks.register('validateModularJar', Exec) {
@@ -55,6 +59,25 @@ tasks.register('validateModularJar', Exec) {
 
     executable = "jar"
     args = ['--describe-module', '--file', jar.outputs.files.asPath]
+}
+
+javaTestTargets.each { majorVersion ->
+    def validateModularJar = tasks.register("validateModularJarJdk$majorVersion", Exec) {
+        description = "Validates the modular JAR on JDK $majorVersion"
+        group = LifecycleBasePlugin.VERIFICATION_GROUP
+
+        def javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(majorVersion)
+        }
+
+        dependsOn jar
+        inputs.file jar.outputs.files.asPath
+
+        // ugly, but it accesses the `jar` executable which is peer to the resolved `java` launcher
+        executable = javaLauncher.get().executablePath.asFile.parentFile.toPath().resolve("jar").toFile()
+        args = ['--describe-module', '--file', jar.outputs.files.asPath, "--release", "$majorVersion"]
+    }
+    tasks.named("check").configure { dependsOn(validateModularJar) }
 }
 
 tasks.check {

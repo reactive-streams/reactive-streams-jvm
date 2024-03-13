@@ -1,4 +1,5 @@
 description = 'reactive-streams-tck'
+
 dependencies {
     api group: 'org.testng', name: 'testng', version:'7.3.0'
     api project(path: ':reactive-streams', configuration: 'mrjarArtifact')
@@ -19,21 +20,50 @@ jar {
     }
 }
 
+// Run the TCK baseline tests on LTS releases, JDK 8 and above.
+def javaMinimumTarget = 8
+def javaMaximumTarget = 21
+def javaTestTargets = [javaMinimumTarget, 11, 17, javaMaximumTarget]
+def jdk8Toolchain = JavaLanguageVersion.of(javaMinimumTarget)
+
 compileTestJava {
     sourceCompatibility = 6
     targetCompatibility = 6
 
     javaCompiler = javaToolchains.compilerFor {
-        // Always compile the TCK baseline tests on JDK 11.
-        languageVersion = JavaLanguageVersion.of(11)
+        languageVersion = jdk8Toolchain
     }
 }
 
 test {
+    useTestNG()
+
     javaLauncher = javaToolchains.launcherFor {
-        // Always run the TCK baseline tests on JDK 11.
-        languageVersion = JavaLanguageVersion.of(11)
+        languageVersion = jdk8Toolchain
     }
 }
 
-test.useTestNG()
+javaTestTargets.each { majorVersion ->
+    def jdkTest = tasks.register("testJdk$majorVersion", Test) {
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(majorVersion)
+        }
+
+        description = "Runs the test suite on JDK $majorVersion"
+        group = LifecycleBasePlugin.VERIFICATION_GROUP
+
+        // Copy inputs from normal Test task.
+        def testTask = tasks.getByName("test")
+
+        useTestNG()
+        if (majorVersion >= 9) {
+            // tbd
+            classpath = testTask.classpath
+            testClassesDirs = testTask.testClassesDirs
+        } else {
+            classpath = testTask.classpath
+            testClassesDirs = testTask.testClassesDirs
+        }
+    }
+    tasks.named("check").configure { dependsOn(jdkTest) }
+}

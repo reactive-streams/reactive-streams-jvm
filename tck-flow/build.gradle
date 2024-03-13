@@ -20,12 +20,60 @@ jar {
     }
 }
 
+// Run the TCK Flow tests on JDK 11.
+def baselineToolchain = properties["javaBaseline"] ?: '11'
+
+// Run the TCK flow tests on LTS releases, JDK 11 and above.
+def javaMinimumTarget = 11
+def javaMaximumTarget = 21
+def javaTestTargets = [javaMinimumTarget, 17, javaMaximumTarget]
+def jdk8Toolchain = JavaLanguageVersion.of(javaMinimumTarget)
+
 compileJava {
     options.release = 9
+
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(baselineToolchain)
+    }
 }
 
 compileTestJava {
     options.release = 9
+
+    javaCompiler = javaToolchains.compilerFor {
+        languageVersion = JavaLanguageVersion.of(baselineToolchain)
+    }
 }
 
-test.useTestNG()
+test {
+    useTestNG()
+
+    javaLauncher = javaToolchains.launcherFor {
+        languageVersion = JavaLanguageVersion.of(baselineToolchain)
+    }
+}
+
+javaTestTargets.each { majorVersion ->
+    def jdkTest = tasks.register("testJdk$majorVersion", Test) {
+        javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(majorVersion)
+        }
+
+        description = "Runs the test suite on JDK $majorVersion"
+        group = LifecycleBasePlugin.VERIFICATION_GROUP
+
+        // Copy inputs from normal Test task.
+        def testTask = tasks.getByName("test")
+
+        useTestNG()
+        if (majorVersion >= 9) {
+            // tbd
+            classpath = testTask.classpath
+            testClassesDirs = testTask.testClassesDirs
+        } else {
+            classpath = testTask.classpath
+            testClassesDirs = testTask.testClassesDirs
+        }
+    }
+    tasks.named("check").configure { dependsOn(jdkTest) }
+}
