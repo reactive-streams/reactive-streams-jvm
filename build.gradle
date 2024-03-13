@@ -91,6 +91,34 @@ subprojects {
           publications {
             mavenJava(MavenPublication) {
               from components.java
+
+              pom {
+                url = "https://www.reactive-streams.org/"
+                name = "reactive-streams"
+                description = "A Protocol for Asynchronous Non-Blocking Data Sequence"
+                inceptionYear = "2014"
+
+                scm {
+                    url = "git@github.com:reactive-streams/reactive-streams.git"
+                    connection = "scm:git:git@github.com:reactive-streams/reactive-streams.git"
+                }
+
+                licenses {
+                    license {
+                        name = "MIT-0"
+                        url = "https://spdx.org/licenses/MIT-0.html"
+                        distribution = "repo"
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = "reactive-streams-sig"
+                        name = "Reactive Streams SIG"
+                        url = "https://www.reactive-streams.org/"
+                    }
+                }
+              }
             }
           }
           repositories {
