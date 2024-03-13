@@ -5,7 +5,8 @@ dependencies {
 }
 
 jar {
-    bnd ('Bundle-Name': 'reactive-streams-jvm',
+    bundle {
+        bnd('Bundle-Name': 'reactive-streams-jvm',
             'Bundle-Vendor': 'Reactive Streams SIG',
             'Bundle-Description': 'Reactive Streams Examples',
             'Bundle-DocURL': 'http://reactive-streams.org',
@@ -13,7 +14,8 @@ jar {
             'Export-Package': 'org.reactivestreams.example.*',
             'Automatic-Module-Name': 'org.reactivestreams.examples',
             'Bundle-SymbolicName': 'org.reactivestreams.examples'
-    )
+        )
+    }
 }
 
 test.useTestNG()

@@ -1,25 +1,38 @@
-buildscript {
-    repositories { 
-        jcenter()
-        mavenCentral()
-        maven {
-            url "https://plugins.gradle.org/m2/"
-        }
-    }
-    dependencies {
-        classpath "biz.aQute.bnd:biz.aQute.bnd.gradle:4.3.1"
-    }
+plugins {
+    alias(libs.plugins.bnd) apply false
+    alias(libs.plugins.testlogger) apply false
 }
+
+def projectVersion = properties["releaseVersion"] ?: "1.0.4"
+def sonatypeRepo = 'https://oss.sonatype.org/service/local/staging/deploy/maven2/'
+def sonatypeSnapshots = 'https://oss.sonatype.org/content/repositories/snapshots/'
+
+def distributionRepository = properties["distributionRepository"] ?: sonatypeRepo
+def snapshotsRepository = properties["snapshotsRepository"] ?: sonatypeSnapshots
+
+def baselineToolchain = properties["javaBaseline"] ?: libs.versions.java.baseline.get()
 
 subprojects {
     apply plugin: "java-library"
-    apply plugin: 'biz.aQute.bnd.builder'
+    apply plugin: libs.plugins.bnd.get().pluginId
+    apply plugin: libs.plugins.testlogger.get().pluginId
 
     group = "org.reactivestreams"
-    version = "1.0.4"
+    version = projectVersion
 
-    sourceCompatibility = 1.6
-    targetCompatibility = 1.6
+    dependencyLocking {
+        lockAllConfigurations()
+    }
+
+    tasks.compileJava {
+        group = "build"
+        description = "Compile Java 1.6 classes"
+        sourceCompatibility = 1.6
+        targetCompatibility = 1.6
+        javaCompiler = javaToolchains.compilerFor {
+            languageVersion = JavaLanguageVersion.of(baselineToolchain)
+        }
+    }
 
     tasks.withType(JavaCompile) {
         configure(options) {
@@ -38,11 +51,14 @@ subprojects {
         }
     }
 
-    tasks.withType(Test) {
-      testLogging {
-        exceptionFormat "full"
-        events "failed", "started", "standard_out", "standard_error"
-      }
+    testlogger {
+        theme 'mocha-parallel'
+        showExceptions true
+        showStackTraces true
+        showPassed true
+        showSkipped false
+        showFailed true
+        showStandardStreams false
     }
 
     repositories {
@@ -53,21 +69,22 @@ subprojects {
                  "reactive-streams-tck",
                  "reactive-streams-tck-flow",
                  "reactive-streams-examples"]) {
-        apply plugin: "maven"
         apply plugin: "signing"
+        apply plugin: "publishing"
         apply plugin: "maven-publish"
 
         signing {
             sign configurations.archives
-            required { gradle.taskGraph.hasTask(uploadArchives) }
+            required { gradle.taskGraph.hasTask("publish") }
         }
+
         task sourcesJar(type: Jar) {
-            classifier "sources"
+            archiveClassifier = "sources"
             from sourceSets.main.allSource
         }
 
         task javadocJar(type: Jar) {
-            classifier "javadoc"
+            archiveClassifier = "javadoc"
             from javadoc
         }
 
@@ -75,78 +92,70 @@ subprojects {
           publications {
             mavenJava(MavenPublication) {
               from components.java
+
+              pom {
+                url = "https://www.reactive-streams.org/"
+                name = "reactive-streams"
+                description = "A Protocol for Asynchronous Non-Blocking Data Sequence"
+                inceptionYear = "2014"
+
+                scm {
+                    url = "git@github.com:reactive-streams/reactive-streams.git"
+                    connection = "scm:git:git@github.com:reactive-streams/reactive-streams.git"
+                }
+
+                licenses {
+                    license {
+                        name = "MIT-0"
+                        url = "https://spdx.org/licenses/MIT-0.html"
+                        distribution = "repo"
+                    }
+                }
+
+                developers {
+                    developer {
+                        id = "reactive-streams-sig"
+                        name = "Reactive Streams SIG"
+                        url = "https://www.reactive-streams.org/"
+                    }
+                }
+              }
             }
           }
           repositories {
             mavenLocal()
+
+            gradle.taskGraph.whenReady { taskGraph ->
+              if (taskGraph.hasTask("publish")) {
+                  def userProp = "sonatypeOssUsername"
+                  def passwordProp = "sonatypeOssPassword"
+                  def user = project.properties[userProp]
+                  def password = project.properties[passwordProp]
+
+                  if ((user == null || password == null) && distributionRepository == sonatypeRepo) {
+                      throw new InvalidUserDataException(
+                         "Cannot perform $uploadArchives.path due to missing credentials.\n" +
+                         "Run with command line args `-P$userProp=«username» -P$passwordProp=«password»` or add these properties to $gradle.gradleUserHomeDir/gradle.properties.\n")
+                  }
+
+                  repository(url: distributionRepository) {
+                    authentication(userName: user, password: password)
+                  }
+                  if (sonatypeSnapshots != "") {
+                    snapshotRepository(url: snapshotsRepository) {
+                      authentication(userName: user, password: password)
+                    }
+                  }
+              }
+            }
           }
         }
 
         artifacts {
             archives sourcesJar, javadocJar
         }
+        signing {
 
-        uploadArchives {
-            repositories {
-                mavenDeployer {
-                    gradle.taskGraph.whenReady { taskGraph ->
-                        if (taskGraph.hasTask(uploadArchives)) {
-                            def userProp = "sonatypeOssUsername"
-                            def passwordProp = "sonatypeOssPassword"
-                            def user = project.properties[userProp]
-                            def password = project.properties[passwordProp]
-
-                            if (user == null || password == null) {
-                                throw new InvalidUserDataException(
-                                        "Cannot perform $uploadArchives.path due to missing credentials.\n" +
-                                        "Run with command line args `-P$userProp=«username» -P$passwordProp=«password»` or add these properties to $gradle.gradleUserHomeDir/gradle.properties.\n")
-                            }
-
-                            repository(url: "https://oss.sonatype.org/service/local/staging/deploy/maven2/") {
-                                authentication(userName: user, password: password)
-                            }
-                            snapshotRepository(url: "https://oss.sonatype.org/content/repositories/snapshots/") {
-                                authentication(userName: user, password: password)
-                            }
-                        }
-                    }
-                }
-            }
-        }
-
-        tasks.withType(Upload) {
-            repositories.withType(MavenResolver) {
-                it.beforeDeployment { signing.signPom(it) }
-                it.pom.whenConfigured { pom ->
-                    pom.project {
-                        url "http://www.reactive-streams.org/"
-                        name "reactive-streams"
-                        description "A Protocol for Asynchronous Non-Blocking Data Sequence"
-                        inceptionYear "2014"
-
-                        scm {
-                            url "git@github.com:reactive-streams/reactive-streams.git"
-                            connection "scm:git:git@github.com:reactive-streams/reactive-streams.git"
-                        }
-
-                        licenses {
-                            license {
-                                name "MIT-0"
-                                url "https://spdx.org/licenses/MIT-0.html"
-                                distribution "repo"
-                            }
-                        }
-
-                        developers {
-                            developer {
-                                id "reactive-streams-sig"
-                                name "Reactive Streams SIG"
-                                url "http://www.reactive-streams.org/"
-                            }
-                        }
-                    }
-                }
-            }
         }
     } else {
         uploadArchives.enabled = false

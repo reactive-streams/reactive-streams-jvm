@@ -1,32 +1,85 @@
 description = "reactive-streams"
-def jdkFlow = false
-try {
-    Class.forName("java.util.concurrent.Flow")
-    jdkFlow = true
-} catch (ClassNotFoundException cnfe) {
-
-}
 
 sourceSets {
     main {
         java {
-            if (jdkFlow)
-              srcDirs = ['src/main/java', 'src/main/java9']
-            else
-              srcDirs = ['src/main/java']
+            srcDirs = ['src/main/java']
+        }
+    }
+    java9 {
+        java {
+            srcDirs = ['src/main/java', 'src/main/java9']
         }
     }
 }
 
+def jpmsMinimumTarget = 9
+def javaMaximumTarget = 21
+def javaTestTargets = [11, 17, javaMaximumTarget]
+
+configurations {
+  mrjarArtifact
+}
+
 jar {
-    bnd ('Bundle-Name': 'reactive-streams-jvm',
+    into('META-INF/versions/9') {
+        from(sourceSets.java9.output) {
+            include '**/FlowAdapters*'
+            include '**/module-info.class'
+        }
+    }
+
+    bundle {
+        bnd('Bundle-Name': 'reactive-streams-jvm',
             'Bundle-Vendor': 'Reactive Streams SIG',
             'Bundle-Description': 'Reactive Streams API',
             'Bundle-DocURL': 'http://reactive-streams.org',
             'Bundle-Version': project.version,
-            'Export-Package': 'org.reactivestreams.*',
-            'Automatic-Module-Name': 'org.reactivestreams',
-            'Bundle-SymbolicName': 'org.reactivestreams.reactive-streams'
-    )
+            'Export-Package': 'org.reactivestreams.*,!META-INF.*',
+            'Multi-Release': true,
+            'Bundle-SymbolicName': 'org.reactivestreams.reactive-streams',
+            '-fixupmessages': '^Classes found in the wrong directory: .*'
+        )
+    }
 }
 
+artifacts { mrjarArtifact jar }
+
+compileJava9Java {
+    group = "build"
+    description = "Compile Java 9 classes for MR JAR"
+
+    sourceCompatibility = jpmsMinimumTarget
+    targetCompatibility = jpmsMinimumTarget
+}
+
+tasks.register('validateModularJar', Exec) {
+    dependsOn jar
+    inputs.file jar.outputs.files.asPath
+
+    executable = "jar"
+    args = ['--describe-module', '--file', jar.outputs.files.asPath]
+}
+
+javaTestTargets.each { majorVersion ->
+    def validateModularJar = tasks.register("validateModularJarJdk$majorVersion", Exec) {
+        description = "Validates the modular JAR on JDK $majorVersion"
+        group = LifecycleBasePlugin.VERIFICATION_GROUP
+
+        def javaLauncher = javaToolchains.launcherFor {
+            languageVersion = JavaLanguageVersion.of(majorVersion)
+        }
+
+        dependsOn jar
+        inputs.file jar.outputs.files.asPath
+
+        // ugly, but it accesses the `jar` executable which is peer to the resolved `java` launcher
+        executable = javaLauncher.get().executablePath.asFile.parentFile.toPath().resolve("jar").toFile()
+        args = ['--describe-module', '--file', jar.outputs.files.asPath, "--release", "$majorVersion"]
+    }
+    tasks.named("check").configure { dependsOn(validateModularJar) }
+}
+
+tasks.check {
+    finalizedBy validateModularJar
+}

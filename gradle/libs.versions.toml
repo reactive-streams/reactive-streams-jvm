@@ -1,0 +1,12 @@
+[versions]
+java-baseline = "11"
+bnd-tools = "7.0.0"
+testlogger = "4.0.0"
+testng = "7.3.0"
+
+[plugins]
+bnd = { id = "biz.aQute.bnd.builder", version.ref = "bnd-tools" }
+testlogger = { id = "com.adarshr.test-logger", version.ref = "testlogger" }
+
+[libraries]
+testng = { module = "org.testng:testng", version.ref = "testng" }
